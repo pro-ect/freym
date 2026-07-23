@@ -14,7 +14,6 @@ const DEFAULT_HANDLES = [
   "aleksaa.aich",
   "frameformula",
   "limatraaa",
-  "aitrend_1",
 ];
 
 const SC_BASE = "https://api.scrapecreators.com/v1/threads";
@@ -48,11 +47,18 @@ async function extractPrompt(caption: string): Promise<Extraction | null> {
       max_tokens: 1024,
       system:
         "You analyze social media posts from AI image creators. Extract any image-generation prompt the creator shared. " +
-        "Prompts may be quoted, in the caption body, or split across lines. Set contains_prompt to true only if actual " +
+        "Prompts may be quoted, in the caption body, in the creator's replies, or split across lines. Set contains_prompt to true only if actual " +
         "prompt text is present, not merely mentioned. prompt_text must be the verbatim prompt (cleaned of surrounding " +
-        "commentary, hashtags, and emoji that are not part of the prompt). model_mentioned is the generation model/tool " +
-        "if named (e.g. 'Midjourney v7', 'Flux', 'Sora', 'Nano Banana'), else null. style_tags: 2-5 short lowercase " +
-        "tags describing the visual style.",
+        "commentary, hashtags, and emoji that are not part of the prompt).\n" +
+        "model_mentioned: normalize to a canonical name when the post names the generation tool, including via aliases:\n" +
+        "- 'GPT Image' (aliases: ChatGPT, Chatgpt Image, DALL-E, gpt-image-1, gpt-image-2, 4o image)\n" +
+        "- 'Midjourney' (append the version when given, e.g. 'Midjourney v7')\n" +
+        "- 'Nano Banana' / 'Nano Banana Pro' (aliases: Gemini image, Imagen)\n" +
+        "- 'Seedream', 'Krea', 'Recraft', 'Flux', 'Sora', 'Ideogram', 'Stable Diffusion'\n" +
+        "If a model outside this list is named, return its name verbatim. If no tool is named but the prompt contains " +
+        "Midjourney parameter syntax (--ar, --stylize, --chaos, --weird, --sref, --profile, --raw, --v), return 'Midjourney'. " +
+        "Otherwise null.\n" +
+        "style_tags: 2-5 short lowercase tags describing the visual style.",
       messages: [{ role: "user", content: caption }],
       output_config: {
         format: {
@@ -258,10 +264,10 @@ Deno.serve(async (req) => {
     );
   }
 
-  // Extract prompts for posts that haven't been processed yet.
+  // Extract prompts for posts that haven't been processed yet (or were reset for re-extraction).
   const { data: pending } = await supabase
     .from("sc_posts")
-    .select("id, caption")
+    .select("id, caption, reply_text")
     .is("extracted_at", null)
     .not("caption", "is", null)
     .limit(extractLimit);
@@ -272,7 +278,10 @@ Deno.serve(async (req) => {
     const batch = pending!.slice(i, i + batchSize);
     await Promise.all(
       batch.map(async (post) => {
-        const ex = await extractPrompt(post.caption);
+        const source = post.reply_text
+          ? `${post.caption}\n\n[Creator's own replies to this post]\n${post.reply_text}`
+          : post.caption;
+        const ex = await extractPrompt(source);
         if (!ex) return;
         const { error } = await supabase
           .from("sc_posts")
