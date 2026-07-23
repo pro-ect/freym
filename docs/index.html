@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>freym — prompts behind the best AI images</title>
+<meta name="description" content="A live feed of AI creators on Threads: their images, and the prompts behind them." />
+<style>
+  :root {
+    --bg: #f5f4ee;
+    --ink: #111110;
+    --muted: #6f6d66;
+    --line: #e4e2d8;
+    --card: #ffffff;
+    --accent: #ff4d00;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px 40px;
+  }
+  .wordmark { font-weight: 700; font-size: 19px; letter-spacing: -0.02em; }
+  .wordmark span { color: var(--accent); }
+  .hdr-right { font-size: 14px; color: var(--muted); }
+
+  .hero { text-align: center; padding: 84px 24px 48px; }
+  .hero h1 {
+    font-size: clamp(38px, 6vw, 68px);
+    font-weight: 600; letter-spacing: -0.03em; line-height: 1.05;
+    max-width: 800px; margin: 0 auto;
+  }
+  .hero p { margin-top: 20px; font-size: 17px; color: var(--muted); }
+
+  .filters {
+    display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+    padding: 26px 24px 8px; position: sticky; top: 0; z-index: 5;
+    background: linear-gradient(var(--bg) 75%, transparent);
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid var(--line); background: var(--card);
+    border-radius: 999px; padding: 8px 16px; font-size: 14px;
+    cursor: pointer; transition: all .15s ease; user-select: none;
+  }
+  .pill img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
+  .pill:hover { border-color: var(--ink); }
+  .pill.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .pill.active img { filter: none; }
+
+  .grid {
+    columns: 4 260px; column-gap: 14px;
+    max-width: 1280px; margin: 26px auto 80px; padding: 0 24px;
+  }
+  .card {
+    break-inside: avoid; margin-bottom: 14px; position: relative;
+    border-radius: 12px; overflow: hidden; background: var(--card);
+    border: 1px solid var(--line); cursor: pointer;
+  }
+  .card img { width: 100%; display: block; }
+  .card .tag {
+    position: absolute; top: 10px; left: 10px;
+    background: rgba(17,17,16,.82); color: #fff;
+    font-size: 11px; font-weight: 600; letter-spacing: .04em;
+    padding: 4px 9px; border-radius: 999px; text-transform: uppercase;
+  }
+  .card .who {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 26px 12px 10px; font-size: 13px; color: #fff;
+    background: linear-gradient(transparent, rgba(0,0,0,.55));
+    opacity: 0; transition: opacity .15s ease;
+  }
+  .card:hover .who { opacity: 1; }
+  .card .count {
+    position: absolute; top: 10px; right: 10px;
+    background: rgba(255,255,255,.85); color: var(--ink);
+    font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 999px;
+  }
+
+  /* overlay */
+  .overlay {
+    position: fixed; inset: 0; z-index: 50; display: none;
+    background: rgba(20,20,18,.5); backdrop-filter: blur(6px);
+    align-items: center; justify-content: center; padding: 24px;
+  }
+  .overlay.open { display: flex; }
+  .sheet {
+    background: var(--bg); border-radius: 16px; overflow: hidden;
+    display: flex; max-width: 1060px; width: 100%; max-height: 90vh;
+  }
+  .sheet .left { flex: 1.2; background: #0d0d0c; display: flex; align-items: center; justify-content: center; position: relative; min-width: 0; }
+  .sheet .left img { max-width: 100%; max-height: 90vh; object-fit: contain; }
+  .nav-btn {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    background: rgba(255,255,255,.9); border: none; cursor: pointer;
+    width: 34px; height: 34px; border-radius: 50%; font-size: 16px; line-height: 1;
+  }
+  .nav-btn.prev { left: 12px; } .nav-btn.next { right: 12px; }
+  .sheet .right {
+    flex: 1; padding: 32px; overflow-y: auto; display: flex; flex-direction: column; gap: 18px;
+    min-width: 320px;
+  }
+  .creator-line { display: flex; align-items: center; gap: 10px; }
+  .creator-line img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+  .creator-line .h { font-weight: 600; font-size: 15px; }
+  .creator-line .f { font-size: 13px; color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font-size: 12px; border: 1px solid var(--line); background: var(--card);
+    padding: 4px 10px; border-radius: 999px; color: var(--muted);
+  }
+  .chip.model { color: var(--ink); font-weight: 600; }
+  .prompt-box {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px; font-size: 14px; line-height: 1.55; white-space: pre-wrap;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace; color: #2a2a27;
+  }
+  .label { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--ink); color: var(--bg); border: none; cursor: pointer;
+    border-radius: 999px; padding: 10px 18px; font-size: 14px; font-weight: 500;
+    width: fit-content; transition: opacity .15s;
+  }
+  .btn:hover { opacity: .85; }
+  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  .src-link { font-size: 14px; color: var(--accent); }
+  .no-prompt { font-size: 14px; color: var(--muted); font-style: italic; }
+  .close-x {
+    position: absolute; top: 14px; right: 14px; z-index: 2;
+    background: rgba(255,255,255,.9); border: none; width: 32px; height: 32px;
+    border-radius: 50%; cursor: pointer; font-size: 15px;
+  }
+  footer { text-align: center; padding: 40px; font-size: 13px; color: var(--muted); }
+  .loading { text-align: center; color: var(--muted); padding: 60px; }
+  @media (max-width: 760px) {
+    .sheet { flex-direction: column; overflow-y: auto; }
+    .sheet .left img { max-height: 46vh; }
+    header { padding: 18px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark">freym<span>.</span></div>
+  <div class="hdr-right" id="stats"></div>
+</header>
+
+<section class="hero">
+  <h1>The prompts behind the best AI images.</h1>
+  <p>A live feed of AI creators on Threads — their pictures, and the exact prompts that made them.</p>
+</section>
+
+<div class="filters" id="filters"></div>
+<div class="grid" id="grid"><div class="loading">Loading feed…</div></div>
+
+<div class="overlay" id="overlay">
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<footer>freym — an experiment. Images belong to their creators.</footer>
+
+<script>
+const FEED_URL = "https://lmuksetmkzssoewkzdlm.supabase.co/functions/v1/scraper-feed";
+const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxtdWtzZXRta3pzc29ld2t6ZGxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyNTUwNTMsImV4cCI6MjA3NzgzMTA1M30.mvX1o1RBSDgfX5OwRu3ArxsTxQzeZ5ah6J0aR2ZwNuk";
+
+let DATA = { creators: [], posts: [] };
+let filterCreator = null;   // creator id or null
+let promptsOnly = false;
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => (s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+async function load() {
+  const res = await fetch(FEED_URL, { headers: { Authorization: "Bearer " + ANON_KEY } });
+  DATA = await res.json();
+  DATA.posts = DATA.posts.filter((p) => (p.sc_images ?? []).length);
+  DATA.posts.forEach((p) => p.sc_images.sort((a, b) => a.position - b.position));
+  renderFilters();
+  renderGrid();
+  const withPrompt = DATA.posts.filter((p) => p.has_prompt).length;
+  $("#stats").textContent = `${DATA.posts.length} posts · ${withPrompt} prompts · ${DATA.creators.length} creators`;
+}
+
+function renderFilters() {
+  const el = $("#filters");
+  el.innerHTML = "";
+  const all = pill("All", null, filterCreator === null && !promptsOnly);
+  all.onclick = () => { filterCreator = null; promptsOnly = false; renderFilters(); renderGrid(); };
+  el.appendChild(all);
+
+  const wp = pill("With prompt", null, promptsOnly);
+  wp.onclick = () => { promptsOnly = !promptsOnly; renderFilters(); renderGrid(); };
+  el.appendChild(wp);
+
+  for (const c of DATA.creators) {
+    const p = pill("@" + c.handle, c.profile_pic_url, filterCreator === c.id);
+    p.onclick = () => { filterCreator = filterCreator === c.id ? null : c.id; renderFilters(); renderGrid(); };
+    el.appendChild(p);
+  }
+}
+
+function pill(text, img, active) {
+  const d = document.createElement("div");
+  d.className = "pill" + (active ? " active" : "");
+  d.innerHTML = (img ? `<img src="${esc(img)}" referrerpolicy="no-referrer" alt="">` : "") + esc(text);
+  return d;
+}
+
+function renderGrid() {
+  const grid = $("#grid");
+  grid.innerHTML = "";
+  const posts = DATA.posts.filter((p) =>
+    (!filterCreator || p.creator_id === filterCreator) && (!promptsOnly || p.has_prompt)
+  );
+  if (!posts.length) { grid.innerHTML = '<div class="loading">Nothing here yet.</div>'; return; }
+  for (const p of posts) {
+    const c = DATA.creators.find((x) => x.id === p.creator_id);
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <img src="${esc(p.sc_images[0].url)}" loading="lazy" referrerpolicy="no-referrer" alt="">
+      ${p.has_prompt ? '<div class="tag">Prompt</div>' : ""}
+      ${p.sc_images.length > 1 ? `<div class="count">${p.sc_images.length}</div>` : ""}
+      <div class="who">@${esc(c?.handle ?? "")}</div>`;
+    card.onclick = () => openPost(p);
+    grid.appendChild(card);
+  }
+}
+
+let imgIndex = 0;
+let currentPost = null;
+
+function openPost(p) {
+  currentPost = p; imgIndex = 0;
+  renderSheet();
+  $("#overlay").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function renderSheet() {
+  const p = currentPost;
+  const c = DATA.creators.find((x) => x.id === p.creator_id);
+  const many = p.sc_images.length > 1;
+  const tags = (p.style_tags ?? []).map((t) => `<span class="chip">${esc(t)}</span>`).join("");
+  $("#sheet").innerHTML = `
+    <div class="left">
+      <button class="close-x" onclick="closeOverlay()">✕</button>
+      <img src="${esc(p.sc_images[imgIndex].url)}" referrerpolicy="no-referrer" alt="">
+      ${many ? '<button class="nav-btn prev" onclick="step(-1)">←</button><button class="nav-btn next" onclick="step(1)">→</button>' : ""}
+    </div>
+    <div class="right">
+      <div class="creator-line">
+        ${c?.profile_pic_url ? `<img src="${esc(c.profile_pic_url)}" referrerpolicy="no-referrer" alt="">` : ""}
+        <div>
+          <div class="h">@${esc(c?.handle ?? "")}</div>
+          <div class="f">${esc(c?.full_name ?? "")}</div>
+        </div>
+      </div>
+      <div class="chips">
+        ${p.model_name ? `<span class="chip model">${esc(p.model_name)}</span>` : ""}
+        ${tags}
+      </div>
+      ${p.has_prompt && p.prompt_text
+        ? `<div><div class="label">Prompt</div><div class="prompt-box" id="ptext">${esc(p.prompt_text)}</div></div>
+           <button class="btn" onclick="copyPrompt(this)">Copy prompt</button>`
+        : `<div class="no-prompt">No prompt shared for this post.</div>`}
+      ${p.caption && !p.has_prompt ? `<div><div class="label">Caption</div><div style="font-size:14px;line-height:1.5;white-space:pre-wrap;">${esc(p.caption)}</div></div>` : ""}
+      ${p.url ? `<a class="src-link" href="${esc(p.url)}" target="_blank" rel="noopener">View on Threads →</a>` : ""}
+    </div>`;
+}
+
+function step(d) {
+  const n = currentPost.sc_images.length;
+  imgIndex = (imgIndex + d + n) % n;
+  renderSheet();
+}
+
+function copyPrompt(btn) {
+  navigator.clipboard.writeText(currentPost.prompt_text).then(() => {
+    btn.textContent = "Copied ✓";
+    setTimeout(() => (btn.textContent = "Copy prompt"), 1500);
+  });
+}
+
+function closeOverlay() {
+  $("#overlay").classList.remove("open");
+  document.body.style.overflow = "";
+}
+$("#overlay").addEventListener("click", (e) => { if (e.target === e.currentTarget) closeOverlay(); });
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeOverlay();
+  if ($("#overlay").classList.contains("open")) {
+    if (e.key === "ArrowLeft") step(-1);
+    if (e.key === "ArrowRight") step(1);
+  }
+});
+
+load().catch((e) => { $("#grid").innerHTML = `<div class="loading">Failed to load: ${esc(String(e))}</div>`; });
+</script>
+</body>
+</html>
