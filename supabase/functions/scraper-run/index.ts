@@ -290,7 +290,61 @@ Deno.serve(async (req) => {
     );
   }
 
-  return new Response(JSON.stringify({ summary, extracted, repliesChecked, promptsFromReplies }, null, 2), {
+  // Phase 4: mirror images into Supabase Storage — the IG CDN blocks cross-origin
+  // rendering (CORP: same-origin) and its signed URLs expire.
+  const mirrorLimit = Number(url.searchParams.get("mirror_limit") ?? "120");
+  // deno-lint-ignore no-explicit-any
+  const mirrorOne = async (srcUrl: string, pathBase: string): Promise<string | null> => {
+    const r = await fetch(srcUrl);
+    if (!r.ok) return null;
+    const ct = r.headers.get("content-type") ?? "image/jpeg";
+    const ext = ct.includes("png") ? "png" : ct.includes("webp") ? "webp" : "jpg";
+    const path = `${pathBase}.${ext}`;
+    const buf = await r.arrayBuffer();
+    const { error } = await supabase.storage
+      .from("scraper-images")
+      .upload(path, buf, { contentType: ct, upsert: true });
+    return error ? null : path;
+  };
+
+  let mirrored = 0;
+  const { data: toMirror } = await supabase
+    .from("sc_images")
+    .select("id, url")
+    .is("stored_path", null)
+    .limit(mirrorLimit);
+  const mBatch = 8;
+  for (let i = 0; i < (toMirror?.length ?? 0); i += mBatch) {
+    await Promise.all(
+      toMirror!.slice(i, i + mBatch).map(async (im) => {
+        try {
+          const path = await mirrorOne(im.url, `posts/${im.id}`);
+          if (path) {
+            await supabase.from("sc_images").update({ stored_path: path }).eq("id", im.id);
+            mirrored++;
+          }
+        } catch (e) {
+          console.error("mirror image", im.id, String(e));
+        }
+      }),
+    );
+  }
+
+  const { data: avs } = await supabase
+    .from("sc_creators")
+    .select("id, profile_pic_url")
+    .is("stored_avatar_path", null)
+    .not("profile_pic_url", "is", null);
+  for (const a of avs ?? []) {
+    try {
+      const path = await mirrorOne(a.profile_pic_url, `avatars/${a.id}`);
+      if (path) await supabase.from("sc_creators").update({ stored_avatar_path: path }).eq("id", a.id);
+    } catch (e) {
+      console.error("mirror avatar", a.id, String(e));
+    }
+  }
+
+  return new Response(JSON.stringify({ summary, extracted, repliesChecked, promptsFromReplies, mirrored }, null, 2), {
     headers: { "content-type": "application/json" },
   });
 });
