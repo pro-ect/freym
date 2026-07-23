@@ -1,4 +1,4 @@
-// scraper-run: fetch Threads creators via ScrapeCreators, extract prompts with Claude Haiku, store in Supabase.
+// scraper-run: fetch creators (Threads, X) via ScrapeCreators, extract prompts with Claude Haiku, store in Supabase.
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const SCRAPER_KEY = Deno.env.get("SCRAPER_KEY")!;
@@ -9,14 +9,19 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
 
-const DEFAULT_HANDLES = [
-  "zeifert.style",
-  "aleksaa.aich",
-  "frameformula",
-  "limatraaa",
+type CreatorRef = { platform: "threads" | "x"; handle: string };
+
+const DEFAULT_CREATORS: CreatorRef[] = [
+  { platform: "threads", handle: "zeifert.style" },
+  { platform: "threads", handle: "aleksaa.aich" },
+  { platform: "threads", handle: "frameformula" },
+  { platform: "threads", handle: "limatraaa" },
+  { platform: "x", handle: "0xInk_" },
+  { platform: "x", handle: "Dari_Designs" },
+  { platform: "x", handle: "madpencil_" },
 ];
 
-const SC_BASE = "https://api.scrapecreators.com/v1/threads";
+const SC_BASE = "https://api.scrapecreators.com/v1";
 
 async function scGet(path: string, params: Record<string, string>) {
   const url = new URL(`${SC_BASE}${path}`);
@@ -93,6 +98,8 @@ async function extractPrompt(caption: string): Promise<Extraction | null> {
   }
 }
 
+// --- Threads helpers ---
+
 // Threads items carry text in up to three places: caption, text fragments, and
 // "snippet attachments" (long-text attachments — where creators usually put prompts).
 // deno-lint-ignore no-explicit-any
@@ -110,8 +117,9 @@ function textOfItem(item: any): string {
 }
 
 // deno-lint-ignore no-explicit-any
-function imagesFromPost(post: any): { url: string; width: number | null; height: number | null }[] {
+function imagesFromThreadsPost(post: any): { url: string; width: number | null; height: number | null }[] {
   const out: { url: string; width: number | null; height: number | null }[] = [];
+  // deno-lint-ignore no-explicit-any
   const pick = (iv: any) => {
     const c = iv?.candidates?.[0];
     if (c?.url) out.push({ url: c.url, width: c.width ?? null, height: c.height ?? null });
@@ -124,84 +132,166 @@ function imagesFromPost(post: any): { url: string; width: number | null; height:
   return out;
 }
 
+type PostRow = {
+  platform_post_id: string;
+  code: string | null;
+  url: string | null;
+  caption: string | null;
+  taken_at: string | null;
+  like_count: number | null;
+  reply_count: number | null;
+  // deno-lint-ignore no-explicit-any
+  raw: any;
+  replies_checked?: boolean;
+  images: { url: string; width: number | null; height: number | null }[];
+};
+
+// deno-lint-ignore no-explicit-any
+async function upsertCreator(ref: CreatorRef, fields: Record<string, unknown>): Promise<any> {
+  const { data, error } = await supabase
+    .from("sc_creators")
+    .upsert(
+      { platform: ref.platform, handle: ref.handle, scraped_at: new Date().toISOString(), ...fields },
+      { onConflict: "platform,handle" },
+    )
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function upsertPosts(creatorId: string, rows: PostRow[]): Promise<number> {
+  let inserted = 0;
+  for (const r of rows) {
+    const { images, ...postFields } = r;
+    const { data: row, error } = await supabase
+      .from("sc_posts")
+      .upsert({ creator_id: creatorId, ...postFields }, { onConflict: "platform_post_id" })
+      .select("id")
+      .single();
+    if (error) {
+      console.error("post upsert", r.platform_post_id, error.message);
+      continue;
+    }
+    inserted++;
+    const { count } = await supabase
+      .from("sc_images")
+      .select("id", { count: "exact", head: true })
+      .eq("post_id", row.id);
+    if (!count) {
+      await supabase.from("sc_images").insert(
+        images.map((im, i) => ({ post_id: row.id, url: im.url, width: im.width, height: im.height, position: i })),
+      );
+    }
+  }
+  return inserted;
+}
+
+async function scrapeThreads(ref: CreatorRef): Promise<number> {
+  const profile = await scGet("/threads/profile", { handle: ref.handle });
+  const creator = await upsertCreator(ref, {
+    full_name: profile.full_name ?? null,
+    bio: profile.biography ?? profile.text_app_biography ?? null,
+    profile_pic_url: profile.hd_profile_pic_versions?.at(-1)?.url ?? profile.profile_pic_url ?? null,
+    follower_count: profile.follower_count ?? null,
+  });
+
+  const postsRes = await scGet("/threads/user/posts", { handle: ref.handle });
+  const rows: PostRow[] = [];
+  for (const p of postsRes.posts ?? []) {
+    const imgs = imagesFromThreadsPost(p);
+    if (!imgs.length) continue; // images-only MVP
+    rows.push({
+      platform_post_id: String(p.pk ?? p.id),
+      code: p.code ?? null,
+      url: p.url ?? (p.code ? `https://www.threads.com/@${ref.handle}/post/${p.code}` : null),
+      caption: textOfItem(p) || null,
+      taken_at: p.taken_at ? new Date(p.taken_at * 1000).toISOString() : null,
+      like_count: p.like_count ?? null,
+      reply_count: p.text_post_app_info?.direct_reply_count ?? null,
+      raw: p,
+      images: imgs,
+    });
+  }
+  return upsertPosts(creator.id, rows);
+}
+
+async function scrapeX(ref: CreatorRef): Promise<number> {
+  const prof = await scGet("/twitter/profile", { handle: ref.handle });
+  // deno-lint-ignore no-explicit-any
+  const u: any = prof.legacy ?? prof.data?.user?.result?.legacy ?? prof;
+  const avatar = (u.profile_image_url_https ?? "").replace("_normal", "_400x400") || null;
+  const creator = await upsertCreator(ref, {
+    full_name: u.name ?? null,
+    bio: u.description ?? null,
+    profile_pic_url: avatar,
+    follower_count: u.followers_count ?? null,
+  });
+
+  const tw = await scGet("/twitter/user-tweets", { handle: ref.handle });
+  const rows: PostRow[] = [];
+  for (const t of tw.tweets ?? []) {
+    // deno-lint-ignore no-explicit-any
+    const leg: any = t.legacy ?? t;
+    const text: string = leg?.full_text ?? "";
+    if (!text || leg?.retweeted_status_result || /^RT @/.test(text)) continue; // skip retweets
+    // deno-lint-ignore no-explicit-any
+    const media = (leg?.extended_entities?.media ?? leg?.entities?.media ?? []).filter(
+      (m: any) => m.type === "photo" && m.media_url_https,
+    );
+    if (!media.length) continue;
+    const id = String(t.rest_id ?? leg.id_str);
+    rows.push({
+      platform_post_id: id,
+      code: null,
+      url: `https://x.com/${ref.handle}/status/${id}`,
+      caption: text.trim() || null,
+      taken_at: leg.created_at ? new Date(leg.created_at).toISOString() : null,
+      like_count: leg.favorite_count ?? null,
+      reply_count: leg.reply_count ?? null,
+      raw: t,
+      replies_checked: true, // no reply API for X — extract from tweet text only
+      // deno-lint-ignore no-explicit-any
+      images: media.map((m: any) => ({
+        url: m.media_url_https,
+        width: m.original_info?.width ?? m.sizes?.large?.w ?? null,
+        height: m.original_info?.height ?? m.sizes?.large?.h ?? null,
+      })),
+    });
+  }
+  return upsertPosts(creator.id, rows);
+}
+
+function parseCreatorsParam(raw: string | null): CreatorRef[] {
+  if (raw === null) return DEFAULT_CREATORS;
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((s) => {
+      const [a, b] = s.includes(":") ? s.split(":", 2) : ["threads", s];
+      return { platform: a === "x" ? "x" : "threads", handle: b } as CreatorRef;
+    });
+}
+
 Deno.serve(async (req) => {
   const url = new URL(req.url);
-  const handles = url.searchParams.get("handles")?.split(",").map((h) => h.trim()).filter(Boolean) ?? DEFAULT_HANDLES;
+  const creators = parseCreatorsParam(url.searchParams.get("handles"));
   const extractLimit = Number(url.searchParams.get("extract_limit") ?? "60");
 
   const summary: Record<string, unknown>[] = [];
 
-  for (const handle of handles) {
+  for (const ref of creators) {
     try {
-      const profile = await scGet("/profile", { handle });
-      const { data: creator, error: cErr } = await supabase
-        .from("sc_creators")
-        .upsert(
-          {
-            platform: "threads",
-            handle,
-            full_name: profile.full_name ?? null,
-            bio: profile.biography ?? profile.text_app_biography ?? null,
-            profile_pic_url: profile.hd_profile_pic_versions?.at(-1)?.url ?? profile.profile_pic_url ?? null,
-            follower_count: profile.follower_count ?? null,
-            scraped_at: new Date().toISOString(),
-          },
-          { onConflict: "platform,handle" },
-        )
-        .select()
-        .single();
-      if (cErr) throw cErr;
-
-      const postsRes = await scGet("/user/posts", { handle });
-      const posts = postsRes.posts ?? [];
-      let inserted = 0;
-
-      for (const p of posts) {
-        const imgs = imagesFromPost(p);
-        if (!imgs.length) continue; // images-only MVP
-
-        const platformPostId = String(p.pk ?? p.id);
-        const { data: row, error: pErr } = await supabase
-          .from("sc_posts")
-          .upsert(
-            {
-              creator_id: creator.id,
-              platform_post_id: platformPostId,
-              code: p.code ?? null,
-              url: p.url ?? (p.code ? `https://www.threads.com/@${handle}/post/${p.code}` : null),
-              caption: textOfItem(p) || null,
-              taken_at: p.taken_at ? new Date(p.taken_at * 1000).toISOString() : null,
-              like_count: p.like_count ?? null,
-              reply_count: p.text_post_app_info?.direct_reply_count ?? null,
-              raw: p,
-            },
-            { onConflict: "platform_post_id" },
-          )
-          .select("id")
-          .single();
-        if (pErr) {
-          console.error("post upsert", handle, platformPostId, pErr.message);
-          continue;
-        }
-        inserted++;
-
-        const { count } = await supabase
-          .from("sc_images")
-          .select("id", { count: "exact", head: true })
-          .eq("post_id", row.id);
-        if (!count) {
-          await supabase.from("sc_images").insert(
-            imgs.map((im, i) => ({ post_id: row.id, url: im.url, width: im.width, height: im.height, position: i })),
-          );
-        }
-      }
-      summary.push({ handle, posts: inserted });
+      const posts = ref.platform === "x" ? await scrapeX(ref) : await scrapeThreads(ref);
+      summary.push({ platform: ref.platform, handle: ref.handle, posts });
     } catch (e) {
-      summary.push({ handle, error: String(e) });
+      summary.push({ platform: ref.platform, handle: ref.handle, error: String(e) });
     }
   }
 
-  // Phase 2: for prompt-less posts, fetch the reply thread — creators often post the prompt as a reply.
+  // Phase 2: for prompt-less Threads posts, fetch the reply thread — creators often post the prompt as a reply.
+  // (X posts are inserted with replies_checked=true, so they never enter this phase.)
   const replyLimit = Number(url.searchParams.get("reply_limit") ?? "60");
   const { data: noPrompt } = await supabase
     .from("sc_posts")
@@ -220,7 +310,7 @@ Deno.serve(async (req) => {
       batch.map(async (post) => {
         try {
           // deno-lint-ignore no-explicit-any
-          const detail: any = await scGet("/post", { url: post.url });
+          const detail: any = await scGet("/threads/post", { url: post.url });
           // deno-lint-ignore no-explicit-any
           const handle = (post.sc_creators as any)?.handle;
           // deno-lint-ignore no-explicit-any
@@ -299,10 +389,9 @@ Deno.serve(async (req) => {
     );
   }
 
-  // Phase 4: mirror images into Supabase Storage — the IG CDN blocks cross-origin
-  // rendering (CORP: same-origin) and its signed URLs expire.
+  // Phase 4: mirror images into Supabase Storage — the source CDNs block cross-origin
+  // rendering and/or expire their URLs.
   const mirrorLimit = Number(url.searchParams.get("mirror_limit") ?? "120");
-  // deno-lint-ignore no-explicit-any
   const mirrorOne = async (srcUrl: string, pathBase: string): Promise<string | null> => {
     const r = await fetch(srcUrl);
     if (!r.ok) return null;
