@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>freym — prompts behind the best AI images</title>
-<meta name="description" content="A live feed of AI creators on Threads: their images, and the prompts behind them." />
+<meta name="description" content="A live feed of AI creators on Threads and X: their images, and the prompts behind them." />
 <style>
   :root {
     --bg: #f5f4ee;
@@ -157,7 +157,7 @@
 
 <section class="hero">
   <h1>The prompts behind the best AI images.</h1>
-  <p>A live feed of AI creators on Threads — their pictures, and the exact prompts that made them.</p>
+  <p>A live feed of AI creators on Threads and X — their pictures, and the exact prompts that made them.</p>
 </section>
 
 <div class="filters" id="filters"></div>
@@ -275,7 +275,7 @@ function renderSheet() {
            <button class="btn" onclick="copyPrompt(this)">Copy prompt</button>`
         : `<div class="no-prompt">No prompt shared for this post.</div>`}
       ${p.caption && !p.has_prompt ? `<div><div class="label">Caption</div><div style="font-size:14px;line-height:1.5;white-space:pre-wrap;">${esc(p.caption)}</div></div>` : ""}
-      ${p.url ? `<a class="src-link" href="${esc(p.url)}" target="_blank" rel="noopener">View on Threads →</a>` : ""}
+      ${p.url ? `<a class="src-link" href="${esc(p.url)}" target="_blank" rel="noopener">View original →</a>` : ""}
     </div>`;
 }
 
