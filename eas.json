@@ -1,0 +1,50 @@
+{
+  "cli": {
+    "version": ">= 16.19.3",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "APP_VARIANT": "development",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://lmuksetmkzssoewkzdlm.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_ZYGneWC6-DF3rUhWKSZ9Mw_X961Xb_5",
+        "EXPO_PUBLIC_APPSFLYER_DEV_KEY": "dDvsthTuBaDVL7Fg3whcCg",
+        "EXPO_PUBLIC_POSTHOG_HOST": "https://eu.i.posthog.com",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "APP_VARIANT": "preview",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://lmuksetmkzssoewkzdlm.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_ZYGneWC6-DF3rUhWKSZ9Mw_X961Xb_5",
+        "EXPO_PUBLIC_APPSFLYER_DEV_KEY": "dDvsthTuBaDVL7Fg3whcCg",
+        "EXPO_PUBLIC_POSTHOG_HOST": "https://eu.i.posthog.com",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://lmuksetmkzssoewkzdlm.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_ZYGneWC6-DF3rUhWKSZ9Mw_X961Xb_5",
+        "EXPO_PUBLIC_APPSFLYER_DEV_KEY": "dDvsthTuBaDVL7Fg3whcCg",
+        "EXPO_PUBLIC_POSTHOG_HOST": "https://eu.i.posthog.com"
+      }
+    }
+  },
+  "submit": {}
+}

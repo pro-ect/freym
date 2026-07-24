@@ -1,0 +1,64 @@
+# .easignore replaces .gitignore for the EAS build archive — repeat git rules here.
+
+# Dependencies (EAS installs them itself)
+node_modules/
+
+# Expo / build output
+.expo/
+.expo-shared/
+dist/
+build/
+web-build/
+web/
+ios/
+android/
+.eastmp/
+.expo-build/
+*.bundle
+*.map
+
+# Environment & logs
+.env
+.env.local
+.env.test
+.env.production
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS / editors / tools
+.DS_Store
+Thumbs.db
+.vscode/
+.cursor/
+.claude/
+.vercel/
+.git/
+
+# Not needed in the app bundle
+.latest-generations/
+.screens/
+screenshots/
+screenshots-copyshot/
+asc-screenshots/
+.appstore-shots/
+website/
+website-ayaphoto/
+analytics/
+.analytics/
+.marketing/
+docs/
+import/
+supabase/
+scripts/
+local.db
+*.html
+*.sql
+*.md
+
+# freym repo extras — not part of the app build
+docs/
+nextunyte/
+supabase/
