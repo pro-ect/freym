@@ -15,8 +15,11 @@
         "EXPO_PUBLIC_SUPABASE_URL": "https://lmuksetmkzssoewkzdlm.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_ZYGneWC6-DF3rUhWKSZ9Mw_X961Xb_5",
         "EXPO_PUBLIC_APPSFLYER_DEV_KEY": "dDvsthTuBaDVL7Fg3whcCg",
+        "EXPO_PUBLIC_POSTHOG_API_KEY": "phc_pG2uJQ285zwxvXBnFKVvzPs3GYp5jfA4GxfCCmoZac52",
         "EXPO_PUBLIC_POSTHOG_HOST": "https://eu.i.posthog.com",
-        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+        "EXPO_PUBLIC_SENTRY_DSN": "https://2f86d01e7b4d10c469d1584ab6c87afd@o363579.ingest.us.sentry.io/4511789697728512",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true",
+        "EXPO_PUBLIC_APPSFLYER_APP_ID": "6794310689"
       }
     },
     "preview": {
@@ -29,8 +32,11 @@
         "EXPO_PUBLIC_SUPABASE_URL": "https://lmuksetmkzssoewkzdlm.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_ZYGneWC6-DF3rUhWKSZ9Mw_X961Xb_5",
         "EXPO_PUBLIC_APPSFLYER_DEV_KEY": "dDvsthTuBaDVL7Fg3whcCg",
+        "EXPO_PUBLIC_POSTHOG_API_KEY": "phc_pG2uJQ285zwxvXBnFKVvzPs3GYp5jfA4GxfCCmoZac52",
         "EXPO_PUBLIC_POSTHOG_HOST": "https://eu.i.posthog.com",
-        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+        "EXPO_PUBLIC_SENTRY_DSN": "https://2f86d01e7b4d10c469d1584ab6c87afd@o363579.ingest.us.sentry.io/4511789697728512",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true",
+        "EXPO_PUBLIC_APPSFLYER_APP_ID": "6794310689"
       }
     },
     "production": {
@@ -42,7 +48,10 @@
         "EXPO_PUBLIC_SUPABASE_URL": "https://lmuksetmkzssoewkzdlm.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_ZYGneWC6-DF3rUhWKSZ9Mw_X961Xb_5",
         "EXPO_PUBLIC_APPSFLYER_DEV_KEY": "dDvsthTuBaDVL7Fg3whcCg",
-        "EXPO_PUBLIC_POSTHOG_HOST": "https://eu.i.posthog.com"
+        "EXPO_PUBLIC_POSTHOG_API_KEY": "phc_pG2uJQ285zwxvXBnFKVvzPs3GYp5jfA4GxfCCmoZac52",
+        "EXPO_PUBLIC_POSTHOG_HOST": "https://eu.i.posthog.com",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://2f86d01e7b4d10c469d1584ab6c87afd@o363579.ingest.us.sentry.io/4511789697728512",
+        "EXPO_PUBLIC_APPSFLYER_APP_ID": "6794310689"
       }
     }
   },

@@ -25,8 +25,7 @@ interface FounderMessageModalProps {
   onClose: () => void;
 }
 
-// TODO(freym): replace with the new App Store numeric id once the ASC app record exists.
-const APP_STORE_REVIEW_URL = 'itms-apps://itunes.apple.com/app/id0000000000?action=write-review';
+const APP_STORE_REVIEW_URL = 'itms-apps://itunes.apple.com/app/id6794310689?action=write-review';
 // market:// opens the Play app directly; the https form is the fallback when no
 // Play client can handle the intent.
 const PLAY_STORE_REVIEW_URL = 'market://details?id=genai.freym.studio';

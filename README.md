@@ -15,13 +15,13 @@ npx expo start        # needs .env with EXPO_PUBLIC_SUPABASE_URL / _ANON_KEY (se
 
 Backend: shared Supabase project `lmuksetmkzssoewkzdlm` (same as aya photo — models, generation queue, coins, edge functions). The app's edge-function/migration source of truth lives in `~/foto-room-ai-clean/supabase/` — do not redeploy backend functions from this repo except the scraper ones below.
 
-### Not wired yet (placeholders in code)
+### Services
 
-- RevenueCat: create "freym" app → keys in `config/appVariant.ts` (empty = purchases disabled)
-- PostHog: create new project in Minimal Apps org → `EXPO_PUBLIC_POSTHOG_API_KEY` in `eas.json`
-- AppsFlyer: create app once ASC record exists → `EXPO_PUBLIC_APPSFLYER_APP_ID` in `eas.json`
-- Sentry: create `freym-studio` project → `EXPO_PUBLIC_SENTRY_DSN`
-- App Store id in `app/components/FounderMessageModal.tsx`
+Wired: App Store Connect app `freym` (id `6794310689`, bundle `genai.freym.studio`, capabilities IAP + Push + Apple Sign-In), RevenueCat iOS key (`config/appVariant.ts`), PostHog project `freym` + Sentry DSN + AppsFlyer app id (`eas.json`).
+
+Still pending:
+- RevenueCat: Play Store key (Android launch) + products/offering ("Monthly coins" entitlement) once subscriptions exist in ASC
+- AppsFlyer: register the app (App ID 6794310689) in the AppsFlyer dashboard — id is already in `eas.json`
 
 ## Scraper + site
 

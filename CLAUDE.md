@@ -13,6 +13,8 @@ Two things live here:
 - Inspire tab reads the scraper feed via `lib/freym/feed.ts` → `scraper-feed` edge function.
 - Pre-existing `tsc` errors (~76) were inherited from the source repo; only worry about NEW errors your change introduces.
 
-## Not wired yet
+## Services
 
-RevenueCat keys (`config/appVariant.ts`), PostHog key + AppsFlyer app id (`eas.json`), Sentry DSN (`EXPO_PUBLIC_SENTRY_DSN`), App Store numeric id (`FounderMessageModal.tsx`). All degrade gracefully when empty. Facebook SDK was removed (`lib/facebook.ts` is a stub).
+Wired: ASC app `freym` id `6794310689` / bundle `genai.freym.studio` (bundle-id `Q36N36Q5GK`, capabilities IAP + PUSH_NOTIFICATIONS + APPLE_ID_AUTH), RevenueCat iOS key in `config/appVariant.ts`, PostHog `freym` project + Sentry DSN + AppsFlyer app id in `eas.json`.
+
+Pending: RevenueCat Play key + products/offering (entitlement `Monthly coins`), AppsFlyer dashboard app registration. Empty keys degrade gracefully. Facebook SDK was removed (`lib/facebook.ts` is a stub).

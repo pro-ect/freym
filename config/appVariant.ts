@@ -12,7 +12,7 @@ import { Platform } from 'react-native';
 // and paste its keys here. Empty keys → RevenueCat init is skipped (app runs
 // without paywall/coins until wired).
 // App Store key — used by preview + production (real App Store / sandbox).
-const REVENUECAT_APP_STORE_KEY = '';
+const REVENUECAT_APP_STORE_KEY = 'appl_pANUWxUQWiTlrCfnxbTmySSYdxK';
 // Play Store key — the Android counterpart. RC keys are per-store: passing the
 // `appl_` key to Purchases.configure on Android throws, which used to leave the
 // app running with zero offerings (see getRevenueCatApiKey below).
