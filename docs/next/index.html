@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>freym — prompts behind the best AI images</title>
-<meta name="description" content="A live feed of AI creators on Threads and X: their images, and the prompts behind them." />
+<title>freym — next: curated AI works with full prompts</title>
+<meta name="description" content="next — a curated gallery of AI works, each with the complete prompt behind it." />
 <style>
   :root {
     --bg: #f5f4ee;
@@ -51,10 +51,8 @@
     border-radius: 999px; padding: 8px 16px; font-size: 14px;
     cursor: pointer; transition: all .15s ease; user-select: none;
   }
-  .pill img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
   .pill:hover { border-color: var(--ink); }
   .pill.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-  .pill.active img { filter: none; }
 
   .grid {
     columns: 4 260px; column-gap: 14px;
@@ -66,12 +64,6 @@
     border: 1px solid var(--line); cursor: pointer;
   }
   .card img { width: 100%; display: block; }
-  .card .tag {
-    position: absolute; top: 10px; left: 10px;
-    background: rgba(17,17,16,.82); color: #fff;
-    font-size: 11px; font-weight: 600; letter-spacing: .04em;
-    padding: 4px 9px; border-radius: 999px; text-transform: uppercase;
-  }
   .card .who {
     position: absolute; bottom: 0; left: 0; right: 0;
     padding: 26px 12px 10px; font-size: 13px; color: #fff;
@@ -79,11 +71,6 @@
     opacity: 0; transition: opacity .15s ease;
   }
   .card:hover .who { opacity: 1; }
-  .card .count {
-    position: absolute; top: 10px; right: 10px;
-    background: rgba(255,255,255,.85); color: var(--ink);
-    font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 999px;
-  }
 
   /* overlay */
   .overlay {
@@ -108,10 +95,7 @@
     flex: 1; padding: 32px; overflow-y: auto; display: flex; flex-direction: column; gap: 18px;
     min-width: 320px;
   }
-  .creator-line { display: flex; align-items: center; gap: 10px; }
-  .creator-line img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
-  .creator-line .h { font-weight: 600; font-size: 15px; }
-  .creator-line .f { font-size: 13px; color: var(--muted); }
+  .work-title { font-weight: 600; font-size: 18px; letter-spacing: -0.01em; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip {
     font-size: 12px; border: 1px solid var(--line); background: var(--card);
@@ -131,9 +115,6 @@
     width: fit-content; transition: opacity .15s;
   }
   .btn:hover { opacity: .85; }
-  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
-  .src-link { font-size: 14px; color: var(--accent); }
-  .no-prompt { font-size: 14px; color: var(--muted); font-style: italic; }
   .close-x {
     position: absolute; top: 14px; right: 14px; z-index: 2;
     background: rgba(255,255,255,.9); border: none; width: 32px; height: 32px;
@@ -152,36 +133,33 @@
 <body>
 
 <header>
-  <div class="wordmark">freym<span>.</span></div>
-  <div class="hdr-right"><a href="/next/" style="color:var(--accent);margin-right:16px;">next →</a><span id="stats"></span></div>
+  <a class="wordmark" href="/">freym<span>.</span></a>
+  <div class="hdr-right" id="stats"></div>
 </header>
 
 <section class="hero">
-  <h1>Like Behance, but for AI work.</h1>
-  <p>A live feed of AI creators on Threads and X — their pictures, and the exact prompts that made them.</p>
+  <h1>next.</h1>
+  <p>A curated gallery of AI works — every one with the complete prompt behind it.</p>
 </section>
 
 <div class="filters" id="filters"></div>
-<div class="grid" id="grid"><div class="loading">Loading feed…</div></div>
+<div class="grid" id="grid"><div class="loading">Loading gallery…</div></div>
 
 <div class="overlay" id="overlay">
   <div class="sheet" id="sheet"></div>
 </div>
 
-<footer>freym — an experiment. Images belong to their creators.</footer>
+<footer><a href="/">← back to the freym feed</a></footer>
 
 <script>
-const FEED_URL = "https://lmuksetmkzssoewkzdlm.supabase.co/functions/v1/scraper-feed";
+const FEED_URL = "https://lmuksetmkzssoewkzdlm.supabase.co/functions/v1/scraper-feed?creator=nextunyte";
 const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxtdWtzZXRta3pzc29ld2t6ZGxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyNTUwNTMsImV4cCI6MjA3NzgzMTA1M30.mvX1o1RBSDgfX5OwRu3ArxsTxQzeZ5ah6J0aR2ZwNuk";
 
 let DATA = { creators: [], posts: [] };
-let filterModel = null;     // model name or null
-let promptsOnly = false;
+let filterModel = null;
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => (s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-// X appends a t.co shortlink to every tweet's text pointing at its own media — strip it.
-const clean = (s) => (s ?? "").replace(/\s*https?:\/\/t\.co\/\w+/g, "").trim();
 
 async function load() {
   const res = await fetch(FEED_URL, { headers: { Authorization: "Bearer " + ANON_KEY } });
@@ -190,57 +168,44 @@ async function load() {
   DATA.posts.forEach((p) => p.sc_images.sort((a, b) => a.position - b.position));
   renderFilters();
   renderGrid();
-  const dayAgo = Date.now() - 24 * 3600 * 1000;
-  const fresh = DATA.posts.filter((p) => p.taken_at && new Date(p.taken_at).getTime() > dayAgo).length;
-  $("#stats").textContent = fresh
-    ? `${fresh} new ${fresh === 1 ? "work" : "works"} in the last 24 hours`
-    : `${DATA.posts.length} works · updated daily`;
+  $("#stats").textContent = `${DATA.posts.length} works · full prompts`;
 }
 
 function renderFilters() {
   const el = $("#filters");
   el.innerHTML = "";
-  const all = pill("All", null, filterModel === null && !promptsOnly);
-  all.onclick = () => { filterModel = null; promptsOnly = false; renderFilters(); renderGrid(); };
+  const all = pill("All", filterModel === null);
+  all.onclick = () => { filterModel = null; renderFilters(); renderGrid(); };
   el.appendChild(all);
-
-  const wp = pill("With prompt", null, promptsOnly);
-  wp.onclick = () => { promptsOnly = !promptsOnly; renderFilters(); renderGrid(); };
-  el.appendChild(wp);
 
   const counts = {};
   for (const p of DATA.posts) if (p.model_name) counts[p.model_name] = (counts[p.model_name] ?? 0) + 1;
   const models = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
   for (const m of models) {
-    const pl = pill(m, null, filterModel === m);
+    const pl = pill(m, filterModel === m);
     pl.onclick = () => { filterModel = filterModel === m ? null : m; renderFilters(); renderGrid(); };
     el.appendChild(pl);
   }
 }
 
-function pill(text, img, active) {
+function pill(text, active) {
   const d = document.createElement("div");
   d.className = "pill" + (active ? " active" : "");
-  d.innerHTML = (img ? `<img src="${esc(img)}" referrerpolicy="no-referrer" alt="">` : "") + esc(text);
+  d.textContent = text;
   return d;
 }
 
 function renderGrid() {
   const grid = $("#grid");
   grid.innerHTML = "";
-  const posts = DATA.posts.filter((p) =>
-    (!filterModel || p.model_name === filterModel) && (!promptsOnly || p.has_prompt)
-  );
+  const posts = DATA.posts.filter((p) => !filterModel || p.model_name === filterModel);
   if (!posts.length) { grid.innerHTML = '<div class="loading">Nothing here yet.</div>'; return; }
   for (const p of posts) {
-    const c = DATA.creators.find((x) => x.id === p.creator_id);
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `
-      <img src="${esc(p.sc_images[0].url)}" loading="lazy" referrerpolicy="no-referrer" alt="">
-      ${p.has_prompt ? '<div class="tag">Prompt</div>' : ""}
-      ${p.sc_images.length > 1 ? `<div class="count">${p.sc_images.length}</div>` : ""}
-      <div class="who">@${esc(c?.handle ?? "")}</div>`;
+      <img src="${esc(p.sc_images[0].url)}" loading="lazy" referrerpolicy="no-referrer" alt="${esc(p.caption ?? "")}">
+      ${p.caption ? `<div class="who">${esc(p.caption)}</div>` : ""}`;
     card.onclick = () => openPost(p);
     grid.appendChild(card);
   }
@@ -257,8 +222,7 @@ function openPost(p) {
 
 function renderSheet() {
   const p = currentPost;
-  const c = DATA.creators.find((x) => x.id === p.creator_id);
-  const tags = (p.style_tags ?? []).map((t) => `<span class="chip">${esc(t)}</span>`).join("");
+  const tags = (p.style_tags ?? []).filter((t) => t !== "nextunyte").map((t) => `<span class="chip">${esc(t)}</span>`).join("");
   const imgs = p.sc_images.map((im) => `<img src="${esc(im.url)}" referrerpolicy="no-referrer" alt="">`).join("");
   $("#sheet").innerHTML = `
     <button class="close-x" onclick="closeOverlay()">✕</button>
@@ -266,28 +230,20 @@ function renderSheet() {
       <div class="imgs${p.sc_images.length === 1 ? " single" : ""}">${imgs}</div>
     </div>
     <div class="right">
-      <div class="creator-line">
-        ${c?.profile_pic_url ? `<img src="${esc(c.profile_pic_url)}" referrerpolicy="no-referrer" alt="">` : ""}
-        <div>
-          <div class="h">@${esc(c?.handle ?? "")}</div>
-          <div class="f">${esc(c?.full_name ?? "")}</div>
-        </div>
-      </div>
+      ${p.caption ? `<div class="work-title">${esc(p.caption)}</div>` : ""}
       <div class="chips">
         ${p.model_name ? `<span class="chip model">${esc(p.model_name)}</span>` : ""}
         ${tags}
       </div>
-      ${p.has_prompt && p.prompt_text
-        ? `<div><div class="label">Prompt</div><div class="prompt-box" id="ptext">${esc(clean(p.prompt_text))}</div></div>
+      ${p.prompt_text
+        ? `<div><div class="label">Prompt</div><div class="prompt-box">${esc(p.prompt_text)}</div></div>
            <button class="btn" onclick="copyPrompt(this)">Copy prompt</button>`
-        : `<div class="no-prompt">No prompt shared for this post.</div>`}
-      ${clean(p.caption) && !p.has_prompt ? `<div><div class="label">Caption</div><div style="font-size:14px;line-height:1.5;white-space:pre-wrap;">${esc(clean(p.caption))}</div></div>` : ""}
-      ${p.url ? `<a class="src-link" href="${esc(p.url)}" target="_blank" rel="noopener">View original →</a>` : ""}
+        : ""}
     </div>`;
 }
 
 function copyPrompt(btn) {
-  navigator.clipboard.writeText(clean(currentPost.prompt_text)).then(() => {
+  navigator.clipboard.writeText(currentPost.prompt_text ?? "").then(() => {
     btn.textContent = "Copied ✓";
     setTimeout(() => (btn.textContent = "Copy prompt"), 1500);
   });
