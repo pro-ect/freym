@@ -41,10 +41,23 @@
   .hero p { margin-top: 20px; font-size: 17px; color: var(--muted); }
 
   .filters {
-    display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
     padding: 26px 24px 8px; position: sticky; top: 0; z-index: 5;
     background: linear-gradient(var(--bg) 75%, transparent);
   }
+  .filters-toggle {
+    display: inline-flex; align-items: center; gap: 7px;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    border-radius: 999px; padding: 7px 15px; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: border-color .15s ease; font-family: inherit;
+  }
+  .filters-toggle:hover { border-color: var(--ink); }
+  .filters-toggle .n {
+    background: var(--ink); color: var(--bg); border-radius: 999px;
+    font-size: 11px; font-weight: 600; padding: 1px 7px;
+  }
+  .pills { display: none; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .filters.open .pills { display: flex; }
   .pill {
     display: inline-flex; align-items: center; gap: 8px;
     border: 1px solid var(--line); background: var(--card);
@@ -123,6 +136,7 @@
   footer { text-align: center; padding: 40px; font-size: 13px; color: var(--muted); }
   .loading { text-align: center; color: var(--muted); padding: 60px; }
   @media (max-width: 760px) {
+    .filters { position: static; background: none; }
     .sheet { flex-direction: column; overflow-y: auto; }
     .sheet .left { overflow: visible; }
     .sheet .left .imgs.single img { max-height: 46vh; }
@@ -157,6 +171,7 @@ const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 
 let DATA = { creators: [], posts: [] };
 let filterModel = null;
+let filtersOpen = false;
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => (s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -174,9 +189,21 @@ async function load() {
 function renderFilters() {
   const el = $("#filters");
   el.innerHTML = "";
+  el.classList.toggle("open", filtersOpen);
+
+  const toggle = document.createElement("button");
+  toggle.className = "filters-toggle";
+  toggle.innerHTML = "Filters" + (filterModel ? ' <span class="n">1</span>' : "");
+  toggle.onclick = () => { filtersOpen = !filtersOpen; renderFilters(); };
+  el.appendChild(toggle);
+
+  const pills = document.createElement("div");
+  pills.className = "pills";
+  el.appendChild(pills);
+
   const all = pill("All", filterModel === null);
   all.onclick = () => { filterModel = null; renderFilters(); renderGrid(); };
-  el.appendChild(all);
+  pills.appendChild(all);
 
   const counts = {};
   for (const p of DATA.posts) if (p.model_name) counts[p.model_name] = (counts[p.model_name] ?? 0) + 1;
@@ -184,7 +211,7 @@ function renderFilters() {
   for (const m of models) {
     const pl = pill(m, filterModel === m);
     pl.onclick = () => { filterModel = filterModel === m ? null : m; renderFilters(); renderGrid(); };
-    el.appendChild(pl);
+    pills.appendChild(pl);
   }
 }
 
