@@ -74,12 +74,15 @@
   .pill.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
   .pill.active img { filter: none; }
 
+  /* JS-driven masonry: round-robin columns so the newest posts sit across the top row
+     (CSS `columns` fills top-to-bottom, pushing old posts to the tops of later columns). */
   .grid {
-    columns: 4 260px; column-gap: 14px;
+    display: flex; align-items: flex-start; gap: 14px;
     max-width: 1280px; margin: 26px auto 80px; padding: 0 24px;
   }
+  .grid .col { flex: 1; min-width: 0; }
   .card {
-    break-inside: avoid; margin-bottom: 14px; position: relative;
+    margin-bottom: 14px; position: relative;
     border-radius: 12px; overflow: hidden; background: var(--card);
     border: 1px solid var(--line); cursor: pointer;
   }
@@ -271,7 +274,15 @@ function renderGrid() {
     (!filterModel || p.model_name === filterModel) && (!promptsOnly || p.has_prompt)
   );
   if (!posts.length) { grid.innerHTML = '<div class="loading">Nothing here yet.</div>'; return; }
-  for (const p of posts) {
+  const nCols = Math.max(1, Math.min(4, Math.floor(grid.clientWidth / 270) || 1));
+  const cols = [];
+  for (let i = 0; i < nCols; i++) {
+    const col = document.createElement("div");
+    col.className = "col";
+    grid.appendChild(col);
+    cols.push(col);
+  }
+  posts.forEach((p, i) => {
     const c = DATA.creators.find((x) => x.id === p.creator_id);
     const card = document.createElement("div");
     card.className = "card";
@@ -281,9 +292,14 @@ function renderGrid() {
       ${p.sc_images.length > 1 ? `<div class="count">${p.sc_images.length}</div>` : ""}
       <div class="who">@${esc(c?.handle ?? "")}</div>`;
     card.onclick = () => openPost(p);
-    grid.appendChild(card);
-  }
+    cols[i % nCols].appendChild(card);
+  });
 }
+let resizeTimer = null;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(renderGrid, 200);
+});
 
 let currentPost = null;
 
