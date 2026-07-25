@@ -30,6 +30,11 @@
   .wordmark { font-weight: 700; font-size: 19px; letter-spacing: -0.02em; }
   .wordmark span { color: var(--accent); }
   .hdr-right { font-size: 14px; color: var(--muted); }
+  nav.top { display: flex; gap: 4px; flex-wrap: wrap; }
+  nav.top a { font-size: 14px; color: var(--muted); padding: 6px 13px; border-radius: 999px; transition: color .15s ease; }
+  nav.top a:hover { color: var(--ink); }
+  nav.top a.active { background: var(--ink); color: var(--bg); }
+  @media (max-width: 700px) { .hdr-right { display: none; } }
 
   .hero { text-align: center; padding: 64px 24px 36px; }
   .hero h1 {
@@ -108,6 +113,12 @@
 
 <header>
   <a class="wordmark" href="/">freym<span>.</span></a>
+  <nav class="top">
+    <a href="/">work</a>
+    <a href="/news/" class="active">news</a>
+    <a href="/creators/">creators</a>
+    <a href="/youtube/">youtube</a>
+  </nav>
   <div class="hdr-right" id="stats"></div>
 </header>
 

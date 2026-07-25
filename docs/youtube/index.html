@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>freym — youtube: tutorials for models in the news</title>
+<meta name="description" content="Fresh YouTube tutorials for the gen-AI models making news right now." />
+<style>
+  :root {
+    --bg: #f5f4ee;
+    --ink: #111110;
+    --muted: #6f6d66;
+    --line: #e4e2d8;
+    --card: #ffffff;
+    --accent: #ff4d00;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  header { display: flex; align-items: center; justify-content: space-between; padding: 22px 40px; gap: 16px; flex-wrap: wrap; }
+  .wordmark { font-weight: 700; font-size: 19px; letter-spacing: -0.02em; }
+  .wordmark span { color: var(--accent); }
+  nav.top { display: flex; gap: 4px; flex-wrap: wrap; }
+  nav.top a {
+    font-size: 14px; color: var(--muted); padding: 6px 13px; border-radius: 999px;
+    transition: color .15s ease;
+  }
+  nav.top a:hover { color: var(--ink); }
+  nav.top a.active { background: var(--ink); color: var(--bg); }
+
+  .hero { text-align: center; padding: 56px 24px 36px; }
+  .hero h1 { font-size: clamp(34px, 5.5vw, 56px); font-weight: 500; letter-spacing: -0.03em; }
+  .hero p { margin-top: 14px; font-size: 15px; color: var(--muted); max-width: 560px; margin-left: auto; margin-right: auto; }
+
+  .wrap { max-width: 1080px; margin: 10px auto 80px; padding: 0 24px; }
+  .group { margin-bottom: 44px; }
+  .group-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+  .group-head .model { font-size: 20px; font-weight: 650; letter-spacing: -0.01em; }
+  .group-head .co { font-size: 13px; color: var(--muted); }
+  .why { font-size: 13.5px; color: var(--muted); margin-bottom: 14px; }
+  .why a { text-decoration: underline; text-underline-offset: 3px; }
+  .vids { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+  .vid {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+    display: flex; flex-direction: column; transition: border-color .15s ease;
+  }
+  .vid:hover { border-color: #c9c6b8; }
+  .thumb { position: relative; aspect-ratio: 16/9; background: #ddd; }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .thumb .len {
+    position: absolute; bottom: 6px; right: 6px; background: rgba(0,0,0,.8); color: #fff;
+    font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 4px;
+  }
+  .vbody { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px; }
+  .vtitle { font-size: 13.5px; font-weight: 600; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .vmeta { font-size: 12px; color: var(--muted); }
+
+  footer { text-align: center; padding: 40px; font-size: 13px; color: var(--muted); }
+  .loading { text-align: center; color: var(--muted); padding: 60px; }
+  @media (max-width: 600px) { header { padding: 18px 20px; } .hero { padding: 40px 20px 22px; } }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="wordmark" href="/">freym<span>.</span></a>
+  <nav class="top">
+    <a href="/">work</a>
+    <a href="/news/">news</a>
+    <a href="/creators/">creators</a>
+    <a href="/youtube/" class="active">youtube</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <h1>fresh tutorials.</h1>
+  <p>YouTube tutorials for the models making news right now — sourced from the model-news feed, not random uploads.</p>
+</section>
+
+<div class="wrap" id="wrap"><div class="loading">Loading tutorials…</div></div>
+
+<footer>freym — an experiment. Videos belong to their creators.</footer>
+
+<script>
+const FEED_URL = "https://lmuksetmkzssoewkzdlm.supabase.co/functions/v1/scraper-youtube-tutorials";
+const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxtdWtzZXRta3pzc29ld2t6ZGxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyNTUwNTMsImV4cCI6MjA3NzgzMTA1M30.mvX1o1RBSDgfX5OwRu3ArxsTxQzeZ5ah6J0aR2ZwNuk";
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => (s ?? "").toString().replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+async function load() {
+  const res = await fetch(FEED_URL, { headers: { Authorization: "Bearer " + ANON_KEY } });
+  const d = await res.json();
+  const wrap = $("#wrap");
+  wrap.innerHTML = "";
+  if (!(d.groups ?? []).length) {
+    wrap.innerHTML = '<div class="loading">No tutorials yet — check back after the next news cycle.</div>';
+    return;
+  }
+  for (const g of d.groups) {
+    const el = document.createElement("div");
+    el.className = "group";
+    el.innerHTML = `
+      <div class="group-head">
+        <span class="model">${esc(g.model)}</span>
+        <span class="co">${esc(g.company)}</span>
+      </div>
+      ${g.headline ? `<div class="why">In the news: ${g.news_url ? `<a href="${esc(g.news_url)}" target="_blank" rel="noopener">${esc(g.headline)}</a>` : esc(g.headline)}</div>` : ""}
+      <div class="vids">${g.videos.map((v) => `
+        <a class="vid" href="${esc(v.url)}" target="_blank" rel="noopener">
+          <div class="thumb">
+            ${v.thumbnail ? `<img src="${esc(v.thumbnail)}" loading="lazy" referrerpolicy="no-referrer" alt="">` : ""}
+            ${v.length ? `<span class="len">${esc(v.length)}</span>` : ""}
+          </div>
+          <div class="vbody">
+            <div class="vtitle">${esc(v.title)}</div>
+            <div class="vmeta">${esc(v.channel ?? "")}</div>
+            <div class="vmeta">${esc([v.views, v.published].filter(Boolean).join(" · "))}</div>
+          </div>
+        </a>`).join("")}</div>`;
+    wrap.appendChild(el);
+  }
+}
+load().catch((e) => { $("#wrap").innerHTML = `<div class="loading">Failed to load: ${esc(String(e))}</div>`; });
+</script>
+</body>
+</html>
