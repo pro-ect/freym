@@ -2,7 +2,7 @@
 
 Two things live here:
 1. **The freym app** (repo root) — Expo Router app forked from `~/foto-room-ai-clean`. Same Supabase backend (`lmuksetmkzssoewkzdlm`), new identity: name `freym`, bundle id `genai.freym.studio`, EAS project `freym-studio`.
-2. **The freym scraper + site** — `supabase/functions/scraper-*` and `docs/index.html` (freym.app on Vercel).
+2. **The freym scraper + site** — `supabase/functions/scraper-*` and `docs/index.html` (freym.app on Vercel). `scraper-run`/`scraper-feed` power the prompts feed (`sc_*` tables); `scraper-news-run`/`scraper-news-feed` power the model-news feed at `/news` (`news_sources`/`news_items` tables, official gen-AI company X accounts, Haiku classifies news vs noise). Known gaps: @xai returns 0 tweets from ScrapeCreators; LTX Studio's X handle renamed (not found); ByteDance Seed has no known X handle (only ByteDanceOSS).
 
 ## Rules
 

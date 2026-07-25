@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>freym — model news: gen-AI model releases &amp; updates</title>
+<meta name="description" content="model news — releases, updates and features from gen-AI model makers, scraped from their official X accounts." />
+<style>
+  :root {
+    --bg: #f5f4ee;
+    --ink: #111110;
+    --muted: #6f6d66;
+    --line: #e4e2d8;
+    --card: #ffffff;
+    --accent: #ff4d00;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px 40px;
+  }
+  .wordmark { font-weight: 700; font-size: 19px; letter-spacing: -0.02em; }
+  .wordmark span { color: var(--accent); }
+  .hdr-right { font-size: 14px; color: var(--muted); }
+
+  .hero { text-align: center; padding: 64px 24px 36px; }
+  .hero h1 {
+    font-size: clamp(38px, 6vw, 64px);
+    font-weight: 500; letter-spacing: -0.03em; line-height: 1.05;
+  }
+  .hero p { margin-top: 16px; font-size: 16px; color: var(--muted); }
+
+  .controls {
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    padding: 10px 24px 6px;
+  }
+  .range { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; background: var(--card); overflow: hidden; }
+  .range button {
+    border: none; background: none; font: inherit; font-size: 13px; padding: 7px 15px;
+    cursor: pointer; color: var(--muted);
+  }
+  .range button.active { background: var(--ink); color: var(--bg); }
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 900px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    border: 1px solid var(--line); background: var(--card);
+    border-radius: 999px; padding: 6px 13px 6px 7px; font-size: 13px;
+    cursor: pointer; transition: all .15s ease; user-select: none;
+  }
+  .pill img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
+  .pill.no-avatar { padding-left: 13px; }
+  .pill:hover { border-color: var(--ink); }
+  .pill.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .pill .n { color: var(--muted); font-size: 12px; }
+  .pill.active .n { color: var(--bg); opacity: .7; }
+
+  .feed { max-width: 720px; margin: 28px auto 80px; padding: 0 20px; }
+  .day-label {
+    font-size: 13px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase;
+    color: var(--muted); margin: 34px 0 12px; padding-left: 2px;
+  }
+  .day-label:first-child { margin-top: 8px; }
+  .item {
+    display: flex; gap: 14px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; padding: 16px; margin-bottom: 10px;
+    transition: border-color .15s ease;
+  }
+  .item:hover { border-color: #c9c6b8; }
+  .item .ava { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex: none; background: var(--line); }
+  .item .body { min-width: 0; flex: 1; }
+  .meta { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+  .meta .co { font-weight: 600; color: var(--ink); font-size: 14px; }
+  .headline { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; margin-top: 5px; line-height: 1.35; }
+  .summary { font-size: 14px; color: #3d3c37; margin-top: 5px; line-height: 1.5; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .chip {
+    font-size: 11.5px; border: 1px solid var(--line); background: var(--bg);
+    padding: 3px 9px; border-radius: 999px; color: var(--muted);
+  }
+  .chip.model { color: var(--ink); font-weight: 600; }
+  .chip.cat-model-release { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .thumb { margin-top: 12px; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); }
+  .thumb img { width: 100%; max-height: 300px; object-fit: cover; display: block; }
+  .item-link { display: inline-block; margin-top: 10px; font-size: 13px; color: var(--muted); }
+  .item-link:hover { color: var(--ink); }
+  .tweet-toggle { font-size: 13px; color: var(--muted); cursor: pointer; margin-top: 8px; display: inline-block; }
+  .tweet-toggle:hover { color: var(--ink); }
+  .tweet-text { display: none; font-size: 13.5px; color: var(--muted); white-space: pre-wrap; margin-top: 8px; line-height: 1.5; border-left: 2px solid var(--line); padding-left: 10px; }
+  .item.expanded .tweet-text { display: block; }
+
+  footer { text-align: center; padding: 40px; font-size: 13px; color: var(--muted); }
+  .loading { text-align: center; color: var(--muted); padding: 60px; }
+  @media (max-width: 600px) {
+    header { padding: 18px 20px; }
+    .hero { padding: 44px 20px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="wordmark" href="/">freym<span>.</span></a>
+  <div class="hdr-right" id="stats"></div>
+</header>
+
+<section class="hero">
+  <h1>model news.</h1>
+  <p>Releases, updates and features from gen-AI model makers — straight from their official X accounts.</p>
+</section>
+
+<div class="controls">
+  <div class="range" id="range"></div>
+  <div class="pills" id="pills"></div>
+</div>
+
+<div class="feed" id="feed"><div class="loading">Loading news…</div></div>
+
+<footer>freym — an experiment. Posts belong to their authors.</footer>
+
+<script>
+const FEED_URL = "https://lmuksetmkzssoewkzdlm.supabase.co/functions/v1/scraper-news-feed?days=30";
+const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxtdWtzZXRta3pzc29ld2t6ZGxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyNTUwNTMsImV4cCI6MjA3NzgzMTA1M30.mvX1o1RBSDgfX5OwRu3ArxsTxQzeZ5ah6J0aR2ZwNuk";
+
+const CAT_LABEL = {
+  "model-release": "release",
+  "model-update": "update",
+  "feature": "feature",
+  "research": "research",
+  "availability": "availability",
+  "other": "news",
+};
+
+let DATA = { sources: [], items: [] };
+let filterCompany = null;
+let rangeDays = 5;
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => (s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+async function load() {
+  const res = await fetch(FEED_URL, { headers: { Authorization: "Bearer " + ANON_KEY } });
+  DATA = await res.json();
+  DATA.byId = Object.fromEntries(DATA.sources.map((s) => [s.id, s]));
+  render();
+}
+
+function visibleItems() {
+  const since = Date.now() - rangeDays * 86400000;
+  return DATA.items.filter((it) => {
+    if (new Date(it.taken_at).getTime() < since) return false;
+    if (filterCompany && DATA.byId[it.source_id]?.company !== filterCompany) return false;
+    return true;
+  });
+}
+
+function render() {
+  renderRange();
+  renderPills();
+  renderFeed();
+}
+
+function renderRange() {
+  const el = $("#range");
+  el.innerHTML = "";
+  for (const d of [5, 14, 30]) {
+    const b = document.createElement("button");
+    b.textContent = `${d} days`;
+    b.className = rangeDays === d ? "active" : "";
+    b.onclick = () => { rangeDays = d; render(); };
+    el.appendChild(b);
+  }
+}
+
+function renderPills() {
+  const el = $("#pills");
+  el.innerHTML = "";
+  const since = Date.now() - rangeDays * 86400000;
+  const counts = {};
+  for (const it of DATA.items) {
+    if (new Date(it.taken_at).getTime() < since) continue;
+    const co = DATA.byId[it.source_id]?.company;
+    if (co) counts[co] = (counts[co] ?? 0) + 1;
+  }
+  const mk = (label, avatar, count, active, onclick) => {
+    const d = document.createElement("div");
+    d.className = "pill" + (active ? " active" : "") + (avatar ? "" : " no-avatar");
+    d.innerHTML = (avatar ? `<img src="${esc(avatar)}" alt="" loading="lazy">` : "") +
+      esc(label) + (count != null ? ` <span class="n">${count}</span>` : "");
+    d.onclick = onclick;
+    return d;
+  };
+  el.appendChild(mk("All", null, null, filterCompany === null, () => { filterCompany = null; render(); }));
+  const companies = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+  for (const co of companies) {
+    const src = DATA.sources.find((s) => s.company === co && s.profile_pic_url);
+    el.appendChild(mk(co, src?.profile_pic_url ?? null, counts[co], filterCompany === co,
+      () => { filterCompany = filterCompany === co ? null : co; render(); }));
+  }
+}
+
+function dayLabel(iso) {
+  const d = new Date(iso);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const that = new Date(d); that.setHours(0, 0, 0, 0);
+  const diff = Math.round((today - that) / 86400000);
+  if (diff === 0) return "Today";
+  if (diff === 1) return "Yesterday";
+  return d.toLocaleDateString("en-US", { month: "long", day: "numeric" });
+}
+
+function renderFeed() {
+  const feed = $("#feed");
+  feed.innerHTML = "";
+  const items = visibleItems();
+  $("#stats").textContent = `${items.length} updates · last ${rangeDays} days`;
+  if (!items.length) { feed.innerHTML = '<div class="loading">No model news in this window.</div>'; return; }
+
+  let lastDay = null;
+  for (const it of items) {
+    const day = dayLabel(it.taken_at);
+    if (day !== lastDay) {
+      const lb = document.createElement("div");
+      lb.className = "day-label";
+      lb.textContent = day;
+      feed.appendChild(lb);
+      lastDay = day;
+    }
+    const src = DATA.byId[it.source_id] ?? {};
+    const time = new Date(it.taken_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    const cat = CAT_LABEL[it.category] ?? it.category;
+    const el = document.createElement("div");
+    el.className = "item";
+    el.innerHTML = `
+      ${src.profile_pic_url ? `<img class="ava" src="${esc(src.profile_pic_url)}" alt="" loading="lazy">` : '<div class="ava"></div>'}
+      <div class="body">
+        <div class="meta"><span class="co">${esc(src.company ?? "")}</span> @${esc(src.handle ?? "")} · ${esc(time)}</div>
+        <div class="headline">${esc(it.headline ?? it.text?.slice(0, 120) ?? "")}</div>
+        ${it.summary ? `<div class="summary">${esc(it.summary)}</div>` : ""}
+        <div class="chips">
+          ${it.category ? `<span class="chip cat-${esc(it.category)}">${esc(cat)}</span>` : ""}
+          ${it.model_name ? `<span class="chip model">${esc(it.model_name)}</span>` : ""}
+        </div>
+        ${it.image_url ? `<div class="thumb"><img src="${esc(it.image_url)}" alt="" loading="lazy" referrerpolicy="no-referrer"></div>` : ""}
+        <span class="tweet-toggle">Show original post</span>
+        <div class="tweet-text">${esc(it.text ?? "")}</div>
+        <div><a class="item-link" href="${esc(it.url)}" target="_blank" rel="noopener">View on X ↗</a></div>
+      </div>`;
+    el.querySelector(".tweet-toggle").onclick = (e) => {
+      el.classList.toggle("expanded");
+      e.target.textContent = el.classList.contains("expanded") ? "Hide original post" : "Show original post";
+    };
+    feed.appendChild(el);
+  }
+}
+
+load().catch((e) => { $("#feed").innerHTML = `<div class="loading">Failed to load: ${esc(String(e))}</div>`; });
+</script>
+</body>
+</html>
