@@ -35,6 +35,26 @@ const DEFAULT_SOURCES: SourceRef[] = [
   { handle: "PixVerse_", company: "PixVerse" },
   { handle: "midjourney", company: "Midjourney" },
   { handle: "runwayml", company: "Runway" },
+  // video models
+  { handle: "pika_labs", company: "Pika" },
+  { handle: "Hailuo_AI", company: "MiniMax" },
+  { handle: "higgsfield_ai", company: "Higgsfield" },
+  { handle: "moonvalley", company: "Moonvalley" },
+  { handle: "ViduAI", company: "Vidu" },
+  { handle: "TencentHunyuan", company: "Tencent" },
+  { handle: "genmoai", company: "Genmo" },
+  // image models
+  { handle: "StabilityAI", company: "Stability AI" },
+  { handle: "recraftai", company: "Recraft" },
+  { handle: "LeonardoAi", company: "Leonardo" },
+  { handle: "Magnific_AI", company: "Magnific" },
+  { handle: "freepik", company: "Freepik" },
+  { handle: "playground_ai", company: "Playground" },
+  // avatars / video editing
+  { handle: "synthesiaIO", company: "Synthesia" },
+  { handle: "getcaptionsapp", company: "Captions" },
+  { handle: "tavus", company: "Tavus" },
+  { handle: "Hedra_labs", company: "Hedra" },
 ];
 
 const SC_BASE = "https://api.scrapecreators.com/v1";
