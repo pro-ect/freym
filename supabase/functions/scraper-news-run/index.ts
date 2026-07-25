@@ -14,8 +14,10 @@ type SourceRef = { handle: string; company: string };
 
 const DEFAULT_SOURCES: SourceRef[] = [
   { handle: "OpenAI", company: "OpenAI" },
+  { handle: "sora", company: "OpenAI" },
   { handle: "xai", company: "xAI" },
   { handle: "GoogleDeepMind", company: "Google" },
+  { handle: "GoogleLabs", company: "Google" },
   { handle: "AnthropicAI", company: "Anthropic" },
   { handle: "Kling_ai", company: "Kling" },
   { handle: "LTXStudio", company: "LTX" },
@@ -66,11 +68,15 @@ async function classify(company: string, text: string): Promise<Classification |
       model: "claude-haiku-4-5",
       max_tokens: 1024,
       system:
-        "You classify tweets from official accounts of generative-AI companies for a 'model news' feed. " +
-        "is_news=true only when the tweet itself announces or substantively describes something new from the company: " +
-        "a model release or version, a model/feature update, a new capability or tool, API/pricing/availability changes, " +
-        "or a research result. is_news=false for: community showcases and user-made content reposts, memes, hiring, " +
-        "event/webinar promo without product news, generic marketing, tips/tutorials for existing features, and holiday posts.\n" +
+        "You classify tweets from official accounts of AI companies for a 'gen-AI model news' feed aimed at creators. " +
+        "is_news=true ONLY when the tweet announces or substantively describes news about an AI MODEL or a generation capability: " +
+        "a model release/version/preview (image, video, audio, music, voice, 3D, world, or LLM foundation models), " +
+        "an update to a model's quality or capabilities, a new generation feature or creative tool powered by the company's models, " +
+        "model API/pricing/availability/open-weights changes, or model research results (papers, benchmarks, techniques).\n" +
+        "is_news=false for everything else, including: enterprise/business platform products with no model component, " +
+        "partnership or integration announcements that don't ship a new model capability, grants/philanthropy/funding/" +
+        "acquisitions/company milestones, policy/safety/legal news, hiring, event/webinar promo without model news, " +
+        "community showcases and user-made content reposts, memes, generic marketing, tips/tutorials for existing features, and holiday posts.\n" +
         "headline: a plain-language headline (max ~80 chars) written like a news item, e.g. 'Kling 2.5 adds native audio generation'. " +
         "summary: 1-2 sentences with the substance. Both null when is_news=false.\n" +
         "model_name: the specific model/product name with version when stated (e.g. 'Seedream 4.0', 'GPT-5.3', 'Kling 2.5 Turbo'), else null.\n" +
