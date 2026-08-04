@@ -167,7 +167,10 @@ async function scrapeSource(ref: SourceRef, sinceMs: number): Promise<{ fetched:
 
   const tw = await scGet("/twitter/user-tweets", { handle: ref.handle });
   const fetched = (tw.tweets ?? []).length;
-  let inserted = 0;
+
+  // Build all rows first, then upsert in one call — one round-trip per source
+  // instead of one per tweet.
+  const rows = [];
   for (const t of tw.tweets ?? []) {
     // deno-lint-ignore no-explicit-any
     const leg: any = t.legacy ?? t;
@@ -180,24 +183,28 @@ async function scrapeSource(ref: SourceRef, sinceMs: number): Promise<{ fetched:
     // deno-lint-ignore no-explicit-any
     const media = (leg?.extended_entities?.media ?? leg?.entities?.media ?? []) as any[];
     const imageUrl = media.find((m) => m.media_url_https)?.media_url_https ?? null;
-    const { error } = await supabase.from("news_items").upsert(
-      {
-        source_id: source.id,
-        platform_post_id: id,
-        url: `https://x.com/${ref.handle}/status/${id}`,
-        text: text.trim(),
-        taken_at: takenAt ? takenAt.toISOString() : null,
-        like_count: leg.favorite_count ?? null,
-        reply_count: leg.reply_count ?? null,
-        retweet_count: leg.retweet_count ?? null,
-        view_count: Number(t.views?.count ?? leg.view_count ?? null) || null,
-        image_url: imageUrl,
-        raw: t,
-      },
-      { onConflict: "platform_post_id", ignoreDuplicates: false },
-    );
-    if (error) console.error("item upsert", id, error.message);
-    else inserted++;
+    rows.push({
+      source_id: source.id,
+      platform_post_id: id,
+      url: `https://x.com/${ref.handle}/status/${id}`,
+      text: text.trim(),
+      taken_at: takenAt ? takenAt.toISOString() : null,
+      like_count: leg.favorite_count ?? null,
+      reply_count: leg.reply_count ?? null,
+      retweet_count: leg.retweet_count ?? null,
+      view_count: Number(t.views?.count ?? leg.view_count ?? null) || null,
+      image_url: imageUrl,
+      raw: t,
+    });
+  }
+
+  let inserted = 0;
+  if (rows.length) {
+    const { error } = await supabase
+      .from("news_items")
+      .upsert(rows, { onConflict: "platform_post_id", ignoreDuplicates: false });
+    if (error) console.error("item upsert", ref.handle, error.message);
+    else inserted = rows.length;
   }
   return { fetched, kept: inserted };
 }
@@ -239,14 +246,22 @@ Deno.serve(async (req) => {
   const days = Number(url.searchParams.get("days") ?? "14");
   const sinceMs = Date.now() - days * 86400_000;
 
+  // Scrape in parallel chunks — 38 sources x 2 ScrapeCreators calls each is well past
+  // the 150s edge timeout when run serially. Chunked rather than all-at-once to stay
+  // within ScrapeCreators rate limits.
   const summary: Record<string, unknown>[] = [];
-  for (const ref of sources) {
-    try {
-      const r = await scrapeSource(ref, sinceMs);
-      summary.push({ handle: ref.handle, ...r });
-    } catch (e) {
-      summary.push({ handle: ref.handle, error: String(e) });
-    }
+  const scrapeBatch = Number(url.searchParams.get("scrape_batch") ?? "6");
+  for (let i = 0; i < sources.length; i += scrapeBatch) {
+    const results = await Promise.all(
+      sources.slice(i, i + scrapeBatch).map(async (ref) => {
+        try {
+          return { handle: ref.handle, ...(await scrapeSource(ref, sinceMs)) };
+        } catch (e) {
+          return { handle: ref.handle, error: String(e) };
+        }
+      }),
+    );
+    summary.push(...results);
   }
 
   // Classify unprocessed items.
@@ -258,7 +273,7 @@ Deno.serve(async (req) => {
     .limit(classifyLimit);
 
   let classified = 0;
-  const batchSize = 5;
+  const batchSize = 10;
   for (let i = 0; i < (pending?.length ?? 0); i += batchSize) {
     await Promise.all(
       pending!.slice(i, i + batchSize).map(async (item) => {
@@ -327,13 +342,17 @@ Deno.serve(async (req) => {
     .select("id, profile_pic_url")
     .is("stored_avatar_path", null)
     .not("profile_pic_url", "is", null);
-  for (const a of avs ?? []) {
-    try {
-      const path = await mirrorOne(a.profile_pic_url, `news-avatars/${a.id}`);
-      if (path) await supabase.from("news_sources").update({ stored_avatar_path: path }).eq("id", a.id);
-    } catch (e) {
-      console.error("mirror avatar", a.id, String(e));
-    }
+  for (let i = 0; i < (avs?.length ?? 0); i += mBatch) {
+    await Promise.all(
+      avs!.slice(i, i + mBatch).map(async (a) => {
+        try {
+          const path = await mirrorOne(a.profile_pic_url, `news-avatars/${a.id}`);
+          if (path) await supabase.from("news_sources").update({ stored_avatar_path: path }).eq("id", a.id);
+        } catch (e) {
+          console.error("mirror avatar", a.id, String(e));
+        }
+      }),
+    );
   }
 
   return new Response(JSON.stringify({ summary, classified, mirrored }, null, 2), {
