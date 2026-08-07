@@ -23,6 +23,7 @@ const DEFAULT_CREATORS: CreatorRef[] = [
   { platform: "threads", handle: "ai_psn" },
   { platform: "threads", handle: "n7.visual" },
   { platform: "threads", handle: "lina_gengpt" },
+  { platform: "threads", handle: "tinapro.ai" },
   { platform: "x", handle: "0xInk_" },
   { platform: "x", handle: "Dari_Designs" },
   { platform: "x", handle: "madpencil_" },
