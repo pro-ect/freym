@@ -24,6 +24,8 @@ const DEFAULT_CREATORS: CreatorRef[] = [
   { platform: "threads", handle: "n7.visual" },
   { platform: "threads", handle: "lina_gengpt" },
   { platform: "threads", handle: "tinapro.ai" },
+  { platform: "threads", handle: "ai.sensee" },
+  { platform: "threads", handle: "reginasalyaeva" },
   { platform: "x", handle: "0xInk_" },
   { platform: "x", handle: "Dari_Designs" },
   { platform: "x", handle: "madpencil_" },
@@ -414,10 +416,13 @@ Deno.serve(async (req) => {
   };
 
   let mirrored = 0;
+  // Skip images whose source URL already failed once (expired IG CDN links) —
+  // without this they permanently occupy the limit window and new images never mirror.
   const { data: toMirror } = await supabase
     .from("sc_images")
     .select("id, url")
     .is("stored_path", null)
+    .is("mirror_failed_at", null)
     .limit(mirrorLimit);
   const mBatch = 8;
   for (let i = 0; i < (toMirror?.length ?? 0); i += mBatch) {
@@ -428,9 +433,12 @@ Deno.serve(async (req) => {
           if (path) {
             await supabase.from("sc_images").update({ stored_path: path }).eq("id", im.id);
             mirrored++;
+          } else {
+            await supabase.from("sc_images").update({ mirror_failed_at: new Date().toISOString() }).eq("id", im.id);
           }
         } catch (e) {
           console.error("mirror image", im.id, String(e));
+          await supabase.from("sc_images").update({ mirror_failed_at: new Date().toISOString() }).eq("id", im.id);
         }
       }),
     );
