@@ -10,6 +10,7 @@
     --bg: #f5f4ee;
     --ink: #111110;
     --muted: #6f6d66;
+    --faint: #9c9a92;
     --line: #e4e2d8;
     --card: #ffffff;
     --accent: #ff4d00;
@@ -30,23 +31,22 @@
   }
   .wordmark { font-weight: 700; font-size: 19px; letter-spacing: -0.02em; }
   .wordmark span { color: var(--accent); }
-  .hdr-right { font-size: 14px; color: var(--muted); }
   nav.top { display: flex; gap: 4px; flex-wrap: wrap; }
   nav.top a { font-size: 14px; color: var(--muted); padding: 6px 13px; border-radius: 999px; transition: color .15s ease; }
   nav.top a:hover { color: var(--ink); }
-  @media (max-width: 700px) { .hdr-right { display: none; } }
 
-  .hero { text-align: center; padding: 84px 24px 48px; }
+  .hero { text-align: center; padding: 72px 24px 36px; }
   .hero h1 {
     font-size: clamp(38px, 6vw, 68px);
     font-weight: 500; letter-spacing: -0.03em; line-height: 1.05;
     max-width: 800px; margin: 0 auto;
   }
-  .hero p { margin-top: 20px; font-size: 17px; color: var(--muted); }
+  .hero p { margin-top: 18px; font-size: 17px; color: var(--muted); }
 
+  /* ---- filters ---- */
   .filters {
     display: flex; flex-direction: column; align-items: center; gap: 12px;
-    padding: 26px 24px 8px; position: sticky; top: 0; z-index: 5;
+    padding: 18px 24px 6px; position: sticky; top: 0; z-index: 5;
     background: linear-gradient(var(--bg) 75%, transparent);
   }
   .filters-toggle {
@@ -71,80 +71,117 @@
   .pill:hover { border-color: var(--ink); }
   .pill.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 
-  .grid {
-    columns: 4 260px; column-gap: 14px;
-    max-width: 1280px; margin: 26px auto 80px; padding: 0 24px;
+  /* ---- threads-style feed ---- */
+  .feed {
+    max-width: 620px; margin: 18px auto 80px; padding: 0 16px;
+    display: flex; flex-direction: column; gap: 14px;
   }
-  .card {
-    break-inside: avoid; margin-bottom: 14px; position: relative;
-    border-radius: 12px; overflow: hidden; background: var(--card);
-    border: 1px solid var(--line); cursor: pointer;
+  .post {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 18px; padding: 18px 0 10px;
   }
-  .card img { width: 100%; display: block; }
-  .card .who {
-    position: absolute; bottom: 0; left: 0; right: 0;
-    padding: 26px 12px 10px; font-size: 13px; color: #fff;
-    background: linear-gradient(transparent, rgba(0,0,0,.55));
-    opacity: 0; transition: opacity .15s ease;
+  .post-head {
+    display: flex; align-items: center; gap: 10px; padding: 0 18px;
   }
-  .card:hover .who { opacity: 1; }
+  .avatar {
+    width: 38px; height: 38px; border-radius: 50%; flex: none;
+    background: #17171a; color: #fff; object-fit: cover;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; letter-spacing: -.02em;
+  }
+  .handle { font-weight: 700; font-size: 15px; letter-spacing: -.01em; }
+  .sep-chevron { color: var(--faint); font-size: 13px; }
+  .tag-model {
+    display: inline-flex; align-items: center; gap: 5px;
+    color: #1877f2; font-weight: 600; font-size: 15px;
+  }
+  .tag-model .dots { font-size: 11px; letter-spacing: -1px; }
+  .when { color: var(--faint); font-size: 14px; }
+  .post-head .spacer { flex: 1; }
+  .more-btn {
+    background: none; border: none; cursor: pointer; color: var(--muted);
+    font-size: 17px; line-height: 1; padding: 4px 2px; font-family: inherit;
+  }
 
-  /* overlay */
-  .overlay {
-    position: fixed; inset: 0; z-index: 50; display: none;
-    background: rgba(20,20,18,.5); backdrop-filter: blur(6px);
-    align-items: center; justify-content: center; padding: 24px;
+  .post-body { padding: 12px 18px 0; }
+  .post-title { font-size: 15.5px; line-height: 1.45; letter-spacing: -.01em; }
+  .prompt-line {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 12px; font-size: 15.5px; cursor: pointer; user-select: none;
   }
-  .overlay.open { display: flex; }
-  .sheet {
-    background: var(--bg); border-radius: 16px; overflow: hidden;
-    display: flex; max-width: 1060px; width: 100%; max-height: 90vh;
-    position: relative;
+  .prompt-line .count {
+    background: #f0efe9; color: var(--muted); border-radius: 999px;
+    font-size: 12px; font-weight: 600; padding: 2px 9px;
   }
-  .sheet .left { flex: 1.2; background: #0d0d0c; position: relative; min-width: 0; overflow-y: auto; }
-  .sheet .left .imgs {
-    min-height: 100%; display: flex; flex-direction: column; gap: 8px;
-    align-items: center; justify-content: center;
-  }
-  .sheet .left img { max-width: 100%; display: block; }
-  .sheet .left .imgs.single img { max-height: 90vh; object-fit: contain; }
-  .sheet .right {
-    flex: 1; padding: 32px; overflow-y: auto; display: flex; flex-direction: column; gap: 18px;
-    min-width: 320px;
-  }
-  .work-title { font-weight: 600; font-size: 18px; letter-spacing: -0.01em; }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip {
-    font-size: 12px; border: 1px solid var(--line); background: var(--card);
-    padding: 4px 10px; border-radius: 999px; color: var(--muted);
-  }
-  .chip.model { color: var(--ink); font-weight: 600; }
+  .prompt-line .caret { color: var(--faint); font-size: 12px; transition: transform .18s ease; }
+  .post.open .prompt-line .caret { transform: rotate(180deg); }
+
   .prompt-box {
-    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
-    padding: 16px; font-size: 14px; line-height: 1.55; white-space: pre-wrap;
+    display: none; margin-top: 10px;
+    background: #faf9f5; border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px; font-size: 13.5px; line-height: 1.6; white-space: pre-wrap;
     font-family: ui-monospace, "SF Mono", Menlo, monospace; color: #2a2a27;
   }
-  .label { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-  .btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: var(--ink); color: var(--bg); border: none; cursor: pointer;
-    border-radius: 999px; padding: 10px 18px; font-size: 14px; font-weight: 500;
-    width: fit-content; transition: opacity .15s;
+  .post.open .prompt-box { display: block; }
+  .chips { display: none; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .post.open .chips { display: flex; }
+  .chip {
+    font-size: 12px; border: 1px solid var(--line); background: var(--card);
+    padding: 3px 10px; border-radius: 999px; color: var(--muted);
   }
-  .btn:hover { opacity: .85; }
+
+  /* carousel: images bleed off the right edge like Threads */
+  .rail {
+    display: flex; gap: 8px; margin-top: 14px;
+    padding: 0 18px 2px; overflow-x: auto; scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .rail::-webkit-scrollbar { display: none; }
+  .rail img {
+    height: 430px; width: auto; max-width: 88%; flex: none;
+    border-radius: 12px; object-fit: cover; display: block;
+    background: #ecebe4; scroll-snap-align: start; cursor: zoom-in;
+  }
+  .rail.single img { max-width: 100%; height: auto; max-height: 560px; }
+
+  .ai-note { padding: 10px 18px 0; font-size: 13px; font-weight: 600; color: var(--faint); }
+
+  .actions {
+    display: flex; align-items: center; gap: 4px;
+    padding: 8px 12px 0;
+  }
+  .act {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: none; border: none; cursor: pointer; font-family: inherit;
+    color: var(--ink); font-size: 14px; padding: 8px 10px; border-radius: 999px;
+    transition: background .15s ease;
+  }
+  .act:hover { background: #f2f1ea; }
+  .act svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .act.copied { color: var(--accent); }
+
+  /* lightbox */
+  .overlay {
+    position: fixed; inset: 0; z-index: 50; display: none;
+    background: rgba(20,20,18,.72); backdrop-filter: blur(6px);
+    align-items: center; justify-content: center; padding: 28px;
+  }
+  .overlay.open { display: flex; }
+  .overlay img { max-width: 100%; max-height: 92vh; border-radius: 10px; display: block; }
   .close-x {
-    position: absolute; top: 14px; right: 14px; z-index: 2;
-    background: rgba(255,255,255,.9); border: none; width: 32px; height: 32px;
+    position: absolute; top: 18px; right: 18px;
+    background: rgba(255,255,255,.9); border: none; width: 34px; height: 34px;
     border-radius: 50%; cursor: pointer; font-size: 15px;
   }
+
   footer { text-align: center; padding: 40px; font-size: 13px; color: var(--muted); }
   .loading { text-align: center; color: var(--muted); padding: 60px; }
+
   @media (max-width: 760px) {
     .filters { position: static; background: none; }
-    .sheet { flex-direction: column; overflow-y: auto; }
-    .sheet .left { overflow: visible; }
-    .sheet .left .imgs.single img { max-height: 46vh; }
     header { padding: 18px 20px; }
+    .feed { padding: 0 10px; }
+    .rail img { height: 330px; }
   }
 </style>
 </head>
@@ -166,11 +203,9 @@
 </section>
 
 <div class="filters" id="filters"></div>
-<div class="grid" id="grid"><div class="loading">Loading gallery…</div></div>
+<div class="feed" id="feed"><div class="loading">Loading gallery…</div></div>
 
-<div class="overlay" id="overlay">
-  <div class="sheet" id="sheet"></div>
-</div>
+<div class="overlay" id="overlay"><button class="close-x" onclick="closeOverlay()">✕</button><img id="lightbox" src="" alt=""></div>
 
 <footer><span id="stats"></span><br>freym — an experiment. Images belong to their creators.</footer>
 
@@ -179,19 +214,30 @@ const FEED_URL = "https://lmuksetmkzssoewkzdlm.supabase.co/functions/v1/scraper-
 const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxtdWtzZXRta3pzc29ld2t6ZGxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyNTUwNTMsImV4cCI6MjA3NzgzMTA1M30.mvX1o1RBSDgfX5OwRu3ArxsTxQzeZ5ah6J0aR2ZwNuk";
 
 let DATA = { creators: [], posts: [] };
+let CREATORS = {};
 let filterModel = null;
 let filtersOpen = false;
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => (s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
+function ago(iso) {
+  if (!iso) return "";
+  const secs = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (secs < 3600) return Math.max(1, Math.round(secs / 60)) + "m";
+  if (secs < 86400) return Math.round(secs / 3600) + "h";
+  if (secs < 86400 * 7) return Math.round(secs / 86400) + "d";
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
 async function load() {
   const res = await fetch(FEED_URL, { headers: { Authorization: "Bearer " + ANON_KEY } });
   DATA = await res.json();
+  for (const c of DATA.creators ?? []) CREATORS[c.id] = c;
   DATA.posts = DATA.posts.filter((p) => (p.sc_images ?? []).length);
   DATA.posts.forEach((p) => p.sc_images.sort((a, b) => a.position - b.position));
   renderFilters();
-  renderGrid();
+  renderFeed();
   $("#stats").textContent = `${DATA.posts.length} works · full prompts`;
 }
 
@@ -211,7 +257,7 @@ function renderFilters() {
   el.appendChild(pills);
 
   const all = pill("All", filterModel === null);
-  all.onclick = () => { filterModel = null; renderFilters(); renderGrid(); };
+  all.onclick = () => { filterModel = null; renderFilters(); renderFeed(); };
   pills.appendChild(all);
 
   const counts = {};
@@ -219,7 +265,7 @@ function renderFilters() {
   const models = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
   for (const m of models) {
     const pl = pill(m, filterModel === m);
-    pl.onclick = () => { filterModel = filterModel === m ? null : m; renderFilters(); renderGrid(); };
+    pl.onclick = () => { filterModel = filterModel === m ? null : m; renderFilters(); renderFeed(); };
     pills.appendChild(pl);
   }
 }
@@ -231,58 +277,93 @@ function pill(text, active) {
   return d;
 }
 
-function renderGrid() {
-  const grid = $("#grid");
-  grid.innerHTML = "";
+const ICON = {
+  heart: '<svg viewBox="0 0 24 24"><path d="M20.8 8.6c0 4.5-8.8 9.9-8.8 9.9s-8.8-5.4-8.8-9.9a4.6 4.6 0 0 1 8.8-1.8 4.6 4.6 0 0 1 8.8 1.8Z"/></svg>',
+  copy: '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5.5 15H5a1.5 1.5 0 0 1-1.5-1.5v-9A1.5 1.5 0 0 1 5 3h9A1.5 1.5 0 0 1 15.5 4.5V5"/></svg>',
+  layers: '<svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3.5 12.5 8.5 4.7 8.5-4.7"/></svg>',
+  share: '<svg viewBox="0 0 24 24"><path d="M21 3 10.5 13.5"/><path d="M21 3l-6.8 18-3.7-7.5L3 9.8 21 3Z"/></svg>',
+};
+
+function renderFeed() {
+  const feed = $("#feed");
+  feed.innerHTML = "";
   const posts = DATA.posts.filter((p) => !filterModel || p.model_name === filterModel);
-  if (!posts.length) { grid.innerHTML = '<div class="loading">Nothing here yet.</div>'; return; }
+  if (!posts.length) { feed.innerHTML = '<div class="loading">Nothing here yet.</div>'; return; }
+
   for (const p of posts) {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-      <img src="${esc(p.sc_images[0].url)}" loading="lazy" referrerpolicy="no-referrer" alt="${esc(p.caption ?? "")}">
-      ${p.caption ? `<div class="who">${esc(p.caption)}</div>` : ""}`;
-    card.onclick = () => openPost(p);
-    grid.appendChild(card);
-  }
-}
+    const c = CREATORS[p.creator_id] ?? {};
+    const handle = c.handle ?? "freym";
+    const imgs = p.sc_images;
+    const tags = (p.style_tags ?? []).filter((t) => t !== handle);
 
-let currentPost = null;
-
-function openPost(p) {
-  currentPost = p;
-  renderSheet();
-  $("#overlay").classList.add("open");
-  document.body.style.overflow = "hidden";
-}
-
-function renderSheet() {
-  const p = currentPost;
-  const tags = (p.style_tags ?? []).filter((t) => t !== "nextunyte").map((t) => `<span class="chip">${esc(t)}</span>`).join("");
-  const imgs = p.sc_images.map((im) => `<img src="${esc(im.url)}" referrerpolicy="no-referrer" alt="">`).join("");
-  $("#sheet").innerHTML = `
-    <button class="close-x" onclick="closeOverlay()">✕</button>
-    <div class="left">
-      <div class="imgs${p.sc_images.length === 1 ? " single" : ""}">${imgs}</div>
-    </div>
-    <div class="right">
-      ${p.caption ? `<div class="work-title">${esc(p.caption)}</div>` : ""}
-      <div class="chips">
-        ${p.model_name ? `<span class="chip model">${esc(p.model_name)}</span>` : ""}
-        ${tags}
+    const el = document.createElement("article");
+    el.className = "post";
+    el.innerHTML = `
+      <div class="post-head">
+        ${c.profile_pic_url
+          ? `<img class="avatar" src="${esc(c.profile_pic_url)}" referrerpolicy="no-referrer" alt="">`
+          : `<div class="avatar">${esc(handle.slice(0, 2).toUpperCase())}</div>`}
+        <span class="handle">${esc(handle)}</span>
+        ${p.model_name
+          ? `<span class="sep-chevron">›</span>
+             <span class="tag-model"><span class="dots">••</span>${esc(p.model_name)}</span>`
+          : ""}
+        <span class="when">${esc(ago(p.taken_at))}</span>
+        <span class="spacer"></span>
+        ${p.url ? `<a class="more-btn" href="${esc(p.url)}" target="_blank" rel="noopener" title="Open original">•••</a>` : ""}
       </div>
-      ${p.prompt_text
-        ? `<div><div class="label">Prompt</div><div class="prompt-box">${esc(p.prompt_text)}</div></div>
-           <button class="btn" onclick="copyPrompt(this)">Copy prompt</button>`
-        : ""}
-    </div>`;
-}
 
-function copyPrompt(btn) {
-  navigator.clipboard.writeText(currentPost.prompt_text ?? "").then(() => {
-    btn.textContent = "Copied ✓";
-    setTimeout(() => (btn.textContent = "Copy prompt"), 1500);
-  });
+      <div class="post-body">
+        ${p.caption ? `<div class="post-title">${esc(p.caption)}</div>` : ""}
+        ${p.prompt_text
+          ? `<div class="prompt-line" data-toggle>
+               <span>Prompt below</span>
+               ${imgs.length > 1 ? `<span class="count">${imgs.length}</span>` : ""}
+               <span class="caret">▾</span>
+             </div>
+             <div class="prompt-box">${esc(p.prompt_text)}</div>`
+          : ""}
+        ${tags.length ? `<div class="chips">${tags.map((t) => `<span class="chip">${esc(t)}</span>`).join("")}</div>` : ""}
+      </div>
+
+      <div class="rail${imgs.length === 1 ? " single" : ""}">
+        ${imgs.map((im) => `<img src="${esc(im.url)}" loading="lazy" referrerpolicy="no-referrer" alt="">`).join("")}
+      </div>
+
+      <div class="ai-note">AI content</div>
+
+      <div class="actions">
+        <span class="act">${ICON.heart}${p.like_count ? p.like_count.toLocaleString() : ""}</span>
+        ${imgs.length > 1 ? `<span class="act">${ICON.layers}${imgs.length}</span>` : ""}
+        ${p.prompt_text ? `<button class="act" data-copy>${ICON.copy}Copy prompt</button>` : ""}
+        ${p.url ? `<a class="act" href="${esc(p.url)}" target="_blank" rel="noopener">${ICON.share}</a>` : ""}
+      </div>`;
+
+    const toggle = el.querySelector("[data-toggle]");
+    if (toggle) toggle.onclick = () => el.classList.toggle("open");
+
+    const copyBtn = el.querySelector("[data-copy]");
+    if (copyBtn) copyBtn.onclick = () => {
+      navigator.clipboard.writeText(p.prompt_text ?? "").then(() => {
+        copyBtn.classList.add("copied");
+        copyBtn.innerHTML = ICON.copy + "Copied";
+        setTimeout(() => {
+          copyBtn.classList.remove("copied");
+          copyBtn.innerHTML = ICON.copy + "Copy prompt";
+        }, 1500);
+      });
+    };
+
+    el.querySelectorAll(".rail img").forEach((im) => {
+      im.onclick = () => {
+        $("#lightbox").src = im.src;
+        $("#overlay").classList.add("open");
+        document.body.style.overflow = "hidden";
+      };
+    });
+
+    feed.appendChild(el);
+  }
 }
 
 function closeOverlay() {
@@ -290,11 +371,9 @@ function closeOverlay() {
   document.body.style.overflow = "";
 }
 $("#overlay").addEventListener("click", (e) => { if (e.target === e.currentTarget) closeOverlay(); });
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") closeOverlay();
-});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeOverlay(); });
 
-load().catch((e) => { $("#grid").innerHTML = `<div class="loading">Failed to load: ${esc(String(e))}</div>`; });
+load().catch((e) => { $("#feed").innerHTML = `<div class="loading">Failed to load: ${esc(String(e))}</div>`; });
 </script>
 </body>
 </html>

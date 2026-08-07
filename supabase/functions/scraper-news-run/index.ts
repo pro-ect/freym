@@ -55,6 +55,8 @@ const DEFAULT_SOURCES: SourceRef[] = [
   { handle: "getcaptionsapp", company: "Captions" },
   { handle: "tavus", company: "Tavus" },
   { handle: "Hedra_labs", company: "Hedra" },
+  // model-hosting platforms — signal for which models land where
+  { handle: "FAL", company: "fal.ai" },
 ];
 
 const SC_BASE = "https://api.scrapecreators.com/v1";
@@ -97,6 +99,9 @@ async function classify(company: string, text: string): Promise<Classification |
         "partnership or integration announcements that don't ship a new model capability, grants/philanthropy/funding/" +
         "acquisitions/company milestones, policy/safety/legal news, hiring, event/webinar promo without model news, " +
         "community showcases and user-made content reposts, memes, generic marketing, tips/tutorials for existing features, and holiday posts.\n" +
+        "Model-hosting platforms (e.g. fal.ai) are an exception to the integration rule: a tweet saying a specific NAMED model " +
+        "is now live/available/day-one on the platform IS news (category: availability) — which models land on which platform is " +
+        "the signal. Their infra/serving/pricing marketing, hiring, funding and events are still not news.\n" +
         "headline: a plain-language headline (max ~80 chars) written like a news item, e.g. 'Kling 2.5 adds native audio generation'. " +
         "summary: 1-2 sentences with the substance. Both null when is_news=false.\n" +
         "model_name: the specific model/product name with version when stated (e.g. 'Seedream 4.0', 'GPT-5.3', 'Kling 2.5 Turbo'), else null.\n" +
@@ -246,7 +251,7 @@ Deno.serve(async (req) => {
   const days = Number(url.searchParams.get("days") ?? "14");
   const sinceMs = Date.now() - days * 86400_000;
 
-  // Scrape in parallel chunks — 38 sources x 2 ScrapeCreators calls each is well past
+  // Scrape in parallel chunks — 39 sources x 2 ScrapeCreators calls each is well past
   // the 150s edge timeout when run serially. Chunked rather than all-at-once to stay
   // within ScrapeCreators rate limits.
   const summary: Record<string, unknown>[] = [];
