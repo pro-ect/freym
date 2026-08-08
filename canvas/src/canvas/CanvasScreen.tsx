@@ -28,12 +28,22 @@ import PropertiesPanel from "./PropertiesPanel";
 import { loadProject, saveProject, renameProject } from "../lib/projects";
 import { resumeJobs } from "../lib/runner";
 import { generatePrompts } from "../lib/promptgen";
+import { fetchModels } from "../lib/models";
 import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from "../lib/supabase";
 import { patchNodeData } from "../types";
 import type { CloudModel, ModelNodeData, PromptGenNodeData, PromptNodeData } from "../types";
 
 const nodeTypes = { prompt: PromptNode, promptgen: PromptGenNode, image: ImageNode, model: ModelNode };
 const edgeTypes = { default: CurvedEdge };
+
+/** Seed a new model node with the schema's own defaults so runs match the app. */
+function defaultsFor(schema: CloudModel["param_schema"]): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, field] of Object.entries(schema ?? {})) {
+    if (field?.default !== undefined) out[key] = field.default;
+  }
+  return out;
+}
 
 function modelToNode(m: CloudModel, position: { x: number; y: number }): Node {
   return {
@@ -50,7 +60,8 @@ function modelToNode(m: CloudModel, position: { x: number; y: number }): Node {
       imageParamName: m.image_parameter_name,
       status: "idle",
       images: [],
-      params: {},
+      params: { custom: defaultsFor(m.param_schema) },
+      paramSchema: m.param_schema ?? null,
     } satisfies ModelNodeData,
   };
 }
@@ -219,6 +230,35 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [getNodes, setNodes]);
+
+  // Model nodes saved before param_schema support carry no schema, so backfill
+  // it from the catalog once the project is open — otherwise an existing canvas
+  // would never show the model's own controls.
+  useEffect(() => {
+    if (!loaded) return;
+    let cancelled = false;
+    void (async () => {
+      const missing = getNodes().filter(
+        (n) => n.type === "model" && (n.data as ModelNodeData).paramSchema === undefined,
+      );
+      if (!missing.length) return;
+      const models = await fetchModels().catch(() => [] as CloudModel[]);
+      if (cancelled || !models.length) return;
+      const bySlug = new Map(models.map((m) => [m.slug, m]));
+      for (const n of missing) {
+        const d = n.data as unknown as ModelNodeData;
+        const m = bySlug.get(d.slug);
+        if (!m) continue;
+        patchNodeData(n.id, {
+          paramSchema: m.param_schema ?? null,
+          params: { ...d.params, custom: { ...defaultsFor(m.param_schema), ...d.params?.custom } },
+        });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [loaded, getNodes]);
 
   // Prompt generator: one brief → N prompt nodes wired to the generator.
   // Re-running rewrites the nodes it already owns (so downstream model wiring

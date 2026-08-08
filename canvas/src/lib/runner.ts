@@ -97,14 +97,20 @@ export async function startRun(opts: {
   imageParamName: string | null;
   aspect?: string;
   numImages?: number;
+  custom?: Record<string, unknown>;
 }): Promise<void> {
   const { data: sess } = await supabase.auth.getSession();
   const token = sess.session?.access_token;
   if (!token) throw new Error("not signed in");
 
-  const parameters: Record<string, unknown> = {};
-  if (opts.aspect && opts.aspect !== "default") parameters.image_size = opts.aspect;
-  if (opts.numImages && opts.numImages > 1) parameters.num_images = opts.numImages;
+  // The model's own param_schema values go first, keyed as the provider expects
+  // them (aspect_ratio, quality, creativity…). The legacy aspect/num-images
+  // controls only fill gaps they didn't already cover.
+  const parameters: Record<string, unknown> = { ...(opts.custom ?? {}) };
+  if (opts.aspect && opts.aspect !== "default" && parameters.image_size === undefined)
+    parameters.image_size = opts.aspect;
+  if (opts.numImages && opts.numImages > 1 && parameters.num_images === undefined)
+    parameters.num_images = opts.numImages;
   if (opts.imageUrls.length) parameters[opts.imageParamName || "image_urls"] = opts.imageUrls;
 
   const res = await fetch(`${SUPABASE_URL}/functions/v1/${endpointFor(opts.provider, opts.slug)}`, {

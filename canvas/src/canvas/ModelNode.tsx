@@ -52,6 +52,7 @@ export async function runModelNode(
       imageParamName: d.imageParamName,
       aspect: d.params?.aspect,
       numImages: d.params?.numImages,
+      custom: d.params?.custom,
     });
   } catch (e) {
     patchNodeData(id, { status: "error", errorMessage: String((e as Error).message ?? e) });

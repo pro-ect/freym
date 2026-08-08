@@ -1,7 +1,10 @@
 import type { Node } from "@xyflow/react";
-import { patchNodeData, type ModelNodeData } from "../types";
+import { patchNodeData, type ModelNodeData, type ParamField, type ParamSchema } from "../types";
 
 const ASPECTS = ["default", "1:1", "9:16", "16:9", "4:5", "3:4", "3:2"];
+
+const labelFor = (key: string, field: ParamField) =>
+  field.label ?? key.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
 
 export default function PropertiesPanel({
   nodes,
@@ -17,18 +20,34 @@ export default function PropertiesPanel({
   const first = models[0].data as unknown as ModelNodeData;
   const running = models.some((n) => (n.data as unknown as ModelNodeData).status === "running");
 
-  // With a multi-selection the controls write the same value to every model.
+  const dataOf = (n: Node) => n.data as unknown as ModelNodeData;
+
   const patchAll = (params: Partial<ModelNodeData["params"]>) =>
+    models.forEach((n) => patchNodeData(n.id, { params: { ...dataOf(n).params, ...params } }));
+
+  // Schema-driven values write to every selected model that has the same key,
+  // so a mixed selection only picks up the controls it actually understands.
+  const setCustom = (key: string, value: unknown) =>
     models.forEach((n) => {
-      const d = n.data as unknown as ModelNodeData;
-      patchNodeData(n.id, { params: { ...d.params, ...params } });
+      const d = dataOf(n);
+      if (!d.paramSchema?.[key]) return;
+      patchNodeData(n.id, { params: { ...d.params, custom: { ...d.params?.custom, [key]: value } } });
     });
 
-  const names = [...new Set(models.map((n) => (n.data as unknown as ModelNodeData).modelName))];
-  const totalCoins = models.reduce(
-    (sum, n) => sum + ((n.data as unknown as ModelNodeData).costCoins ?? 0),
-    0,
+  // With a multi-selection show only controls every selected model shares.
+  const schema: ParamSchema = Object.fromEntries(
+    Object.entries(first.paramSchema ?? {}).filter(
+      ([key, field]) =>
+        models.every((n) => dataOf(n).paramSchema?.[key]) &&
+        (field.showWhen !== "hasImages" || models.every((n) => dataOf(n).maxRefImages > 0)),
+    ),
   );
+  const schemaKeys = Object.keys(schema);
+
+  const valueOf = (key: string) => first.params?.custom?.[key] ?? schema[key].default;
+
+  const names = [...new Set(models.map((n) => dataOf(n).modelName))];
+  const totalCoins = models.reduce((sum, n) => sum + (dataOf(n).costCoins ?? 0), 0);
 
   return (
     <aside className="fc-props">
@@ -40,33 +59,104 @@ export default function PropertiesPanel({
 
       {many && <div className="fc-hint">{names.join(" · ")}</div>}
 
-      <label className="fc-field">
-        <span>Aspect ratio</span>
-        <select
-          value={first.params?.aspect ?? "default"}
-          onChange={(e) => patchAll({ aspect: e.target.value })}
-        >
-          {ASPECTS.map((a) => (
-            <option key={a} value={a}>
-              {a === "default" ? "Default" : a}
-            </option>
-          ))}
-        </select>
-      </label>
+      {schemaKeys.map((key) => {
+        const field = schema[key];
+        const value = valueOf(key);
 
-      <label className="fc-field">
-        <span>Images per run</span>
-        <select
-          value={first.params?.numImages ?? 1}
-          onChange={(e) => patchAll({ numImages: Number(e.target.value) })}
-        >
-          {[1, 2, 3, 4].map((n) => (
-            <option key={n} value={n}>
-              {n}
-            </option>
-          ))}
-        </select>
-      </label>
+        if (field.type === "boolean") {
+          return (
+            <label key={key} className="fc-field fc-field-row">
+              <span>{labelFor(key, field)}</span>
+              <input
+                type="checkbox"
+                checked={Boolean(value)}
+                onChange={(e) => setCustom(key, e.target.checked)}
+              />
+            </label>
+          );
+        }
+
+        if (field.type === "number" || field.type === "slider") {
+          return (
+            <label key={key} className="fc-field">
+              <span>
+                {labelFor(key, field)} <em className="fc-field-val">{String(value ?? "")}</em>
+              </span>
+              <input
+                type="range"
+                min={field.min ?? 0}
+                max={field.max ?? 10}
+                step={field.step ?? 1}
+                value={Number(value ?? field.min ?? 0)}
+                onChange={(e) => setCustom(key, Number(e.target.value))}
+              />
+            </label>
+          );
+        }
+
+        if (field.type === "select") {
+          return (
+            <label key={key} className="fc-field">
+              <span>{labelFor(key, field)}</span>
+              <select value={String(value ?? "")} onChange={(e) => {
+                const raw = e.target.value;
+                const opt = (field.options ?? []).find((o) => String(o) === raw);
+                setCustom(key, opt ?? raw);
+              }}>
+                {(field.options ?? []).map((o) => (
+                  <option key={String(o)} value={String(o)}>
+                    {String(o)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          );
+        }
+
+        return (
+          <label key={key} className="fc-field">
+            <span>{labelFor(key, field)}</span>
+            <input
+              className="fc-text-input"
+              value={String(value ?? "")}
+              onChange={(e) => setCustom(key, e.target.value)}
+            />
+          </label>
+        );
+      })}
+
+      {/* Models with no schema of their own still get the generic controls. */}
+      {!schemaKeys.length && (
+        <>
+          <label className="fc-field">
+            <span>Aspect ratio</span>
+            <select
+              value={first.params?.aspect ?? "default"}
+              onChange={(e) => patchAll({ aspect: e.target.value })}
+            >
+              {ASPECTS.map((a) => (
+                <option key={a} value={a}>
+                  {a === "default" ? "Default" : a}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="fc-field">
+            <span>Images per run</span>
+            <select
+              value={first.params?.numImages ?? 1}
+              onChange={(e) => patchAll({ numImages: Number(e.target.value) })}
+            >
+              {[1, 2, 3, 4].map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </select>
+          </label>
+        </>
+      )}
 
       {!many && first.maxRefImages > 0 && (
         <div className="fc-hint">

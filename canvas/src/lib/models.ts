@@ -13,7 +13,16 @@ export async function fetchModels(): Promise<CloudModel[]> {
     .select("*")
     .order("sort_order", { ascending: true });
   if (error) throw error;
-  cache = (data ?? []) as CloudModel[];
+
+  // param_schema (the model's own controls — creativity, quality, resolution…)
+  // isn't on the canvas_models view, so pull it from `models` and merge by slug.
+  const { data: schemas } = await supabase.from("models").select("slug, param_schema");
+  const bySlug = new Map((schemas ?? []).map((s) => [s.slug, s.param_schema]));
+
+  cache = (data ?? []).map((m) => ({
+    ...(m as CloudModel),
+    param_schema: bySlug.get((m as CloudModel).slug) ?? null,
+  }));
   return cache;
 }
 

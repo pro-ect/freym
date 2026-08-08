@@ -1,3 +1,19 @@
+/** One control from a model's `param_schema` (same shape the mobile app renders). */
+export type ParamField = {
+  type: "select" | "boolean" | "number" | "slider" | "text";
+  label?: string;
+  description?: string;
+  default?: unknown;
+  options?: (string | number)[];
+  min?: number;
+  max?: number;
+  step?: number;
+  /** Only "hasImages" is used today: hide unless the model takes reference images. */
+  showWhen?: string;
+};
+
+export type ParamSchema = Record<string, ParamField>;
+
 export type CloudModel = {
   slug: string;
   name: string;
@@ -13,6 +29,7 @@ export type CloudModel = {
   image_parameter_name: string | null;
   is_new: boolean | null;
   is_featured: boolean | null;
+  param_schema?: ParamSchema | null;
 };
 
 export type RunStatus = "idle" | "running" | "done" | "error";
@@ -48,7 +65,13 @@ export type ModelNodeData = {
   images: string[]; // result URLs
   errorMessage?: string;
   jobId?: string;
-  params: { aspect?: string; numImages?: number };
+  /**
+   * `aspect`/`numImages` are the legacy controls, used for models with no
+   * param_schema. `custom` holds schema-driven values keyed by the model's own
+   * parameter names and is sent to the provider as-is.
+   */
+  params: { aspect?: string; numImages?: number; custom?: Record<string, unknown> };
+  paramSchema?: ParamSchema | null;
 };
 
 export type ProjectRow = {
