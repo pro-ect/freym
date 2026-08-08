@@ -154,15 +154,56 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
       <div
         className="fc-flow"
         onDragOver={(e) => {
-          if (e.dataTransfer.types.includes("application/freym-model")) e.preventDefault();
+          if (
+            e.dataTransfer.types.includes("application/freym-model") ||
+            e.dataTransfer.types.includes("Files")
+          )
+            e.preventDefault();
         }}
         onDrop={async (e) => {
           const slug = e.dataTransfer.getData("application/freym-model");
-          if (!slug) return;
+          const files = Array.from(e.dataTransfer.files ?? []).filter((f) =>
+            f.type.startsWith("image/"),
+          );
+          if (!slug && !files.length) return;
           e.preventDefault();
-          const { fetchModels } = await import("../lib/models");
-          const m = (await fetchModels()).find((x) => x.slug === slug);
-          if (m) addModel(m, screenToFlowPosition({ x: e.clientX, y: e.clientY }));
+          const pos = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+          if (slug) {
+            const { fetchModels } = await import("../lib/models");
+            const m = (await fetchModels()).find((x) => x.slug === slug);
+            if (m) addModel(m, pos);
+            return;
+          }
+          // Image files dropped from the OS: one Image node per file, uploading in place.
+          const { uploadInputImage } = await import("../lib/upload");
+          files.forEach((file, i) => {
+            const nodeId = uuid();
+            setNodes((ns) => [
+              ...ns,
+              {
+                id: nodeId,
+                type: "image",
+                position: { x: pos.x + i * 260, y: pos.y },
+                data: { url: null, uploading: true, fileName: file.name },
+              },
+            ]);
+            uploadInputImage(file)
+              .then((url) =>
+                window.dispatchEvent(
+                  new CustomEvent("node-data-update", {
+                    detail: { id: nodeId, data: { url, uploading: false } },
+                  }),
+                ),
+              )
+              .catch((err) => {
+                console.error("canvas drop upload failed", err);
+                window.dispatchEvent(
+                  new CustomEvent("node-data-update", {
+                    detail: { id: nodeId, data: { uploading: false } },
+                  }),
+                );
+              });
+          });
         }}
       >
         <ReactFlow
