@@ -26,6 +26,7 @@ const DEFAULT_CREATORS: CreatorRef[] = [
   { platform: "threads", handle: "tinapro.ai" },
   { platform: "threads", handle: "ai.sensee" },
   { platform: "threads", handle: "reginasalyaeva" },
+  { platform: "threads", handle: "liza_bagts" },
   { platform: "x", handle: "0xInk_" },
   { platform: "x", handle: "Dari_Designs" },
   { platform: "x", handle: "madpencil_" },
