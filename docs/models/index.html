@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI model catalog — every gen-AI model release, tracked | freym</title>
+<meta name="description" content="Catalog of 28 generative-AI models from 13 companies (ByteDance, OpenAI, Alibaba, Black Forest Labs, Tencent, Google…) with dated release timelines built from official announcements." />
+<link rel="canonical" href="https://freym.app/models/" />
+<meta property="og:title" content="AI model catalog — every gen-AI model release, tracked | freym" />
+<meta property="og:description" content="Catalog of 28 generative-AI models from 13 companies (ByteDance, OpenAI, Alibaba, Black Forest Labs, Tencent, Google…) with dated release timelines built from official announcements." />
+<meta property="og:url" content="https://freym.app/models/" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="freym" />
+<meta name="twitter:card" content="summary" />
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"freym","item":"https://freym.app/"},{"@type":"ListItem","position":2,"name":"Models","item":"https://freym.app/models/"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","name":"freym AI model catalog","numberOfItems":28,"itemListElement":[{"@type":"ListItem","position":1,"name":"Seedance 2.5","url":"https://freym.app/models/seedance-2-5/"},{"@type":"ListItem","position":2,"name":"Wan 3.0","url":"https://freym.app/models/wan-3-0/"},{"@type":"ListItem","position":3,"name":"Qwen 3.8 & Qwen 3.8-Max","url":"https://freym.app/models/qwen-3-8/"},{"@type":"ListItem","position":4,"name":"FLUX 3 Video","url":"https://freym.app/models/flux-3-video/"},{"@type":"ListItem","position":5,"name":"Seedream 5.0","url":"https://freym.app/models/seedream-5/"},{"@type":"ListItem","position":6,"name":"GPT-5.6 (Sol · Luna · Terra)","url":"https://freym.app/models/gpt-5-6/"},{"@type":"ListItem","position":7,"name":"WeatherNext","url":"https://freym.app/models/weathernext/"},{"@type":"ListItem","position":8,"name":"MiniMax H3","url":"https://freym.app/models/minimax-h3/"},{"@type":"ListItem","position":9,"name":"FLUX 3","url":"https://freym.app/models/flux-3/"},{"@type":"ListItem","position":10,"name":"Tencent Hy3 (Hunyuan 3)","url":"https://freym.app/models/hunyuan-hy3/"},{"@type":"ListItem","position":11,"name":"Qwen-Image-3.0-Pro","url":"https://freym.app/models/qwen-image-3-0-pro/"},{"@type":"ListItem","position":12,"name":"OpenEdit","url":"https://freym.app/models/openedit/"},{"@type":"ListItem","position":13,"name":"Hy ASR 3.0","url":"https://freym.app/models/hy-asr-3-0/"},{"@type":"ListItem","position":14,"name":"Higgsfield open models (Hell Grind · Zephyr · Mork)","url":"https://freym.app/models/higgsfield-open-models/"},{"@type":"ListItem","position":15,"name":"MiniMax open-weight video model","url":"https://freym.app/models/minimax-video/"},{"@type":"ListItem","position":16,"name":"Hy-MT2","url":"https://freym.app/models/hy-mt2/"},{"@type":"ListItem","position":17,"name":"Gemini Robotics 2","url":"https://freym.app/models/gemini-robotics-2/"},{"@type":"ListItem","position":18,"name":"Ideogram P-Image","url":"https://freym.app/models/ideogram-p-image/"},{"@type":"ListItem","position":19,"name":"Ideogram 4.0","url":"https://freym.app/models/ideogram-4/"},{"@type":"ListItem","position":20,"name":"Midjourney V8.2","url":"https://freym.app/models/midjourney-v8-2/"},{"@type":"ListItem","position":21,"name":"Bria V-RMBG 3.0","url":"https://freym.app/models/bria-v-rmbg-3/"},{"@type":"ListItem","position":22,"name":"Qwen-Audio-3.0-TTS","url":"https://freym.app/models/qwen-audio-3-0-tts/"},{"@type":"ListItem","position":23,"name":"Gemini 3.6 Flash & 3.5 Flash-Lite","url":"https://freym.app/models/gemini-3-6-flash/"},{"@type":"ListItem","position":24,"name":"Synthesia Dubbing 2.0","url":"https://freym.app/models/synthesia-dubbing-2/"},{"@type":"ListItem","position":25,"name":"AnimeGen","url":"https://freym.app/models/animegen/"},{"@type":"ListItem","position":26,"name":"Hyra-1.0 (Hunyuan Research Agent)","url":"https://freym.app/models/hyra-1-0/"},{"@type":"ListItem","position":27,"name":"VEED Lip Sync 2.0","url":"https://freym.app/models/veed-lipsync-2/"},{"@type":"ListItem","position":28,"name":"Wan-Dancer-14B","url":"https://freym.app/models/wan-dancer-14b/"}]}</script>
+<style>
+  :root { --bg:#f5f4ee; --ink:#111110; --muted:#6f6d66; --line:#e4e2d8; --card:#ffffff; --accent:#ff4d00; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Inter",Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
+  a { color:inherit; text-decoration:none; }
+  header { display:flex; align-items:center; justify-content:space-between; padding:22px 40px; flex-wrap:wrap; gap:10px; }
+  .wordmark { font-weight:700; font-size:19px; letter-spacing:-0.02em; }
+  .wordmark span { color:var(--accent); }
+  nav.top { display:flex; gap:4px; flex-wrap:wrap; }
+  nav.top a { font-size:14px; color:var(--muted); padding:6px 13px; border-radius:999px; }
+  nav.top a:hover { color:var(--ink); }
+  nav.top a.active { background:var(--ink); color:var(--bg); }
+  main { max-width:820px; margin:0 auto; padding:32px 24px 80px; }
+  .crumbs { font-size:13px; color:var(--muted); margin-bottom:28px; }
+  .crumbs a:hover { color:var(--ink); }
+  h1 { font-size:clamp(30px,4.6vw,44px); font-weight:600; letter-spacing:-0.03em; line-height:1.08; margin-bottom:14px; }
+  .lede { font-size:17px; line-height:1.6; color:var(--ink); margin-bottom:8px; max-width:64ch; }
+  .meta-line { font-size:13px; color:var(--muted); margin-bottom:34px; }
+  h2 { font-size:22px; font-weight:600; letter-spacing:-0.02em; margin:42px 0 16px; }
+  h3 { font-size:16px; font-weight:600; margin:0 0 4px; }
+  p { font-size:15px; line-height:1.65; margin-bottom:14px; }
+  .facts { width:100%; border-collapse:collapse; margin:8px 0 10px; font-size:14px; }
+  .facts td { padding:9px 12px 9px 0; border-bottom:1px solid var(--line); vertical-align:top; }
+  .facts td:first-child { color:var(--muted); white-space:nowrap; width:160px; }
+  .tl-item { border-left:2px solid var(--line); padding:0 0 26px 20px; position:relative; }
+  .tl-item:before { content:""; position:absolute; left:-5px; top:5px; width:8px; height:8px; border-radius:50%; background:var(--accent); }
+  .tl-date { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:3px; }
+  .tl-date .cat { background:var(--card); border:1px solid var(--line); border-radius:999px; padding:1px 8px; margin-left:6px; text-transform:none; letter-spacing:0; }
+  .tl-item p { font-size:14px; color:var(--ink); margin:4px 0 6px; max-width:62ch; }
+  .tl-src { font-size:13px; color:var(--muted); }
+  .tl-src a { color:var(--accent); }
+  .tl-img { max-width:340px; width:100%; border-radius:10px; border:1px solid var(--line); margin:8px 0 4px; display:block; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px; margin-top:8px; }
+  .mcard { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:6px; transition:border-color .15s ease; }
+  .mcard:hover { border-color:var(--ink); }
+  .mcard .co { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; }
+  .mcard .nm { font-size:17px; font-weight:600; letter-spacing:-0.01em; }
+  .mcard .tp { font-size:13px; color:var(--muted); }
+  .mcard .nn { font-size:12px; color:var(--accent); margin-top:auto; padding-top:8px; }
+  .faq details { border-bottom:1px solid var(--line); padding:12px 0; }
+  .faq summary { font-size:15px; font-weight:600; cursor:pointer; }
+  .faq p { margin:10px 0 2px; color:var(--ink); }
+  .art-list { display:flex; flex-direction:column; gap:0; }
+  .art-row { display:block; padding:20px 0; border-bottom:1px solid var(--line); }
+  .art-row .d { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; }
+  .art-row h3 { font-size:19px; margin:5px 0 6px; }
+  .art-row:hover h3 { color:var(--accent); }
+  .art-row p { font-size:14px; color:var(--muted); margin:0; }
+  article h2 { margin-top:38px; }
+  article ul, article ol { margin:0 0 16px 22px; font-size:15px; line-height:1.65; }
+  article li { margin-bottom:6px; }
+  article table { width:100%; border-collapse:collapse; margin:10px 0 18px; font-size:14px; }
+  article th, article td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); }
+  article th { color:var(--muted); font-weight:600; }
+  article blockquote { border-left:3px solid var(--accent); padding:2px 0 2px 16px; color:var(--muted); margin:0 0 16px; }
+  .related { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin-top:30px; }
+  .related .t { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px; }
+  .related a { display:inline-block; margin:0 12px 4px 0; font-size:14px; color:var(--accent); }
+  footer { border-top:1px solid var(--line); padding:26px 40px; font-size:13px; color:var(--muted); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+  footer a { color:var(--muted); margin-right:14px; }
+  footer a:hover { color:var(--ink); }
+</style>
+</head>
+<body>
+<header>
+  <a class="wordmark" href="/">freym<span>.</span></a>
+  <nav class="top">
+    <a href="/">work</a>
+    <a href="/news/">news</a>
+    <a href="/models/" class="active">models</a>
+    <a href="/blog/">blog</a>
+    <a href="/creators/">creators</a>
+    <a href="/youtube/">youtube</a>
+  </nav>
+</header>
+<main>
+
+<div class="crumbs"><a href="/">freym</a> / models</div>
+<h1>AI model catalog</h1>
+<p class="lede">The freym model catalog tracks 28 generative-AI models from 13 companies — image, video, audio and language models — built from 74 official announcements scraped from the model makers' own X accounts. Each model page has a dated release timeline, availability across platforms, and sourced citations.</p>
+<div class="meta-line">Updated 2026-08-08 · Sources: official company X accounts · <a href="/news/" style="color:var(--accent)">live news feed →</a></div>
+<div class="cards">
+<a class="mcard" href="/models/seedance-2-5/">
+  <div class="co">ByteDance</div>
+  <div class="nm">Seedance 2.5</div>
+  <div class="tp">video generation</div>
+  <div class="nn">6 tracked announcements · latest 2026-08-07</div>
+</a>
+<a class="mcard" href="/models/wan-3-0/">
+  <div class="co">Alibaba</div>
+  <div class="nm">Wan 3.0</div>
+  <div class="tp">video generation</div>
+  <div class="nn">1 tracked announcement · latest 2026-08-07</div>
+</a>
+<a class="mcard" href="/models/qwen-3-8/">
+  <div class="co">Alibaba</div>
+  <div class="nm">Qwen 3.8 &amp; Qwen 3.8-Max</div>
+  <div class="tp">large language model</div>
+  <div class="nn">9 tracked announcements · latest 2026-08-07</div>
+</a>
+<a class="mcard" href="/models/flux-3-video/">
+  <div class="co">Black Forest Labs</div>
+  <div class="nm">FLUX 3 Video</div>
+  <div class="tp">video generation</div>
+  <div class="nn">2 tracked announcements · latest 2026-08-07</div>
+</a>
+<a class="mcard" href="/models/seedream-5/">
+  <div class="co">ByteDance</div>
+  <div class="nm">Seedream 5.0</div>
+  <div class="tp">image generation</div>
+  <div class="nn">2 tracked announcements · latest 2026-08-07</div>
+</a>
+<a class="mcard" href="/models/gpt-5-6/">
+  <div class="co">OpenAI</div>
+  <div class="nm">GPT-5.6 (Sol · Luna · Terra)</div>
+  <div class="tp">large language model family</div>
+  <div class="nn">5 tracked announcements · latest 2026-08-06</div>
+</a>
+<a class="mcard" href="/models/weathernext/">
+  <div class="co">Google</div>
+  <div class="nm">WeatherNext</div>
+  <div class="tp">weather forecasting model</div>
+  <div class="nn">1 tracked announcement · latest 2026-08-06</div>
+</a>
+<a class="mcard" href="/models/minimax-h3/">
+  <div class="co">MiniMax</div>
+  <div class="nm">MiniMax H3</div>
+  <div class="tp">large language model</div>
+  <div class="nn">3 tracked announcements · latest 2026-08-06</div>
+</a>
+<a class="mcard" href="/models/flux-3/">
+  <div class="co">Black Forest Labs</div>
+  <div class="nm">FLUX 3</div>
+  <div class="tp">multimodal generation (image, video, audio)</div>
+  <div class="nn">2 tracked announcements · latest 2026-08-05</div>
+</a>
+<a class="mcard" href="/models/hunyuan-hy3/">
+  <div class="co">Tencent</div>
+  <div class="nm">Tencent Hy3 (Hunyuan 3)</div>
+  <div class="tp">large language model</div>
+  <div class="nn">5 tracked announcements · latest 2026-08-05</div>
+</a>
+<a class="mcard" href="/models/qwen-image-3-0-pro/">
+  <div class="co">Alibaba</div>
+  <div class="nm">Qwen-Image-3.0-Pro</div>
+  <div class="tp">image generation</div>
+  <div class="nn">2 tracked announcements · latest 2026-08-05</div>
+</a>
+<a class="mcard" href="/models/openedit/">
+  <div class="co">Veed</div>
+  <div class="nm">OpenEdit</div>
+  <div class="tp">agentic video editor (open source)</div>
+  <div class="nn">1 tracked announcement · latest 2026-08-04</div>
+</a>
+<a class="mcard" href="/models/hy-asr-3-0/">
+  <div class="co">Tencent</div>
+  <div class="nm">Hy ASR 3.0</div>
+  <div class="tp">speech recognition</div>
+  <div class="nn">1 tracked announcement · latest 2026-08-04</div>
+</a>
+<a class="mcard" href="/models/higgsfield-open-models/">
+  <div class="co">Higgsfield</div>
+  <div class="nm">Higgsfield open models (Hell Grind · Zephyr · Mork)</div>
+  <div class="tp">video generation (open source)</div>
+  <div class="nn">1 tracked announcement · latest 2026-08-03</div>
+</a>
+<a class="mcard" href="/models/minimax-video/">
+  <div class="co">MiniMax</div>
+  <div class="nm">MiniMax open-weight video model</div>
+  <div class="tp">video generation (open weights)</div>
+  <div class="nn">1 tracked announcement · latest 2026-08-03</div>
+</a>
+<a class="mcard" href="/models/hy-mt2/">
+  <div class="co">Tencent</div>
+  <div class="nm">Hy-MT2</div>
+  <div class="tp">machine translation</div>
+  <div class="nn">1 tracked announcement · latest 2026-07-31</div>
+</a>
+<a class="mcard" href="/models/gemini-robotics-2/">
+  <div class="co">Google</div>
+  <div class="nm">Gemini Robotics 2</div>
+  <div class="tp">robotics foundation model</div>
+  <div class="nn">1 tracked announcement · latest 2026-07-30</div>
+</a>
+<a class="mcard" href="/models/ideogram-p-image/">
+  <div class="co">Ideogram</div>
+  <div class="nm">Ideogram P-Image</div>
+  <div class="tp">image generation</div>
+  <div class="nn">2 tracked announcements · latest 2026-07-30</div>
+</a>
+<a class="mcard" href="/models/ideogram-4/">
+  <div class="co">Ideogram</div>
+  <div class="nm">Ideogram 4.0</div>
+  <div class="tp">image generation</div>
+  <div class="nn">1 tracked announcement · latest 2026-07-28</div>
+</a>
+<a class="mcard" href="/models/midjourney-v8-2/">
+  <div class="co">Midjourney</div>
+  <div class="nm">Midjourney V8.2</div>
+  <div class="tp">image generation</div>
+  <div class="nn">1 tracked announcement · latest 2026-07-24</div>
+</a>
+<a class="mcard" href="/models/bria-v-rmbg-3/">
+  <div class="co">Bria AI</div>
+  <div class="nm">Bria V-RMBG 3.0</div>
+  <div class="tp">video background removal</div>
+  <div class="nn">1 tracked announcement · latest 2026-07-23</div>
+</a>
+<a class="mcard" href="/models/qwen-audio-3-0-tts/">
+  <div class="co">Alibaba</div>
+  <div class="nm">Qwen-Audio-3.0-TTS</div>
+  <div class="tp">text-to-speech</div>
+  <div class="nn">1 tracked announcement · latest 2026-07-23</div>
+</a>
+<a class="mcard" href="/models/gemini-3-6-flash/">
+  <div class="co">Google</div>
+  <div class="nm">Gemini 3.6 Flash &amp; 3.5 Flash-Lite</div>
+  <div class="tp">large language model</div>
+  <div class="nn">1 tracked announcement · latest 2026-07-21</div>
+</a>
+<a class="mcard" href="/models/synthesia-dubbing-2/">
+  <div class="co">Synthesia</div>
+  <div class="nm">Synthesia Dubbing 2.0</div>
+  <div class="tp">video dubbing / voice</div>
+  <div class="nn">3 tracked announcements · latest 2026-07-21</div>
+</a>
+<a class="mcard" href="/models/animegen/">
+  <div class="co">Alibaba</div>
+  <div class="nm">AnimeGen</div>
+  <div class="tp">video generation (anime)</div>
+  <div class="nn">1 tracked announcement · latest 2026-07-21</div>
+</a>
+<a class="mcard" href="/models/hyra-1-0/">
+  <div class="co">Tencent</div>
+  <div class="nm">Hyra-1.0 (Hunyuan Research Agent)</div>
+  <div class="tp">research agent</div>
+  <div class="nn">1 tracked announcement · latest 2026-07-21</div>
+</a>
+<a class="mcard" href="/models/veed-lipsync-2/">
+  <div class="co">Veed</div>
+  <div class="nm">VEED Lip Sync 2.0</div>
+  <div class="tp">lip sync</div>
+  <div class="nn">1 tracked announcement · latest 2026-07-14</div>
+</a>
+<a class="mcard" href="/models/wan-dancer-14b/">
+  <div class="co">Alibaba</div>
+  <div class="nm">Wan-Dancer-14B</div>
+  <div class="tp">video generation (dance/motion)</div>
+  <div class="nn">1 tracked announcement · latest 2026-07-14</div>
+</a>
+</div>
+
+</main>
+<footer>
+  <div>
+    <a href="/models/">models</a><a href="/blog/">blog</a><a href="/news/">news</a><a href="/llms.txt">llms.txt</a>
+  </div>
+  <div>freym — AI models, prompts and news · updated 2026-08-08</div>
+</footer>
+</body>
+</html>

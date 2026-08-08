@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Qwen 3.8-Max: Alibaba's 2.4-trillion-parameter push to the frontier | freym</title>
+<meta name="description" content="Qwen 3.8 launched at 2.4T parameters with open weights promised. Three weeks later, Qwen 3.8-Max ranks #1 on the Agentic Index and #5 on the AI Index. The full timeline." />
+<link rel="canonical" href="https://freym.app/blog/qwen-3-8-max-alibaba-frontier/" />
+<meta property="og:title" content="Qwen 3.8-Max: Alibaba's 2.4-trillion-parameter push to the frontier | freym" />
+<meta property="og:description" content="Qwen 3.8 launched at 2.4T parameters with open weights promised. Three weeks later, Qwen 3.8-Max ranks #1 on the Agentic Index and #5 on the AI Index. The full timeline." />
+<meta property="og:url" content="https://freym.app/blog/qwen-3-8-max-alibaba-frontier/" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="freym" />
+<meta name="twitter:card" content="summary" />
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"freym","item":"https://freym.app/"},{"@type":"ListItem","position":2,"name":"Blog","item":"https://freym.app/blog/"},{"@type":"ListItem","position":3,"name":"Qwen 3.8-Max: Alibaba's 2.4-trillion-parameter push to the frontier","item":"https://freym.app/blog/qwen-3-8-max-alibaba-frontier/"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Qwen 3.8-Max: Alibaba's 2.4-trillion-parameter push to the frontier","description":"Qwen 3.8 launched at 2.4T parameters with open weights promised. Three weeks later, Qwen 3.8-Max ranks #1 on the Agentic Index and #5 on the AI Index. The full timeline.","datePublished":"2026-08-08","dateModified":"2026-08-08","url":"https://freym.app/blog/qwen-3-8-max-alibaba-frontier/","author":{"@type":"Organization","name":"freym","url":"https://freym.app"},"publisher":{"@type":"Organization","name":"freym","url":"https://freym.app"}}</script>
+<style>
+  :root { --bg:#f5f4ee; --ink:#111110; --muted:#6f6d66; --line:#e4e2d8; --card:#ffffff; --accent:#ff4d00; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Inter",Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
+  a { color:inherit; text-decoration:none; }
+  header { display:flex; align-items:center; justify-content:space-between; padding:22px 40px; flex-wrap:wrap; gap:10px; }
+  .wordmark { font-weight:700; font-size:19px; letter-spacing:-0.02em; }
+  .wordmark span { color:var(--accent); }
+  nav.top { display:flex; gap:4px; flex-wrap:wrap; }
+  nav.top a { font-size:14px; color:var(--muted); padding:6px 13px; border-radius:999px; }
+  nav.top a:hover { color:var(--ink); }
+  nav.top a.active { background:var(--ink); color:var(--bg); }
+  main { max-width:820px; margin:0 auto; padding:32px 24px 80px; }
+  .crumbs { font-size:13px; color:var(--muted); margin-bottom:28px; }
+  .crumbs a:hover { color:var(--ink); }
+  h1 { font-size:clamp(30px,4.6vw,44px); font-weight:600; letter-spacing:-0.03em; line-height:1.08; margin-bottom:14px; }
+  .lede { font-size:17px; line-height:1.6; color:var(--ink); margin-bottom:8px; max-width:64ch; }
+  .meta-line { font-size:13px; color:var(--muted); margin-bottom:34px; }
+  h2 { font-size:22px; font-weight:600; letter-spacing:-0.02em; margin:42px 0 16px; }
+  h3 { font-size:16px; font-weight:600; margin:0 0 4px; }
+  p { font-size:15px; line-height:1.65; margin-bottom:14px; }
+  .facts { width:100%; border-collapse:collapse; margin:8px 0 10px; font-size:14px; }
+  .facts td { padding:9px 12px 9px 0; border-bottom:1px solid var(--line); vertical-align:top; }
+  .facts td:first-child { color:var(--muted); white-space:nowrap; width:160px; }
+  .tl-item { border-left:2px solid var(--line); padding:0 0 26px 20px; position:relative; }
+  .tl-item:before { content:""; position:absolute; left:-5px; top:5px; width:8px; height:8px; border-radius:50%; background:var(--accent); }
+  .tl-date { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:3px; }
+  .tl-date .cat { background:var(--card); border:1px solid var(--line); border-radius:999px; padding:1px 8px; margin-left:6px; text-transform:none; letter-spacing:0; }
+  .tl-item p { font-size:14px; color:var(--ink); margin:4px 0 6px; max-width:62ch; }
+  .tl-src { font-size:13px; color:var(--muted); }
+  .tl-src a { color:var(--accent); }
+  .tl-img { max-width:340px; width:100%; border-radius:10px; border:1px solid var(--line); margin:8px 0 4px; display:block; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px; margin-top:8px; }
+  .mcard { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:6px; transition:border-color .15s ease; }
+  .mcard:hover { border-color:var(--ink); }
+  .mcard .co { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; }
+  .mcard .nm { font-size:17px; font-weight:600; letter-spacing:-0.01em; }
+  .mcard .tp { font-size:13px; color:var(--muted); }
+  .mcard .nn { font-size:12px; color:var(--accent); margin-top:auto; padding-top:8px; }
+  .faq details { border-bottom:1px solid var(--line); padding:12px 0; }
+  .faq summary { font-size:15px; font-weight:600; cursor:pointer; }
+  .faq p { margin:10px 0 2px; color:var(--ink); }
+  .art-list { display:flex; flex-direction:column; gap:0; }
+  .art-row { display:block; padding:20px 0; border-bottom:1px solid var(--line); }
+  .art-row .d { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; }
+  .art-row h3 { font-size:19px; margin:5px 0 6px; }
+  .art-row:hover h3 { color:var(--accent); }
+  .art-row p { font-size:14px; color:var(--muted); margin:0; }
+  article h2 { margin-top:38px; }
+  article ul, article ol { margin:0 0 16px 22px; font-size:15px; line-height:1.65; }
+  article li { margin-bottom:6px; }
+  article table { width:100%; border-collapse:collapse; margin:10px 0 18px; font-size:14px; }
+  article th, article td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); }
+  article th { color:var(--muted); font-weight:600; }
+  article blockquote { border-left:3px solid var(--accent); padding:2px 0 2px 16px; color:var(--muted); margin:0 0 16px; }
+  .related { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin-top:30px; }
+  .related .t { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px; }
+  .related a { display:inline-block; margin:0 12px 4px 0; font-size:14px; color:var(--accent); }
+  footer { border-top:1px solid var(--line); padding:26px 40px; font-size:13px; color:var(--muted); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+  footer a { color:var(--muted); margin-right:14px; }
+  footer a:hover { color:var(--ink); }
+</style>
+</head>
+<body>
+<header>
+  <a class="wordmark" href="/">freym<span>.</span></a>
+  <nav class="top">
+    <a href="/">work</a>
+    <a href="/news/">news</a>
+    <a href="/models/">models</a>
+    <a href="/blog/" class="active">blog</a>
+    <a href="/creators/">creators</a>
+    <a href="/youtube/">youtube</a>
+  </nav>
+</header>
+<main>
+
+<div class="crumbs"><a href="/">freym</a> / <a href="/blog/">blog</a> / Qwen 3.8-Max: Alibaba's 2.4-trillion-parameter push to the frontier</div>
+<article>
+<h1>Qwen 3.8-Max: Alibaba's 2.4-trillion-parameter push to the frontier</h1>
+<div class="meta-line">Published <time datetime="2026-08-08">August 8, 2026</time> · by freym · sourced from official announcements</div>
+<p class="lede">Qwen 3.8-Max is Alibaba's most capable AI model to date: a 2.4-trillion-parameter language model released August 3, 2026, that within days ranked #1 on the Artificial Analysis Agentic Index, #5 on the Intelligence Index, and #2 in the Image-to-WebDev Arena — with open weights promised for both Max and a smaller 27B variant.</p>
+
+<h2>How did Qwen get here? The three-week timeline</h2>
+<table>
+<tr><th>Date</th><th>Event</th></tr>
+<tr><td>Jul 19</td><td>Qwen 3.8 launches: 2.4T parameters, open weights promised. Alibaba calls it competitive with leading frontier models</td></tr>
+<tr><td>Jul 20</td><td>Preview updated with broad gains and a major web-frontend upgrade; Alibaba iterating daily</td></tr>
+<tr><td>Aug 3</td><td>Qwen 3.8-Max released — "our most capable model to date," aimed at coding and collaborative work. Open weights for 3.8-Max and 3.8-27B announced for the following week</td></tr>
+<tr><td>Aug 4</td><td>"Better and cheaper" pricing; available in Hermes Agent; open-weights tease via OpenRouter</td></tr>
+<tr><td>Aug 5</td><td>#2 in Image-to-WebDev Arena; Qwen-Image-3.0-Pro lands on Qwen Cloud</td></tr>
+<tr><td>Aug 6</td><td>#5 on Artificial Analysis Intelligence Index, #1 on Agentic Index</td></tr>
+</table>
+<p>Sources for every row are linked from the <a href="/models/qwen-3-8/">Qwen 3.8 model page</a>.</p>
+
+<h2>What makes Qwen 3.8-Max notable?</h2>
+<p>Three things stand out from Alibaba's own announcements. Scale: at 2.4 trillion parameters, Qwen 3.8 is among the largest models with a public parameter count. Agentic focus: the #1 Agentic Index ranking and the "coding and cowork" positioning target autonomous multi-day coding work, not chat. Openness at the frontier: Alibaba committed to releasing open weights for its flagship — not a smaller distilled cousin — which would make Qwen 3.8-Max one of the most capable openly available models in the world if it ships as promised.</p>
+
+<h2>Is Qwen 3.8-Max actually frontier-class?</h2>
+<p>The benchmark placements are Alibaba's own citations of third-party indexes (Artificial Analysis, Image-to-WebDev Arena), so treat rankings as directional. At launch Alibaba itself described Qwen 3.8 as "second only to Fable 5" among frontier models — an unusually direct concession of where it slots in. What is not in dispute is trajectory and price pressure: two rounds of "better and cheaper" inside one week, broad platform availability (Hermes Agent, Venice, OpenRouter), and an open-weights commitment that none of the Western frontier labs currently match.</p>
+
+<h2>What does it mean for builders?</h2>
+<p>If the open weights land as announced, self-hosted frontier-class agentic coding becomes realistic for well-resourced teams for the first time. And Alibaba is shipping the full stack around it: <a href="/models/qwen-image-3-0-pro/">Qwen-Image-3.0-Pro</a> (ranked #5 globally per Alibaba) and <a href="/models/qwen-audio-3-0-tts/">Qwen-Audio-3.0-TTS</a> launched in the same window, making Qwen a multi-modality platform, not a single model.</p>
+</article>
+<div class="related"><div class="t">Models in this story</div><a href="/models/qwen-3-8/">Qwen 3.8 &amp; Qwen 3.8-Max</a><a href="/models/qwen-image-3-0-pro/">Qwen-Image-3.0-Pro</a></div>
+<div class="related"><div class="t">Explore</div><a href="/models/">Model catalog</a><a href="/news/">Live model news feed</a><a href="/blog/">All articles</a></div>
+
+</main>
+<footer>
+  <div>
+    <a href="/models/">models</a><a href="/blog/">blog</a><a href="/news/">news</a><a href="/llms.txt">llms.txt</a>
+  </div>
+  <div>freym — AI models, prompts and news · updated 2026-08-08</div>
+</footer>
+</body>
+</html>

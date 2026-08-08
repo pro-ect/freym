@@ -1,0 +1,256 @@
+{
+  "models": [
+    {
+      "slug": "seedance-2-5",
+      "name": "Seedance 2.5",
+      "company": "ByteDance",
+      "type": "video generation",
+      "aliases": ["seedance 2.5", "seedance"],
+      "description": "Seedance 2.5 is ByteDance's AI video generation model, notable for native audio and voice generation in a single pass. Within days of release it became the fastest-adopted video model of mid-2026: Hedra, Leonardo, Higgsfield, Pika, Runway and fal.ai all announced integrations between late July and early August 2026.",
+      "highlight": "Adopted by at least 6 major platforms (Hedra, Leonardo, Higgsfield, Pika, Runway, fal.ai) within two weeks of release."
+    },
+    {
+      "slug": "seedream-5",
+      "name": "Seedream 5.0",
+      "company": "ByteDance",
+      "type": "image generation",
+      "aliases": ["seedream 5.0 pro", "seedream 5.0", "seedream"],
+      "description": "Seedream 5.0 is ByteDance's image generation model family. The Pro variant reached third-party platforms in July 2026, starting with Recraft Studio, and the family is offered alongside Seedance on fal.ai's enterprise platform.",
+      "highlight": "Available in Recraft Studio and on fal.ai's enterprise platform."
+    },
+    {
+      "slug": "flux-3",
+      "name": "FLUX 3",
+      "company": "Black Forest Labs",
+      "type": "multimodal generation (image, video, audio)",
+      "aliases": ["flux 3", "flux3"],
+      "description": "FLUX 3 is Black Forest Labs' multimodal generation model spanning image, video and audio, released on July 23, 2026. It marked BFL's expansion beyond still images into a unified multimodal family, and reached third-party access via Pika's API Club in early August 2026.",
+      "highlight": "BFL's first unified image + video + audio model."
+    },
+    {
+      "slug": "flux-3-video",
+      "name": "FLUX 3 Video",
+      "company": "Black Forest Labs",
+      "type": "video generation",
+      "aliases": ["flux 3 video"],
+      "description": "FLUX 3 Video is Black Forest Labs' video generation model, released August 4, 2026 with native audio generation and multi-language support. It generates video with sound in a single pass — no separate audio step — and landed in Leonardo within days of release.",
+      "highlight": "Native audio generation in a single pass, multi-language support."
+    },
+    {
+      "slug": "qwen-3-8",
+      "name": "Qwen 3.8 & Qwen 3.8-Max",
+      "company": "Alibaba",
+      "type": "large language model",
+      "aliases": ["qwen 3.8", "qwen3.8", "qwen 3.8-max", "qwen3.8-max"],
+      "description": "Qwen 3.8 is Alibaba's flagship large language model, launched July 19, 2026 with 2.4 trillion parameters and a commitment to open weights. Qwen 3.8-Max, released August 3, 2026, is described by Alibaba as its most capable model yet — ranking #5 on the AI Index, #1 on the Agentic Index, and #2 in the Image-to-WebDev Arena, at a lower cost than its predecessors.",
+      "highlight": "2.4T parameters; Max variant ranks #1 on the Agentic Index."
+    },
+    {
+      "slug": "qwen-image-3-0-pro",
+      "name": "Qwen-Image-3.0-Pro",
+      "company": "Alibaba",
+      "type": "image generation",
+      "aliases": ["qwen-image-3.0-pro"],
+      "description": "Qwen-Image-3.0-Pro is Alibaba's flagship image generation model, ranked #5 globally per Alibaba's August 2026 announcement. It became available on Qwen Cloud on August 5, 2026.",
+      "highlight": "Ranks #5 globally among image models per Alibaba."
+    },
+    {
+      "slug": "qwen-audio-3-0-tts",
+      "name": "Qwen-Audio-3.0-TTS",
+      "company": "Alibaba",
+      "type": "text-to-speech",
+      "aliases": ["qwen-audio-3.0-tts"],
+      "description": "Qwen-Audio-3.0-TTS is Alibaba's text-to-speech model, introduced July 23, 2026 with both real-time and high-quality synthesis options.",
+      "highlight": "Real-time and high-quality synthesis modes."
+    },
+    {
+      "slug": "wan-3-0",
+      "name": "Wan 3.0",
+      "company": "Alibaba",
+      "type": "video generation",
+      "aliases": ["wan3.0", "wan 3.0"],
+      "description": "Wan 3.0 is Alibaba's video generation model. In August 2026 the Wan team showed it transforming full creative briefs into finished video campaigns, positioning it as an end-to-end ad/campaign generation tool rather than a clip generator.",
+      "highlight": "Turns creative briefs into complete video campaigns."
+    },
+    {
+      "slug": "wan-dancer-14b",
+      "name": "Wan-Dancer-14B",
+      "company": "Alibaba",
+      "type": "video generation (dance/motion)",
+      "aliases": ["wan-dancer-14b"],
+      "description": "Wan-Dancer-14B is an open-source 14B-parameter dance/motion video model from Alibaba's Wan team, released July 14, 2026.",
+      "highlight": "Open-source, 14B parameters, motion-focused."
+    },
+    {
+      "slug": "animegen",
+      "name": "AnimeGen",
+      "company": "Alibaba",
+      "type": "video generation (anime)",
+      "aliases": ["animegen"],
+      "description": "AnimeGen is an anime-focused video generation model from Alibaba's Wan team, announced July 21, 2026.",
+      "highlight": "Anime-specialized video generation."
+    },
+    {
+      "slug": "gpt-5-6",
+      "name": "GPT-5.6 (Sol · Luna · Terra)",
+      "company": "OpenAI",
+      "type": "large language model family",
+      "aliases": ["gpt-5.6 sol", "gpt-5.6 luna", "gpt-5.6 terra", "gpt-5.6"],
+      "description": "GPT-5.6 is OpenAI's frontier model family with three variants: Sol, Luna and Terra. In August 2026 OpenAI shipped rapid updates — Sol improved factuality by 68% in high-stakes domains, Luna gained extended thinking for Free and Go users, and Luna prices were cut by 80% (Terra by 20%) at the end of July 2026.",
+      "highlight": "Sol +68% factuality; Luna prices cut 80% in July 2026."
+    },
+    {
+      "slug": "midjourney-v8-2",
+      "name": "Midjourney V8.2",
+      "company": "Midjourney",
+      "type": "image generation",
+      "aliases": ["midjourney v8.2"],
+      "description": "Midjourney V8.2 is Midjourney's image generation model, released July 24, 2026 with improved aesthetics and deeper personalization.",
+      "highlight": "Improved aesthetics and personalization."
+    },
+    {
+      "slug": "minimax-h3",
+      "name": "MiniMax H3",
+      "company": "MiniMax",
+      "type": "large language model",
+      "aliases": ["minimax h3", "h3"],
+      "description": "MiniMax H3 is MiniMax's flagship model. Through late July and early August 2026 it spread across creative platforms — available on Leonardo, in Luma Agents, and via Pika's API Club.",
+      "highlight": "Available on Leonardo, Luma Agents and Pika API Club."
+    },
+    {
+      "slug": "minimax-video",
+      "name": "MiniMax open-weight video model",
+      "company": "MiniMax",
+      "type": "video generation (open weights)",
+      "aliases": ["minimax video model"],
+      "description": "MiniMax (Hailuo AI) released an open-weight video generation model on August 3, 2026, joining the mid-2026 wave of Chinese labs open-sourcing video models.",
+      "highlight": "Open weights."
+    },
+    {
+      "slug": "hunyuan-hy3",
+      "name": "Tencent Hy3 (Hunyuan 3)",
+      "company": "Tencent",
+      "type": "large language model",
+      "aliases": ["hy3", "hy3-a21b"],
+      "description": "Hy3 is Tencent Hunyuan's flagship 295B-parameter language model. In July 2026 it claimed the top spot on the OpenRouter LLM leaderboard, shipped 1-bit and 4-bit quantized versions, was used in additive combinatorics research, and powers Tencent's Hy3 agent workspace in WorkBuddy, which launched globally in August 2026.",
+      "highlight": "295B parameters; topped the OpenRouter leaderboard in July 2026."
+    },
+    {
+      "slug": "hy-asr-3-0",
+      "name": "Hy ASR 3.0",
+      "company": "Tencent",
+      "type": "speech recognition",
+      "aliases": ["hy asr 3.0"],
+      "description": "Hy ASR 3.0 is Tencent Hunyuan's speech recognition model, launched in preview August 4, 2026 with improved semantic understanding.",
+      "highlight": "Preview with improved semantic understanding."
+    },
+    {
+      "slug": "hy-mt2",
+      "name": "Hy-MT2",
+      "company": "Tencent",
+      "type": "machine translation",
+      "aliases": ["hy-mt2"],
+      "description": "Hy-MT2 is Tencent Hunyuan's machine translation model. By end of July 2026 it passed 700K downloads and ranked #1 trending on Hugging Face.",
+      "highlight": "700K+ downloads, #1 trending on Hugging Face."
+    },
+    {
+      "slug": "hyra-1-0",
+      "name": "Hyra-1.0 (Hunyuan Research Agent)",
+      "company": "Tencent",
+      "type": "research agent",
+      "aliases": ["hyra-1.0 / hunyuan research agent", "hyra-1.0"],
+      "description": "Hyra-1.0 is Tencent's Hunyuan Research Agent, launched July 21, 2026 for autonomous research workflows.",
+      "highlight": "Tencent's dedicated research agent."
+    },
+    {
+      "slug": "gemini-3-6-flash",
+      "name": "Gemini 3.6 Flash & 3.5 Flash-Lite",
+      "company": "Google",
+      "type": "large language model",
+      "aliases": ["gemini 3.6 flash", "gemini 3.5 flash-lite"],
+      "description": "Gemini 3.6 Flash and Gemini 3.5 Flash-Lite are Google's fast/efficient model tier, released July 21, 2026.",
+      "highlight": "Google's speed-optimized tier, July 2026."
+    },
+    {
+      "slug": "gemini-robotics-2",
+      "name": "Gemini Robotics 2",
+      "company": "Google",
+      "type": "robotics foundation model",
+      "aliases": ["gemini robotics 2"],
+      "description": "Gemini Robotics 2 is Google DeepMind's robotics foundation model, announced July 30, 2026, bringing full-body intelligence to humanoid robots.",
+      "highlight": "Full-body intelligence for humanoids."
+    },
+    {
+      "slug": "weathernext",
+      "name": "WeatherNext",
+      "company": "Google",
+      "type": "weather forecasting model",
+      "aliases": ["weathernext"],
+      "description": "WeatherNext is Google DeepMind's weather forecasting model. In August 2026 it achieved state-of-the-art cyclone forecasting accuracy.",
+      "highlight": "State-of-the-art cyclone forecasting."
+    },
+    {
+      "slug": "ideogram-4",
+      "name": "Ideogram 4.0",
+      "company": "Ideogram",
+      "type": "image generation",
+      "aliases": ["ideogram 4.0"],
+      "description": "Ideogram 4.0 is Ideogram's image generation model. In July 2026 Ideogram partnered with AMD for scaled deployment of the model.",
+      "highlight": "AMD partnership for scaled deployment."
+    },
+    {
+      "slug": "ideogram-p-image",
+      "name": "Ideogram P-Image",
+      "company": "Ideogram",
+      "type": "image generation",
+      "aliases": ["p-image-ideogram", "ideogram object remover"],
+      "description": "P-Image is Ideogram's model line launched July 30, 2026, tuned for quality-speed-cost trade-offs. The related Object Remover tool topped the RemovalBench benchmark the same week.",
+      "highlight": "Object Remover tops RemovalBench."
+    },
+    {
+      "slug": "synthesia-dubbing-2",
+      "name": "Synthesia Dubbing 2.0",
+      "company": "Synthesia",
+      "type": "video dubbing / voice",
+      "aliases": ["dubbing 2.0"],
+      "description": "Dubbing 2.0 is Synthesia's video dubbing model, rolled out through July 2026 with voice preservation, improved lip sync, expressive voices, and support for 130+ languages.",
+      "highlight": "130+ languages with voice preservation."
+    },
+    {
+      "slug": "veed-lipsync-2",
+      "name": "VEED Lip Sync 2.0",
+      "company": "Veed",
+      "type": "lip sync",
+      "aliases": ["veed lip sync 2.0"],
+      "description": "VEED Lip Sync 2.0 is Veed's lip synchronization model, launched with an API on July 14, 2026.",
+      "highlight": "API-first lip sync model."
+    },
+    {
+      "slug": "openedit",
+      "name": "OpenEdit",
+      "company": "Veed",
+      "type": "agentic video editor (open source)",
+      "aliases": ["openedit"],
+      "description": "OpenEdit is Veed's open-source agentic video editor, launched August 4, 2026.",
+      "highlight": "Open-source agentic video editing."
+    },
+    {
+      "slug": "bria-v-rmbg-3",
+      "name": "Bria V-RMBG 3.0",
+      "company": "Bria AI",
+      "type": "video background removal",
+      "aliases": ["v-rmbg 3.0"],
+      "description": "V-RMBG 3.0 is Bria AI's video background removal model, launched July 23, 2026 as a plugin for OBS.",
+      "highlight": "Real-time background removal for OBS."
+    },
+    {
+      "slug": "higgsfield-open-models",
+      "name": "Higgsfield open models (Hell Grind · Zephyr · Mork)",
+      "company": "Higgsfield",
+      "type": "video generation (open source)",
+      "aliases": ["hell grind, zephyr, mork", "hell grind", "zephyr", "mork"],
+      "description": "Hell Grind, Zephyr and Mork are three models Higgsfield open-sourced on August 3, 2026, part of the mid-2026 open-weights wave in AI video.",
+      "highlight": "Three models open-sourced at once."
+    }
+  ]
+}

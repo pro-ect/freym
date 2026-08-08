@@ -1,0 +1,28 @@
+<!--meta {
+  "title": "The open-weights wave: why every lab suddenly gives models away",
+  "description": "In three weeks, MiniMax, Higgsfield, Alibaba, and Tencent all open-sourced serious models — video models that run on an RTX 5090, a 2.4T-parameter flagship, translation models topping Hugging Face. What changed.",
+  "date": "2026-08-08",
+  "models": ["minimax-video", "higgsfield-open-models", "qwen-3-8", "wan-dancer-14b", "hy-mt2", "openedit"]
+}-->
+<p class="lede">Between July 14 and August 4, 2026, at least five AI labs open-sourced substantial models: MiniMax released an open-weight video model verified on consumer RTX 5090 GPUs, Higgsfield open-sourced three video models at once, Alibaba promised open weights for its 2.4T-parameter flagship Qwen 3.8-Max, Tencent's Hy-MT2 translation model passed 700K downloads, and Veed open-sourced an agentic video editor.</p>
+
+<h2>What exactly went open?</h2>
+<table>
+<tr><th>Date</th><th>Company</th><th>Release</th></tr>
+<tr><td>Jul 14</td><td>Alibaba</td><td><a href="/models/wan-dancer-14b/">Wan-Dancer-14B</a> — open-source dance/motion video model, runs locally</td></tr>
+<tr><td>Jul 29</td><td>Tencent</td><td>AngelSpec — speculative-decoding framework, 1.98–2.40× speedup on Hy3-A21B</td></tr>
+<tr><td>Jul 31</td><td>Tencent</td><td><a href="/models/hy-mt2/">Hy-MT2</a> passes 700K downloads, #1 trending on Hugging Face</td></tr>
+<tr><td>Aug 3</td><td>MiniMax</td><td><a href="/models/minimax-video/">Open-weight video model</a>, verified on RTX 5090 and RTX 6000</td></tr>
+<tr><td>Aug 3</td><td>Higgsfield</td><td><a href="/models/higgsfield-open-models/">Hell Grind, Zephyr and Mork</a> open-sourced, every prompt public, alongside a $1M film festival</td></tr>
+<tr><td>Aug 3</td><td>Alibaba</td><td>Open weights announced for <a href="/models/qwen-3-8/">Qwen 3.8-Max</a> (2.4T) and Qwen 3.8-27B</td></tr>
+<tr><td>Aug 4</td><td>Veed</td><td><a href="/models/openedit/">OpenEdit</a> — open-source agentic video editor, installable via npm</td></tr>
+</table>
+
+<h2>Why are labs giving away models that cost millions to train?</h2>
+<p>The announcements themselves telegraph the strategy. MiniMax framed its video release as "from the community, to the community" and specifically verified it runs on consumer GPUs — open weights as user-base building. Higgsfield paired its release with a $1,000,000 film festival and made every prompt public — open weights as marketing engine for its paid platform. Alibaba teased its drop through OpenRouter — open weights as distribution into the developer stack where closed rivals charge per token. In each case the weights are the top of a funnel: the paid product is the hosted API, the platform subscription, or the enterprise deal behind the free model.</p>
+
+<h2>Does an open video model on a gaming GPU actually matter?</h2>
+<p>Yes — it moves video generation from a metered cloud service to a local capability, the same transition image generation made when Stable Diffusion shipped in 2022. A model verified on an RTX 5090 means indie studios, VFX shops and researchers can iterate without per-second billing, fine-tune on their own footage, and ship products that don't depend on a vendor's API terms. The catch is capability lag: the open models are not the frontier ones. Seedance 2.5 and FLUX 3 Video — the models winning the <a href="/blog/seedance-2-5-adoption-wave/">platform adoption race</a> — remain closed.</p>
+
+<h2>What should you watch?</h2>
+<p>Whether Alibaba actually ships Qwen 3.8-Max weights on schedule. A 2.4-trillion-parameter flagship going open would be a step-change: every previous open release at that ambition level arrived long after the closed frontier had moved on. If it lands, the open/closed capability gap collapses from years to weeks — and the pricing pressure that <a href="/blog/gpt-5-6-sol-luna-terra-august-updates/">already pushed OpenAI to cut Luna prices 80%</a> gets considerably worse.</p>

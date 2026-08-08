@@ -1,0 +1,46 @@
+# freym
+> freym tracks generative-AI models: a catalog of model releases built from official announcements, a live model-news feed, and a gallery of AI works with the full prompts behind them.
+
+## Model catalog
+- [All models](https://freym.app/models/): 28 gen-AI models with dated release timelines and availability
+- [Seedance 2.5](https://freym.app/models/seedance-2-5/): video generation by ByteDance — Adopted by at least 6 major platforms (Hedra, Leonardo, Higgsfield, Pika, Runway, fal.ai) within two weeks of release.
+- [Wan 3.0](https://freym.app/models/wan-3-0/): video generation by Alibaba — Turns creative briefs into complete video campaigns.
+- [Qwen 3.8 & Qwen 3.8-Max](https://freym.app/models/qwen-3-8/): large language model by Alibaba — 2.4T parameters; Max variant ranks #1 on the Agentic Index.
+- [FLUX 3 Video](https://freym.app/models/flux-3-video/): video generation by Black Forest Labs — Native audio generation in a single pass, multi-language support.
+- [Seedream 5.0](https://freym.app/models/seedream-5/): image generation by ByteDance — Available in Recraft Studio and on fal.ai's enterprise platform.
+- [GPT-5.6 (Sol · Luna · Terra)](https://freym.app/models/gpt-5-6/): large language model family by OpenAI — Sol +68% factuality; Luna prices cut 80% in July 2026.
+- [WeatherNext](https://freym.app/models/weathernext/): weather forecasting model by Google — State-of-the-art cyclone forecasting.
+- [MiniMax H3](https://freym.app/models/minimax-h3/): large language model by MiniMax — Available on Leonardo, Luma Agents and Pika API Club.
+- [FLUX 3](https://freym.app/models/flux-3/): multimodal generation (image, video, audio) by Black Forest Labs — BFL's first unified image + video + audio model.
+- [Tencent Hy3 (Hunyuan 3)](https://freym.app/models/hunyuan-hy3/): large language model by Tencent — 295B parameters; topped the OpenRouter leaderboard in July 2026.
+- [Qwen-Image-3.0-Pro](https://freym.app/models/qwen-image-3-0-pro/): image generation by Alibaba — Ranks #5 globally among image models per Alibaba.
+- [OpenEdit](https://freym.app/models/openedit/): agentic video editor (open source) by Veed — Open-source agentic video editing.
+- [Hy ASR 3.0](https://freym.app/models/hy-asr-3-0/): speech recognition by Tencent — Preview with improved semantic understanding.
+- [Higgsfield open models (Hell Grind · Zephyr · Mork)](https://freym.app/models/higgsfield-open-models/): video generation (open source) by Higgsfield — Three models open-sourced at once.
+- [MiniMax open-weight video model](https://freym.app/models/minimax-video/): video generation (open weights) by MiniMax — Open weights.
+- [Hy-MT2](https://freym.app/models/hy-mt2/): machine translation by Tencent — 700K+ downloads, #1 trending on Hugging Face.
+- [Gemini Robotics 2](https://freym.app/models/gemini-robotics-2/): robotics foundation model by Google — Full-body intelligence for humanoids.
+- [Ideogram P-Image](https://freym.app/models/ideogram-p-image/): image generation by Ideogram — Object Remover tops RemovalBench.
+- [Ideogram 4.0](https://freym.app/models/ideogram-4/): image generation by Ideogram — AMD partnership for scaled deployment.
+- [Midjourney V8.2](https://freym.app/models/midjourney-v8-2/): image generation by Midjourney — Improved aesthetics and personalization.
+- [Bria V-RMBG 3.0](https://freym.app/models/bria-v-rmbg-3/): video background removal by Bria AI — Real-time background removal for OBS.
+- [Qwen-Audio-3.0-TTS](https://freym.app/models/qwen-audio-3-0-tts/): text-to-speech by Alibaba — Real-time and high-quality synthesis modes.
+- [Gemini 3.6 Flash & 3.5 Flash-Lite](https://freym.app/models/gemini-3-6-flash/): large language model by Google — Google's speed-optimized tier, July 2026.
+- [Synthesia Dubbing 2.0](https://freym.app/models/synthesia-dubbing-2/): video dubbing / voice by Synthesia — 130+ languages with voice preservation.
+- [AnimeGen](https://freym.app/models/animegen/): video generation (anime) by Alibaba — Anime-specialized video generation.
+- [Hyra-1.0 (Hunyuan Research Agent)](https://freym.app/models/hyra-1-0/): research agent by Tencent — Tencent's dedicated research agent.
+- [VEED Lip Sync 2.0](https://freym.app/models/veed-lipsync-2/): lip sync by Veed — API-first lip sync model.
+- [Wan-Dancer-14B](https://freym.app/models/wan-dancer-14b/): video generation (dance/motion) by Alibaba — Open-source, 14B parameters, motion-focused.
+
+## Articles
+- [Seedance 2.5: the model every AI video platform raced to ship](https://freym.app/blog/seedance-2-5-adoption-wave/): Within ten days, Runway, Pika, Higgsfield, Leonardo, Hedra and fal.ai all announced Seedance 2.5. Here is the full adoption timeline — and what it says about the AI video market.
+- [Qwen 3.8-Max: Alibaba's 2.4-trillion-parameter push to the frontier](https://freym.app/blog/qwen-3-8-max-alibaba-frontier/): Qwen 3.8 launched at 2.4T parameters with open weights promised. Three weeks later, Qwen 3.8-Max ranks #1 on the Agentic Index and #5 on the AI Index. The full timeline.
+- [The open-weights wave: why every lab suddenly gives models away](https://freym.app/blog/open-weights-wave-2026/): In three weeks, MiniMax, Higgsfield, Alibaba, and Tencent all open-sourced serious models — video models that run on an RTX 5090, a 2.4T-parameter flagship, translation models topping Hugging Face. What changed.
+- [GPT-5.6 Sol, Luna and Terra: OpenAI's August reshuffle, explained](https://freym.app/blog/gpt-5-6-sol-luna-terra-august-updates/): An 80% price cut for Luna, 68% fewer factual errors for Sol, extended thinking free for everyone, and a reasoning-effort slider. What OpenAI changed in the GPT-5.6 family and who gets what.
+- [FLUX 3 and FLUX 3 Video: Black Forest Labs goes multimodal](https://freym.app/blog/flux-3-multimodal-native-audio/): BFL's FLUX 3 unifies image, video, audio and action-prediction in one architecture. FLUX 3 Video generates picture and sound in a single pass, up to 20 seconds. The full release timeline.
+
+## Feeds & galleries
+- [Model news](https://freym.app/news/): live feed of model releases and updates from official company X accounts
+- [Prompt gallery](https://freym.app/next/): curated AI works, each with the complete prompt
+- [Creators](https://freym.app/creators/): hand-picked AI creators worth following
+- [YouTube tutorials](https://freym.app/youtube/): fresh tutorials for models in the news
