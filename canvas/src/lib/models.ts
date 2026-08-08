@@ -1,5 +1,17 @@
 import { supabase } from "./supabase";
-import type { CloudModel } from "../types";
+import { PARAM_MIRROR } from "./paramMirror";
+import type { CloudModel, ParamSchema } from "../types";
+
+/**
+ * Controls the catalog advertises that the provider does not accept.
+ * Seedream 5 Lite takes `image_size`; it has no `aspect_ratio` or
+ * `enhance_prompt_mode`, and because its config carries no image_size default
+ * start-prediction-fal never converts the ratio either — so both selects were
+ * inert. The mirror supplies the real image_size control in their place.
+ */
+const DEAD_PARAMS: Record<string, string[]> = {
+  "seedream-5-lite-fal": ["aspect_ratio", "enhance_prompt_mode"],
+};
 
 let cache: CloudModel[] | null = null;
 
@@ -19,10 +31,18 @@ export async function fetchModels(): Promise<CloudModel[]> {
   const { data: schemas } = await supabase.from("models").select("slug, param_schema");
   const bySlug = new Map((schemas ?? []).map((s) => [s.slug, s.param_schema]));
 
-  cache = (data ?? []).map((m) => ({
-    ...(m as CloudModel),
-    param_schema: bySlug.get((m as CloudModel).slug) ?? null,
-  }));
+  cache = (data ?? []).map((row) => {
+    const m = row as CloudModel;
+    const fromCatalog = (bySlug.get(m.slug) ?? {}) as ParamSchema;
+    const dead = DEAD_PARAMS[m.slug] ?? [];
+    const curated = Object.fromEntries(
+      Object.entries(fromCatalog).filter(([key]) => !dead.includes(key)),
+    );
+    // Catalog first so its curated labels and size lists win, then everything
+    // else the provider accepts.
+    const merged = { ...curated, ...(PARAM_MIRROR[m.slug] ?? {}) };
+    return { ...m, param_schema: Object.keys(merged).length ? merged : null };
+  });
   return cache;
 }
 

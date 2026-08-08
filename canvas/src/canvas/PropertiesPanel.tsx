@@ -80,8 +80,10 @@ export default function PropertiesPanel({
           return (
             <label key={key} className="fc-field">
               <span>
-                {labelFor(key, field)} <em className="fc-field-val">{String(value ?? "")}</em>
+                {labelFor(key, field)}{" "}
+                <em className="fc-field-val">{value === undefined ? "auto" : String(value)}</em>
               </span>
+              {field.description && <em className="fc-field-desc">{field.description}</em>}
               <input
                 type="range"
                 min={field.min ?? 0}
@@ -98,11 +100,17 @@ export default function PropertiesPanel({
           return (
             <label key={key} className="fc-field">
               <span>{labelFor(key, field)}</span>
-              <select value={String(value ?? "")} onChange={(e) => {
-                const raw = e.target.value;
-                const opt = (field.options ?? []).find((o) => String(o) === raw);
-                setCustom(key, opt ?? raw);
-              }}>
+              {field.description && <em className="fc-field-desc">{field.description}</em>}
+              <select
+                value={String(value ?? "")}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  const opt = (field.options ?? []).find((o) => String(o) === raw);
+                  setCustom(key, raw === "" ? undefined : (opt ?? raw));
+                }}
+              >
+                {/* No provider default → leave it unset rather than guessing. */}
+                {field.default === undefined && <option value="">auto</option>}
                 {(field.options ?? []).map((o) => (
                   <option key={String(o)} value={String(o)}>
                     {String(o)}

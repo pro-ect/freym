@@ -231,21 +231,20 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
     return () => window.removeEventListener("keydown", handler);
   }, [getNodes, setNodes]);
 
-  // Model nodes saved before param_schema support carry no schema, so backfill
-  // it from the catalog once the project is open — otherwise an existing canvas
-  // would never show the model's own controls.
+  // Refresh every model node's controls from the catalog when a project opens:
+  // nodes saved before param_schema support have none at all, and older ones
+  // predate whatever the catalog offers today. Values the user already chose
+  // are kept — only the schema and any new defaults are filled in.
   useEffect(() => {
     if (!loaded) return;
     let cancelled = false;
     void (async () => {
-      const missing = getNodes().filter(
-        (n) => n.type === "model" && (n.data as ModelNodeData).paramSchema === undefined,
-      );
-      if (!missing.length) return;
+      const modelNodes = getNodes().filter((n) => n.type === "model");
+      if (!modelNodes.length) return;
       const models = await fetchModels().catch(() => [] as CloudModel[]);
       if (cancelled || !models.length) return;
       const bySlug = new Map(models.map((m) => [m.slug, m]));
-      for (const n of missing) {
+      for (const n of modelNodes) {
         const d = n.data as unknown as ModelNodeData;
         const m = bySlug.get(d.slug);
         if (!m) continue;

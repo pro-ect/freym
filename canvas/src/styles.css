@@ -85,6 +85,7 @@ input, textarea, select { font: inherit; }
 .fc-field-row { flex-direction: row; align-items: center; justify-content: space-between; }
 .fc-field-row input[type="checkbox"] { accent-color: #8b5cf6; width: 15px; height: 15px; }
 .fc-field-val { font-style: normal; color: #e5e5e5; }
+.fc-field-desc { font-style: normal; font-size: 11px; color: #6b6b75; line-height: 1.4; }
 .fc-field input[type="range"] { accent-color: #8b5cf6; width: 100%; }
 .fc-text-input {
   background: #1a1a1f; border: 1px solid #2e2e35; color: #e5e5e5;
