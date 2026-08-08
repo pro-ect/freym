@@ -13,12 +13,12 @@
 <meta property="og:site_name" content="freym" />
 <style>
   :root {
-    --bg: #f5f4ee;
-    --ink: #111110;
-    --muted: #6f6d66;
-    --faint: #9c9a92;
-    --line: #e4e2d8;
-    --card: #ffffff;
+    --bg: #0a0908;
+    --ink: #f4f2ec;
+    --muted: #9d998e;
+    --faint: #6e6a61;
+    --line: #26231e;
+    --card: #151310;
     --accent: #ff4d00;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -116,7 +116,7 @@
     margin-top: 12px; font-size: 15.5px; cursor: pointer; user-select: none;
   }
   .prompt-line .count {
-    background: #f0efe9; color: var(--muted); border-radius: 999px;
+    background: #211f1b; color: var(--muted); border-radius: 999px;
     font-size: 12px; font-weight: 600; padding: 2px 9px;
   }
   .prompt-line .caret { color: var(--faint); font-size: 12px; transition: transform .18s ease; }
@@ -124,7 +124,7 @@
 
   .prompt-box {
     display: none; margin-top: 10px;
-    background: #faf9f5; border: 1px solid var(--line); border-radius: 12px;
+    background: #151310; border: 1px solid var(--line); border-radius: 12px;
     padding: 14px; font-size: 13.5px; line-height: 1.6; white-space: pre-wrap;
     font-family: ui-monospace, "SF Mono", Menlo, monospace; color: #2a2a27;
   }
@@ -146,7 +146,7 @@
   .rail img {
     height: 430px; width: auto; max-width: 88%; flex: none;
     border-radius: 12px; object-fit: cover; display: block;
-    background: #ecebe4; scroll-snap-align: start; cursor: zoom-in;
+    background: #1d1b18; scroll-snap-align: start; cursor: zoom-in;
   }
   .rail.single img { max-width: 100%; height: auto; max-height: 560px; }
 
@@ -162,14 +162,14 @@
     color: var(--ink); font-size: 14px; padding: 8px 10px; border-radius: 999px;
     transition: background .15s ease;
   }
-  .act:hover { background: #f2f1ea; }
+  .act:hover { background: #211f1b; }
   .act svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
   .act.copied { color: var(--accent); }
 
   /* lightbox */
   .overlay {
     position: fixed; inset: 0; z-index: 50; display: none;
-    background: rgba(20,20,18,.72); backdrop-filter: blur(6px);
+    background: rgba(0,0,0,.7); backdrop-filter: blur(6px);
     align-items: center; justify-content: center; padding: 28px;
   }
   .overlay.open { display: flex; }

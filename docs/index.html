@@ -11,14 +11,16 @@
 <meta property="og:url" content="https://freym.app/" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="freym" />
+<meta property="og:image" content="https://freym.app/assets/hero-knot.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"freym","url":"https://freym.app/","description":"freym tracks generative-AI models: a model catalog built from official announcements, a live model-news feed, and a gallery of AI works with the full prompts behind them."},{"@type":"Organization","name":"freym","url":"https://freym.app/"}]}</script>
 <style>
   :root {
-    --bg: #f5f4ee;
-    --ink: #111110;
-    --muted: #6f6d66;
-    --line: #e4e2d8;
-    --card: #ffffff;
+    --bg: #0a0908;
+    --ink: #f4f2ec;
+    --muted: #9d998e;
+    --line: #26231e;
+    --card: #151310;
     --accent: #ff4d00;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -44,13 +46,37 @@
   nav.top a.active { background: var(--ink); color: var(--bg); }
   @media (max-width: 700px) { .hdr-right { display: none; } }
 
-  .hero { text-align: center; padding: 84px 24px 48px; }
+  .hero { position: relative; text-align: center; padding: 150px 24px 96px; }
+  .hero-bg {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -54%);
+    width: min(900px, 130vw); aspect-ratio: 1; z-index: -1; pointer-events: none;
+    background: url(/assets/hero-knot.jpg) center/cover no-repeat;
+    -webkit-mask-image: radial-gradient(closest-side, #000 52%, transparent 76%);
+    mask-image: radial-gradient(closest-side, #000 52%, transparent 76%);
+    opacity: .92; filter: saturate(1.05);
+  }
   .hero h1 {
     font-size: clamp(38px, 6vw, 68px);
     font-weight: 500; letter-spacing: -0.03em; line-height: 1.05;
-    max-width: 800px; margin: 0 auto;
+    max-width: 800px; margin: 0 auto; color: #fff;
+    text-shadow: 0 2px 40px rgba(0,0,0,.55), 0 1px 8px rgba(0,0,0,.35);
   }
-  .hero p { margin-top: 20px; font-size: 17px; color: var(--muted); }
+  .hero p {
+    margin-top: 20px; font-size: 17px; color: #e8e4dc;
+    text-shadow: 0 1px 18px rgba(0,0,0,.6);
+  }
+  .cta-row { margin-top: 30px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .cta {
+    display: inline-flex; align-items: center; border-radius: 999px;
+    padding: 11px 22px; font-size: 14px; font-weight: 600;
+    background: var(--accent); color: #fff; transition: opacity .15s ease;
+  }
+  .cta:hover { opacity: .88; }
+  .cta.ghost {
+    background: rgba(10,9,8,.45); color: #fff;
+    border: 1px solid rgba(255,255,255,.28); backdrop-filter: blur(6px);
+    font-weight: 500;
+  }
 
   .filters {
     display: flex; flex-direction: column; align-items: center; gap: 12px;
@@ -109,14 +135,14 @@
   .card:hover .who { opacity: 1; }
   .card .count {
     position: absolute; top: 10px; right: 10px;
-    background: rgba(255,255,255,.85); color: var(--ink);
+    background: rgba(255,255,255,.85); color: #111110;
     font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 999px;
   }
 
   /* overlay */
   .overlay {
     position: fixed; inset: 0; z-index: 50; display: none;
-    background: rgba(20,20,18,.5); backdrop-filter: blur(6px);
+    background: rgba(0,0,0,.65); backdrop-filter: blur(6px);
     align-items: center; justify-content: center; padding: 24px;
   }
   .overlay.open { display: flex; }
@@ -149,7 +175,7 @@
   .prompt-box {
     background: var(--card); border: 1px solid var(--line); border-radius: 12px;
     padding: 16px; font-size: 14px; line-height: 1.55; white-space: pre-wrap;
-    font-family: ui-monospace, "SF Mono", Menlo, monospace; color: #2a2a27;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace; color: #d9d5cb;
   }
   .label { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
   .btn {
@@ -165,7 +191,7 @@
   .close-x {
     position: absolute; top: 14px; right: 14px; z-index: 2;
     background: rgba(255,255,255,.9); border: none; width: 32px; height: 32px;
-    border-radius: 50%; cursor: pointer; font-size: 15px;
+    border-radius: 50%; cursor: pointer; font-size: 15px; color: #111110;
   }
   footer { text-align: center; padding: 40px; font-size: 13px; color: var(--muted); }
   .loading { text-align: center; color: var(--muted); padding: 60px; }
@@ -193,8 +219,13 @@
 </header>
 
 <section class="hero">
+  <div class="hero-bg" aria-hidden="true"></div>
   <h1>Like Behance, but for AI work.</h1>
   <p>A live feed of AI creators on Threads and X — their pictures, and the exact prompts that made them.</p>
+  <div class="cta-row">
+    <a class="cta" href="/models/">Explore the model catalog</a>
+    <a class="cta ghost" href="/news/">Today's model news</a>
+  </div>
 </section>
 
 <div class="filters" id="filters"></div>

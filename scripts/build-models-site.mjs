@@ -104,7 +104,7 @@ const isoDay = (iso) => iso.slice(0, 10);
 const today = new Date().toISOString().slice(0, 10);
 
 const CSS = `
-  :root { --bg:#f5f4ee; --ink:#111110; --muted:#6f6d66; --line:#e4e2d8; --card:#ffffff; --accent:#ff4d00; }
+  :root { --bg:#0a0908; --ink:#f4f2ec; --muted:#9d998e; --line:#26231e; --card:#151310; --accent:#ff4d00; }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Inter",Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
   a { color:inherit; text-decoration:none; }
@@ -115,7 +115,14 @@ const CSS = `
   nav.top a { font-size:14px; color:var(--muted); padding:6px 13px; border-radius:999px; }
   nav.top a:hover { color:var(--ink); }
   nav.top a.active { background:var(--ink); color:var(--bg); }
-  main { max-width:820px; margin:0 auto; padding:32px 24px 80px; }
+  main { max-width:820px; margin:0 auto; padding:32px 24px 80px; position:relative; }
+  .hero-glow {
+    position:absolute; left:50%; top:-140px; transform:translateX(-50%);
+    width:min(820px,130vw); aspect-ratio:1; z-index:-1; pointer-events:none;
+    background:url(/assets/hero-cubes.jpg) center/cover no-repeat; opacity:.38;
+    -webkit-mask-image:radial-gradient(closest-side,#000 45%,transparent 74%);
+    mask-image:radial-gradient(closest-side,#000 45%,transparent 74%);
+  }
   .crumbs { font-size:13px; color:var(--muted); margin-bottom:28px; }
   .crumbs a:hover { color:var(--ink); }
   h1 { font-size:clamp(30px,4.6vw,44px); font-weight:600; letter-spacing:-0.03em; line-height:1.08; margin-bottom:14px; }
@@ -166,7 +173,7 @@ const CSS = `
   footer a:hover { color:var(--ink); }
 `;
 
-function page({ title, description, canonical, active, body, jsonld, ogImage }) {
+function page({ title, description, canonical, active, body, jsonld, ogImage, heroGlow }) {
   const ld = (Array.isArray(jsonld) ? jsonld : [jsonld]).filter(Boolean);
   return `<!DOCTYPE html>
 <html lang="en">
@@ -198,6 +205,7 @@ ${ld.map((o) => `<script type="application/ld+json">${JSON.stringify(o)}</script
   </nav>
 </header>
 <main>
+${heroGlow ? '<div class="hero-glow" aria-hidden="true"></div>' : ""}
 ${body}
 </main>
 <footer>
@@ -374,6 +382,7 @@ ${hubCards}
 writePage(
   "models",
   page({
+    heroGlow: true,
     title: "AI model catalog — every gen-AI model release, tracked | freym",
     description: `Catalog of ${registry.length} generative-AI models from ${companies.length} companies (ByteDance, OpenAI, Alibaba, Black Forest Labs, Tencent, Google…) with dated release timelines built from official announcements.`,
     canonical: `${SITE}/models/`,
@@ -453,6 +462,7 @@ ${articles.map((a) => `<a class="art-row" href="/blog/${a.slug}/"><div class="d"
 writePage(
   "blog",
   page({
+    heroGlow: true,
     title: "Blog — AI model releases, explained | freym",
     description: "Articles on new generative-AI model releases — Seedance, FLUX, Qwen, GPT and more — written from official announcements.",
     canonical: `${SITE}/blog/`,

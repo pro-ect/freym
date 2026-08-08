@@ -17,7 +17,7 @@
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Ideogram P-Image — release timeline, availability and news","url":"https://freym.app/models/ideogram-p-image/","dateModified":"2026-08-08","description":"P-Image is Ideogram's model line launched July 30, 2026, tuned for quality-speed-cost trade-offs. The related Object Remover tool topped the RemovalBench benchmark the same week.","mainEntity":{"@type":"Thing","name":"Ideogram P-Image","description":"P-Image is Ideogram's model line launched July 30, 2026, tuned for quality-speed-cost trade-offs. The related Object Remover tool topped the RemovalBench benchmark the same week.","creator":{"@type":"Organization","name":"Ideogram"}},"publisher":{"@type":"Organization","name":"freym","url":"https://freym.app"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is Ideogram P-Image?","acceptedAnswer":{"@type":"Answer","text":"P-Image is Ideogram's model line launched July 30, 2026, tuned for quality-speed-cost trade-offs. The related Object Remover tool topped the RemovalBench benchmark the same week."}},{"@type":"Question","name":"Who makes Ideogram P-Image?","acceptedAnswer":{"@type":"Answer","text":"Ideogram P-Image is developed by Ideogram. This page tracks its official announcements as they happen."}},{"@type":"Question","name":"What is the latest Ideogram P-Image news?","acceptedAnswer":{"@type":"Answer","text":"Ideogram launches P-Image models with improved quality-speed-cost trade-offs (July 30, 2026). Ideogram introduced P-Image-Ideogram, a family of Pareto-optimal image models developed with PrunaAI, offering four quality modes, native 1K and 2K generation, and pricing starting from $0.003 per image. The models are now available on the API and partner platforms."}}]}</script>
 <style>
-  :root { --bg:#f5f4ee; --ink:#111110; --muted:#6f6d66; --line:#e4e2d8; --card:#ffffff; --accent:#ff4d00; }
+  :root { --bg:#0a0908; --ink:#f4f2ec; --muted:#9d998e; --line:#26231e; --card:#151310; --accent:#ff4d00; }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Inter",Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
   a { color:inherit; text-decoration:none; }
@@ -28,7 +28,14 @@
   nav.top a { font-size:14px; color:var(--muted); padding:6px 13px; border-radius:999px; }
   nav.top a:hover { color:var(--ink); }
   nav.top a.active { background:var(--ink); color:var(--bg); }
-  main { max-width:820px; margin:0 auto; padding:32px 24px 80px; }
+  main { max-width:820px; margin:0 auto; padding:32px 24px 80px; position:relative; }
+  .hero-glow {
+    position:absolute; left:50%; top:-140px; transform:translateX(-50%);
+    width:min(820px,130vw); aspect-ratio:1; z-index:-1; pointer-events:none;
+    background:url(/assets/hero-cubes.jpg) center/cover no-repeat; opacity:.38;
+    -webkit-mask-image:radial-gradient(closest-side,#000 45%,transparent 74%);
+    mask-image:radial-gradient(closest-side,#000 45%,transparent 74%);
+  }
   .crumbs { font-size:13px; color:var(--muted); margin-bottom:28px; }
   .crumbs a:hover { color:var(--ink); }
   h1 { font-size:clamp(30px,4.6vw,44px); font-weight:600; letter-spacing:-0.03em; line-height:1.08; margin-bottom:14px; }
@@ -92,6 +99,7 @@
   </nav>
 </header>
 <main>
+
 
 <div class="crumbs"><a href="/">freym</a> / <a href="/models/">models</a> / Ideogram P-Image</div>
 <h1>Ideogram P-Image</h1>
