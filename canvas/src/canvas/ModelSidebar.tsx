@@ -1,0 +1,61 @@
+import { useEffect, useState } from "react";
+import { fetchModels, groupModels } from "../lib/models";
+import type { CloudModel } from "../types";
+
+export default function ModelSidebar({ onAdd }: { onAdd: (m: CloudModel) => void }) {
+  const [models, setModels] = useState<CloudModel[]>([]);
+  const [q, setQ] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchModels()
+      .then(setModels)
+      .catch((e) => setErr(String(e.message ?? e)));
+  }, []);
+
+  const filtered = q
+    ? models.filter((m) => (m.name + " " + m.slug).toLowerCase().includes(q.toLowerCase()))
+    : models;
+  const { textToImage, imageToImage } = groupModels(filtered);
+
+  const section = (title: string, list: CloudModel[]) =>
+    list.length > 0 && (
+      <>
+        <div className="fc-side-section">{title}</div>
+        <div className="fc-model-grid">
+          {list.map((m) => (
+            <button
+              key={m.slug}
+              className="fc-model-card"
+              title={m.description ?? m.slug}
+              onClick={() => onAdd(m)}
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.setData("application/freym-model", m.slug);
+                e.dataTransfer.effectAllowed = "move";
+              }}
+            >
+              {m.icon_url ? <img src={m.icon_url} alt="" /> : <div className="fc-model-card-fallback" />}
+              <span>{m.name}</span>
+              {m.is_new && <em className="fc-badge">new</em>}
+            </button>
+          ))}
+        </div>
+      </>
+    );
+
+  return (
+    <aside className="fc-sidebar">
+      <div className="fc-side-title">Image models</div>
+      <input
+        className="fc-search"
+        placeholder="Search…"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+      />
+      {err && <div className="fc-error">{err}</div>}
+      {section("Generate from text", textToImage)}
+      {section("Edit with images", imageToImage)}
+    </aside>
+  );
+}
