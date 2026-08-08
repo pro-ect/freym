@@ -5,6 +5,7 @@ import {
   Background,
   BackgroundVariant,
   Controls,
+  PanOnScrollMode,
   addEdge,
   useNodesState,
   useEdgesState,
@@ -290,6 +291,11 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
           onMoveEnd={(_e, vp) => localStorage.setItem(vpKey, JSON.stringify(vp))}
           minZoom={0.1}
           maxZoom={2}
+          panOnScroll
+          panOnScrollMode={PanOnScrollMode.Free}
+          zoomOnScroll={false}
+          zoomOnPinch
+          multiSelectionKeyCode="Meta"
           proOptions={{ hideAttribution: true }}
           deleteKeyCode={["Backspace", "Delete"]}
         >
