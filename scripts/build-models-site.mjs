@@ -70,6 +70,32 @@ for (const it of items) {
 
 // ---------- html helpers ----------
 
+// Write a page only if its content actually changed (ignoring the daily date
+// stamps), so dateModified/lastmod stay honest and IndexNow only gets pinged
+// for real changes.
+const changedUrls = [];
+const normalize = (html) =>
+  html
+    .replace(/([Uu]pdated )\d{4}-\d{2}-\d{2}/g, "$1DATE")
+    .replace(/"dateModified":"\d{4}-\d{2}-\d{2}"/g, '"dateModified":"DATE"');
+function writePage(relDir, html) {
+  const dir = relDir ? path.join(DOCS, relDir) : DOCS;
+  const filePath = path.join(dir, "index.html");
+  if (fs.existsSync(filePath) && normalize(fs.readFileSync(filePath, "utf8")) === normalize(html)) return;
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(filePath, html);
+  changedUrls.push(relDir ? `${SITE}/${relDir}/` : `${SITE}/`);
+}
+// Remove subdirectories of docs/<parent> that are no longer generated.
+function pruneStale(parent, expectedSlugs) {
+  const dir = path.join(DOCS, parent);
+  if (!fs.existsSync(dir)) return;
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (e.isDirectory() && !expectedSlugs.includes(e.name))
+      fs.rmSync(path.join(dir, e.name), { recursive: true, force: true });
+  }
+}
+
 const esc = (s) =>
   String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const fmtDate = (iso) =>
@@ -220,8 +246,7 @@ const modelsWithNews = registry
     return la < lb ? 1 : -1;
   });
 
-fs.rmSync(path.join(DOCS, "models"), { recursive: true, force: true });
-fs.mkdirSync(path.join(DOCS, "models"), { recursive: true });
+pruneStale("models", modelsWithNews.map((m) => m.slug));
 
 for (const m of modelsWithNews) {
   const latest = m.items[0];
@@ -309,9 +334,8 @@ ${related.length ? `<div class="related"><div class="t">Read more on freym</div>
     },
   ];
 
-  fs.mkdirSync(path.join(DOCS, "models", m.slug), { recursive: true });
-  fs.writeFileSync(
-    path.join(DOCS, "models", m.slug, "index.html"),
+  writePage(
+    `models/${m.slug}`,
     page({
       title: `${m.name} by ${m.company} — release timeline & news | freym`,
       description: `${m.name}: ${m.type} by ${m.company}. ${m.highlight} Release timeline and availability, tracked from official announcements.`,
@@ -347,8 +371,8 @@ ${hubCards}
 </div>
 `;
 
-fs.writeFileSync(
-  path.join(DOCS, "models", "index.html"),
+writePage(
+  "models",
   page({
     title: "AI model catalog — every gen-AI model release, tracked | freym",
     description: `Catalog of ${registry.length} generative-AI models from ${companies.length} companies (ByteDance, OpenAI, Alibaba, Black Forest Labs, Tencent, Google…) with dated release timelines built from official announcements.`,
@@ -375,8 +399,7 @@ fs.writeFileSync(
 
 // ---------- blog ----------
 
-fs.rmSync(path.join(DOCS, "blog"), { recursive: true, force: true });
-fs.mkdirSync(path.join(DOCS, "blog"), { recursive: true });
+pruneStale("blog", articles.map((a) => a.slug));
 
 for (const a of articles) {
   const relatedModels = (a.models ?? [])
@@ -392,9 +415,8 @@ ${a.html}
 ${relatedModels.length ? `<div class="related"><div class="t">Models in this story</div>${relatedModels.map((m) => `<a href="/models/${m.slug}/">${esc(m.name)}</a>`).join("")}</div>` : ""}
 <div class="related"><div class="t">Explore</div><a href="/models/">Model catalog</a><a href="/news/">Live model news feed</a><a href="/blog/">All articles</a></div>
 `;
-  fs.mkdirSync(path.join(DOCS, "blog", a.slug), { recursive: true });
-  fs.writeFileSync(
-    path.join(DOCS, "blog", a.slug, "index.html"),
+  writePage(
+    `blog/${a.slug}`,
     page({
       title: `${a.title} | freym`,
       description: a.description,
@@ -428,8 +450,8 @@ const blogBody = `
 ${articles.map((a) => `<a class="art-row" href="/blog/${a.slug}/"><div class="d"><time datetime="${a.date}">${fmtDate(a.date)}</time></div><h3>${esc(a.title)}</h3><p>${esc(a.description)}</p></a>`).join("\n")}
 </div>
 `;
-fs.writeFileSync(
-  path.join(DOCS, "blog", "index.html"),
+writePage(
+  "blog",
   page({
     title: "Blog — AI model releases, explained | freym",
     description: "Articles on new generative-AI model releases — Seedance, FLUX, Qwen, GPT and more — written from official announcements.",
@@ -502,4 +524,28 @@ ${urls.map((u) => `  <url><loc>${u.url}</loc><lastmod>${u.lastmod}</lastmod></ur
 </urlset>
 `);
 
-console.log(`built: ${modelsWithNews.length} model pages, ${articles.length} articles, ${urls.length} sitemap urls, archive ${Object.keys(archive.items).length} items`);
+// ---------- IndexNow ping (Bing/Copilot) ----------
+// Key file lives at docs/<key>.txt. Pings only genuinely changed pages;
+// --ping-all submits every sitemap URL (one-time seeding); --no-ping skips.
+
+const INDEXNOW_KEY = "79404fdffa854642b50fb5d8f4f0de30";
+const pingList = process.argv.includes("--ping-all") ? urls.map((u) => u.url) : changedUrls;
+if (!process.argv.includes("--no-ping") && pingList.length) {
+  try {
+    const res = await fetch("https://api.indexnow.org/indexnow", {
+      method: "POST",
+      headers: { "content-type": "application/json; charset=utf-8" },
+      body: JSON.stringify({
+        host: "freym.app",
+        key: INDEXNOW_KEY,
+        keyLocation: `${SITE}/${INDEXNOW_KEY}.txt`,
+        urlList: pingList.slice(0, 10000),
+      }),
+    });
+    console.log(`indexnow: HTTP ${res.status} for ${pingList.length} urls`);
+  } catch (e) {
+    console.log(`indexnow: ping failed (${e.message}) — non-fatal`);
+  }
+}
+
+console.log(`built: ${modelsWithNews.length} model pages, ${articles.length} articles, ${urls.length} sitemap urls, ${changedUrls.length} changed, archive ${Object.keys(archive.items).length} items`);
