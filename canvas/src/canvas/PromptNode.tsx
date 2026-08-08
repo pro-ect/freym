@@ -15,6 +15,7 @@ export default function PromptNode({ id, data, selected }: NodeProps) {
         placeholder="Describe what to generate…"
         onChange={(e) => patchNodeData(id, { text: e.target.value })}
       />
+      <Handle type="target" position={Position.Left} id="in" className="fc-handle fc-handle-in" />
       <Handle type="source" position={Position.Right} id="out" className="fc-handle fc-handle-prompt" />
     </div>
   );

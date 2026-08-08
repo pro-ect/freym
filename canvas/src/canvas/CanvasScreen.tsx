@@ -13,6 +13,8 @@ import {
   type Node,
   type Edge,
   type Connection,
+  type OnConnectStart,
+  type OnConnectEnd,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { v4 as uuid } from "uuid";
@@ -56,7 +58,8 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
   const [name, setName] = useState("…");
   const [loaded, setLoaded] = useState(false);
   const [saveState, setSaveState] = useState<"saved" | "saving" | "dirty">("saved");
-  const { screenToFlowPosition, getEdges, getNode } = useReactFlow();
+  const { screenToFlowPosition, getEdges, getNode, getNodes } = useReactFlow();
+  const clipboardRef = useRef<Node[]>([]);
   const saveTimer = useRef<number | null>(null);
   const modelsRef = useRef<Map<string, CloudModel>>(new Map());
   // Latest state for the synchronous pagehide flush.
@@ -175,6 +178,97 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
     [setEdges],
   );
 
+  // ⌘C/⌘V node copy-paste (nigma-style).
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const isCtrl = e.ctrlKey || e.metaKey;
+      const isTextField =
+        e.target instanceof HTMLTextAreaElement ||
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLSelectElement;
+      if (!isCtrl || isTextField) return;
+
+      if (e.key === "c") {
+        clipboardRef.current = getNodes().filter((n) => n.selected);
+      }
+      if (e.key === "v") {
+        const toPaste = clipboardRef.current;
+        if (!toPaste.length) return;
+        setNodes((nds) => [
+          ...nds.map((n) => ({ ...n, selected: false })),
+          ...toPaste.map((n) => {
+            // Model nodes: never paste in-flight run state.
+            const data =
+              n.type === "model"
+                ? { ...n.data, status: "idle", jobId: undefined, errorMessage: undefined }
+                : { ...n.data };
+            return {
+              ...n,
+              id: uuid(),
+              position: { x: n.position.x + 40, y: n.position.y + 40 },
+              selected: true,
+              data,
+            };
+          }),
+        ]);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [getNodes, setNodes]);
+
+  // Drag-to-create (nigma-style): drop a connection on empty canvas and the
+  // complementary node is spawned already wired up.
+  const connectingFrom = useRef<{ nodeId: string; nodeType: string; handleId: string | null } | null>(null);
+
+  const onConnectStart: OnConnectStart = useCallback(
+    (_, { nodeId, handleId }) => {
+      if (!nodeId) return;
+      connectingFrom.current = { nodeId, nodeType: getNode(nodeId)?.type ?? "", handleId };
+    },
+    [getNode],
+  );
+
+  const onConnectEnd: OnConnectEnd = useCallback(
+    (event, connectionState) => {
+      const state = connectionState as { toNode?: unknown; isValid?: boolean | null };
+      const from = connectingFrom.current;
+      connectingFrom.current = null;
+      if (!from || state.toNode || state.isValid === true) return;
+
+      const e = event as MouseEvent;
+      const pos = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+      const newId = uuid();
+      let newNode: Node | null = null;
+      let newEdge: Edge | null = null;
+
+      if (from.nodeType === "image" && from.handleId === "out") {
+        // image dot → prompt node
+        newNode = { id: newId, type: "prompt", position: { x: pos.x, y: pos.y - 30 }, data: { text: "" } };
+        newEdge = { id: `e-${from.nodeId}-${newId}`, source: from.nodeId, sourceHandle: "out", target: newId, targetHandle: "in", type: "default" };
+      } else if (from.nodeType === "prompt" && from.handleId === "out") {
+        // prompt dot → image node
+        newNode = { id: newId, type: "image", position: { x: pos.x, y: pos.y - 30 }, data: { url: null } };
+        newEdge = { id: `e-${from.nodeId}-${newId}`, source: from.nodeId, sourceHandle: "out", target: newId, targetHandle: "in", type: "default" };
+      } else if (from.nodeType === "model" && from.handleId === "in") {
+        // pulling backwards out of a model input → prompt node feeding it
+        newNode = { id: newId, type: "prompt", position: { x: pos.x - 220, y: pos.y - 30 }, data: { text: "" } };
+        newEdge = { id: `e-${newId}-${from.nodeId}`, source: newId, sourceHandle: "out", target: from.nodeId, targetHandle: "in", type: "default" };
+      } else if (from.nodeType === "model" && from.handleId === "out") {
+        // model output → image node
+        newNode = { id: newId, type: "image", position: { x: pos.x, y: pos.y - 30 }, data: { url: null } };
+        newEdge = { id: `e-${from.nodeId}-${newId}`, source: from.nodeId, sourceHandle: "out", target: newId, targetHandle: "in", type: "default" };
+      }
+
+      if (newNode && newEdge) {
+        const node = newNode, edge = newEdge;
+        setNodes((nds) => [...nds, node]);
+        setEdges((eds) => [...eds, edge]);
+      }
+    },
+    [screenToFlowPosition, setNodes, setEdges],
+  );
+
   const centerPos = useCallback(
     () =>
       screenToFlowPosition({
@@ -284,6 +378,8 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onConnectStart={onConnectStart}
+          onConnectEnd={onConnectEnd}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           fitView={!savedVp}

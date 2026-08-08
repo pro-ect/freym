@@ -61,6 +61,7 @@ export default function ImageNode({ id, data, selected }: NodeProps) {
           e.target.value = "";
         }}
       />
+      <Handle type="target" position={Position.Left} id="in" className="fc-handle fc-handle-in" />
       <Handle type="source" position={Position.Right} id="out" className="fc-handle fc-handle-image" />
     </div>
   );
