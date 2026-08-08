@@ -22,6 +22,8 @@ import CurvedEdge from "./CurvedEdge";
 import ModelSidebar from "./ModelSidebar";
 import PropertiesPanel from "./PropertiesPanel";
 import { loadProject, saveProject, renameProject } from "../lib/projects";
+import { resumeJobs } from "../lib/runner";
+import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from "../lib/supabase";
 import type { CloudModel, ModelNodeData } from "../types";
 
 const nodeTypes = { prompt: PromptNode, image: ImageNode, model: ModelNode };
@@ -35,7 +37,8 @@ function modelToNode(m: CloudModel, position: { x: number; y: number }): Node {
     data: {
       slug: m.slug,
       modelName: m.name,
-      costCoins: m.cost_coins,
+      provider: m.provider,
+      costCoins: m.coin_cost,
       supportsPrompt: m.supports_prompt !== false,
       maxRefImages: m.reference_images_max ?? 0,
       imageParamName: m.image_parameter_name,
@@ -55,22 +58,86 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
   const { screenToFlowPosition, getEdges, getNode } = useReactFlow();
   const saveTimer = useRef<number | null>(null);
   const modelsRef = useRef<Map<string, CloudModel>>(new Map());
+  // Latest state for the synchronous pagehide flush.
+  const flushRef = useRef<{ nodes: Node[]; edges: Edge[]; dirty: boolean; token: string }>({
+    nodes: [],
+    edges: [],
+    dirty: false,
+    token: "",
+  });
+  const vpKey = `freym_canvas_vp_${projectId}`;
+  const savedVp = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem(vpKey) || "null");
+    } catch {
+      return null;
+    }
+  }, [vpKey]);
 
   // Load once.
   useEffect(() => {
     loadProject(projectId).then((p) => {
       if (!p) return onBack();
       setName(p.name);
-      // Un-stick runs that were in flight when the tab closed.
-      const restored = (p.nodes as Node[]).map((n) =>
-        n.type === "model" && (n.data as ModelNodeData).status === "running"
-          ? { ...n, data: { ...n.data, status: "idle" } }
-          : n,
-      );
+      // Runs that were in flight when the tab closed: resume watching those
+      // with a job id (the job kept running server-side), un-stick the rest.
+      const inFlight: { jobId: string; nodeId: string }[] = [];
+      const restored = (p.nodes as Node[]).map((n) => {
+        if (n.type !== "model") return n;
+        const d = n.data as ModelNodeData;
+        if (d.status !== "running") return n;
+        if (d.jobId) {
+          inFlight.push({ jobId: d.jobId, nodeId: n.id });
+          return n;
+        }
+        return { ...n, data: { ...d, status: "idle" } };
+      });
       setNodes(restored);
       setEdges(p.edges as Edge[]);
       setLoaded(true);
+      if (inFlight.length) void resumeJobs(inFlight);
     });
+  }, [projectId]);
+
+  // Flush unsaved changes when the tab is closed/reloaded/backgrounded —
+  // the 1.2s debounce would otherwise drop the last edits.
+  useEffect(() => {
+    flushRef.current.nodes = nodes;
+    flushRef.current.edges = edges;
+  }, [nodes, edges]);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      flushRef.current.token = data.session?.access_token ?? "";
+    });
+    const flush = () => {
+      const f = flushRef.current;
+      if (!f.dirty || !f.token) return;
+      f.dirty = false;
+      void fetch(`${SUPABASE_URL}/rest/v1/canvas_projects?id=eq.${projectId}`, {
+        method: "PATCH",
+        keepalive: true,
+        headers: {
+          "content-type": "application/json",
+          apikey: SUPABASE_ANON_KEY,
+          authorization: `Bearer ${f.token}`,
+          prefer: "return=minimal",
+        },
+        body: JSON.stringify({
+          nodes: f.nodes,
+          edges: f.edges,
+          updated_at: new Date().toISOString(),
+        }),
+      }).catch(() => {});
+    };
+    const onVis = () => {
+      if (document.visibilityState === "hidden") flush();
+    };
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, [projectId]);
 
   // nigma-style child→parent patches.
@@ -87,10 +154,14 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
   useEffect(() => {
     if (!loaded) return;
     setSaveState("dirty");
+    flushRef.current.dirty = true;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(async () => {
       setSaveState("saving");
       await saveProject(projectId, nodes, edges);
+      flushRef.current.dirty = false;
+      const { data } = await supabase.auth.getSession();
+      flushRef.current.token = data.session?.access_token ?? flushRef.current.token;
       setSaveState("saved");
     }, 1200);
     return () => {
@@ -214,7 +285,9 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
           onConnect={onConnect}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
-          fitView
+          fitView={!savedVp}
+          defaultViewport={savedVp ?? undefined}
+          onMoveEnd={(_e, vp) => localStorage.setItem(vpKey, JSON.stringify(vp))}
           minZoom={0.1}
           maxZoom={2}
           proOptions={{ hideAttribution: true }}

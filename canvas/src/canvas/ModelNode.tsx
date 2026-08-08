@@ -46,6 +46,7 @@ export async function runModelNode(
     await startRun({
       nodeId: id,
       slug: d.slug,
+      provider: d.provider,
       prompt,
       imageUrls: imageUrls.slice(0, Math.max(d.maxRefImages, imageUrls.length ? 1 : 0)),
       imageParamName: d.imageParamName,

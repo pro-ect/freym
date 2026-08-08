@@ -62,15 +62,36 @@ async function ensureWatcher() {
   if (!pollTimer) pollTimer = window.setInterval(pollPending, 6000);
 }
 
-function endpointFor(slug: string): string {
-  if (slug.endsWith("-fal") || slug.endsWith("-phota")) return "start-prediction-fal";
-  if (slug.endsWith("-cf")) return "start-prediction-cloudflare";
+/**
+ * Re-attach jobs that were in flight when the tab closed: settle any that
+ * finished while we were away, keep watching the rest.
+ */
+export async function resumeJobs(pairs: { jobId: string; nodeId: string }[]) {
+  if (!pairs.length) return;
+  for (const p of pairs) jobToNode.set(p.jobId, p.nodeId);
+  await ensureWatcher();
+  await pollPending();
+}
+
+// Route by the model's real provider (from canvas_models view). Nodes saved
+// before the provider field existed fall back to slug-suffix inference.
+function endpointFor(provider: string | undefined, slug: string): string {
+  const p =
+    provider ||
+    (slug.endsWith("-fal") || slug.endsWith("-phota")
+      ? "fal"
+      : slug.endsWith("-cf")
+        ? "cloudflare"
+        : "replicate");
+  if (p === "fal" || p === "magnific") return "start-prediction-fal";
+  if (p === "cloudflare") return "start-prediction-cloudflare";
   return "start-prediction";
 }
 
 export async function startRun(opts: {
   nodeId: string;
   slug: string;
+  provider: string | undefined;
   prompt: string;
   imageUrls: string[];
   imageParamName: string | null;
@@ -86,7 +107,7 @@ export async function startRun(opts: {
   if (opts.numImages && opts.numImages > 1) parameters.num_images = opts.numImages;
   if (opts.imageUrls.length) parameters[opts.imageParamName || "image_urls"] = opts.imageUrls;
 
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/${endpointFor(opts.slug)}`, {
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/${endpointFor(opts.provider, opts.slug)}`, {
     method: "POST",
     headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
     body: JSON.stringify({

@@ -5,7 +5,8 @@ export type CloudModel = {
   category: "image" | "video";
   tags: string[] | null;
   icon_url: string | null;
-  cost_coins: number | null;
+  coin_cost: number | null;
+  provider: "fal" | "magnific" | "replicate" | "cloudflare";
   reference_images_min: number | null;
   reference_images_max: number | null;
   supports_prompt: boolean | null;
@@ -29,6 +30,7 @@ export type ImageNodeData = {
 export type ModelNodeData = {
   slug: string;
   modelName: string;
+  provider: "fal" | "magnific" | "replicate" | "cloudflare";
   costCoins: number | null;
   supportsPrompt: boolean;
   maxRefImages: number;
