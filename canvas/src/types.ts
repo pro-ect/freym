@@ -21,6 +21,15 @@ export type PromptNodeData = {
   text: string;
 };
 
+export type PromptGenNodeData = {
+  brief: string;
+  count: number; // 1-10 prompts per run
+  status: RunStatus;
+  errorMessage?: string;
+  /** Prompt nodes this generator owns — re-running rewrites them in place. */
+  generatedIds: string[];
+};
+
 export type ImageNodeData = {
   url: string | null; // public URL in generation-inputs
   fileName?: string;

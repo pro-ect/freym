@@ -19,6 +19,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import { v4 as uuid } from "uuid";
 import PromptNode from "./PromptNode";
+import PromptGenNode from "./PromptGenNode";
 import ImageNode from "./ImageNode";
 import ModelNode, { runModelNode } from "./ModelNode";
 import CurvedEdge from "./CurvedEdge";
@@ -26,10 +27,12 @@ import ModelSidebar from "./ModelSidebar";
 import PropertiesPanel from "./PropertiesPanel";
 import { loadProject, saveProject, renameProject } from "../lib/projects";
 import { resumeJobs } from "../lib/runner";
+import { generatePrompts } from "../lib/promptgen";
 import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from "../lib/supabase";
-import type { CloudModel, ModelNodeData } from "../types";
+import { patchNodeData } from "../types";
+import type { CloudModel, ModelNodeData, PromptGenNodeData, PromptNodeData } from "../types";
 
-const nodeTypes = { prompt: PromptNode, image: ImageNode, model: ModelNode };
+const nodeTypes = { prompt: PromptNode, promptgen: PromptGenNode, image: ImageNode, model: ModelNode };
 const edgeTypes = { default: CurvedEdge };
 
 function modelToNode(m: CloudModel, position: { x: number; y: number }): Node {
@@ -217,6 +220,91 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
     return () => window.removeEventListener("keydown", handler);
   }, [getNodes, setNodes]);
 
+  // Prompt generator: one brief → N prompt nodes wired to the generator.
+  // Re-running rewrites the nodes it already owns (so downstream model wiring
+  // survives) and adds or drops nodes to match the requested count.
+  const runPromptGen = useCallback(
+    async (id: string) => {
+      const node = getNode(id);
+      if (!node) return;
+      const d = node.data as PromptGenNodeData;
+      const brief = (d.brief ?? "").trim();
+      if (!brief) {
+        patchNodeData(id, { status: "error", errorMessage: "describe what you want first" });
+        return;
+      }
+      const count = Math.min(10, Math.max(1, d.count ?? 4));
+
+      // Prompt nodes wired into the generator act as style reference.
+      const context = getEdges()
+        .filter((e) => e.target === id)
+        .map((e) => getNode(e.source))
+        .filter((n) => n?.type === "prompt")
+        .map((n) => (n!.data as PromptNodeData).text?.trim())
+        .filter(Boolean) as string[];
+
+      patchNodeData(id, { status: "running", errorMessage: undefined });
+      try {
+        const prompts = await generatePrompts({ brief, count, context });
+
+        const owned = (d.generatedIds ?? []).filter((gid) => getNode(gid));
+        const reused = owned.slice(0, prompts.length);
+        const dropped = new Set(owned.slice(prompts.length));
+
+        const created: Node[] = [];
+        const ids: string[] = [];
+        prompts.forEach((text, i) => {
+          if (i < reused.length) {
+            ids.push(reused[i]);
+            return;
+          }
+          const nid = uuid();
+          ids.push(nid);
+          created.push({
+            id: nid,
+            type: "prompt",
+            position: {
+              x: node.position.x + 340,
+              y: node.position.y + (i - (prompts.length - 1) / 2) * 180,
+            },
+            data: { text },
+          });
+        });
+
+        setNodes((ns) => [
+          ...ns
+            .filter((n) => !dropped.has(n.id))
+            .map((n) => {
+              const idx = reused.indexOf(n.id);
+              return idx === -1 ? n : { ...n, data: { ...n.data, text: prompts[idx] } };
+            }),
+          ...created,
+        ]);
+        setEdges((es) => [
+          ...es.filter((e) => !dropped.has(e.source) && !dropped.has(e.target)),
+          ...created.map((n) => ({
+            id: `e-${id}-${n.id}`,
+            source: id,
+            sourceHandle: "out",
+            target: n.id,
+            targetHandle: "in",
+            type: "default",
+          })),
+        ]);
+        patchNodeData(id, { status: "done", generatedIds: ids });
+      } catch (e) {
+        patchNodeData(id, { status: "error", errorMessage: String((e as Error).message ?? e) });
+      }
+    },
+    [getNode, getEdges, setNodes, setEdges],
+  );
+
+  useEffect(() => {
+    const onRun = (e: Event) => void runPromptGen((e as CustomEvent).detail.id);
+    window.addEventListener("promptgen-run", onRun);
+    return () => window.removeEventListener("promptgen-run", onRun);
+  }, [runPromptGen]);
+
   // Drag-to-create (nigma-style): drop a connection on empty canvas and the
   // complementary node is spawned already wired up.
   const connectingFrom = useRef<{ nodeId: string; nodeType: string; handleId: string | null } | null>(null);
@@ -288,15 +376,66 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
       ...ns,
       { id: uuid(), type: "image", position: centerPos(), data: { url: null } },
     ]);
+  const addPromptGen = () =>
+    setNodes((ns) => [
+      ...ns,
+      {
+        id: uuid(),
+        type: "promptgen",
+        position: centerPos(),
+        data: { brief: "", count: 4, status: "idle", generatedIds: [] },
+      },
+    ]);
+
+  /**
+   * Adding a model with prompt/image nodes selected gives each selected node
+   * its own model node, already wired — pick 10 prompts, click Krea, get 10
+   * runnable pairs. Dropping onto a position stays a single node.
+   */
   const addModel = useCallback(
     (m: CloudModel, position?: { x: number; y: number }) => {
       modelsRef.current.set(m.slug, m);
-      setNodes((ns) => [...ns, modelToNode(m, position ?? centerPos())]);
+      const targets = position
+        ? []
+        : getNodes().filter((n) => n.selected && (n.type === "prompt" || n.type === "image"));
+
+      if (!targets.length) {
+        setNodes((ns) => [...ns, modelToNode(m, position ?? centerPos())]);
+        return;
+      }
+
+      const created = targets.map((t) =>
+        modelToNode(m, { x: t.position.x + 340, y: t.position.y }),
+      );
+      setNodes((ns) => [
+        ...ns.map((n) => ({ ...n, selected: false })),
+        ...created.map((n) => ({ ...n, selected: true })),
+      ]);
+      setEdges((es) => [
+        ...es,
+        ...targets.map((t, i) => ({
+          id: `e-${t.id}-${created[i].id}`,
+          source: t.id,
+          sourceHandle: "out",
+          target: created[i].id,
+          targetHandle: "in",
+          type: "default",
+        })),
+      ]);
     },
-    [centerPos, setNodes],
+    [centerPos, getNodes, setNodes, setEdges],
   );
 
-  const selectedNode = useMemo(() => nodes.find((n) => n.selected) ?? null, [nodes]);
+  const selectedNodes = useMemo(() => nodes.filter((n) => n.selected), [nodes]);
+
+  const runModels = useCallback(
+    async (list: Node[]) => {
+      for (const n of list) {
+        await runModelNode(n.id, n.data as unknown as ModelNodeData, getEdges, getNode);
+      }
+    },
+    [getEdges, getNode],
+  );
 
   return (
     <div className="fc-root">
@@ -401,22 +540,12 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
 
         <div className="fc-toolbar">
           <button onClick={addPrompt}>+ Prompt</button>
+          <button onClick={addPromptGen}>✦ Prompt generator</button>
           <button onClick={addImage}>+ Image</button>
         </div>
       </div>
 
-      <PropertiesPanel
-        node={selectedNode}
-        onRun={() => {
-          if (selectedNode?.type === "model")
-            void runModelNode(
-              selectedNode.id,
-              selectedNode.data as unknown as ModelNodeData,
-              getEdges,
-              getNode,
-            );
-        }}
-      />
+      <PropertiesPanel nodes={selectedNodes} onRun={(list) => void runModels(list)} />
     </div>
   );
 }
