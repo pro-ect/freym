@@ -16,7 +16,7 @@ export default function ModelSidebar({ onAdd }: { onAdd: (m: CloudModel) => void
   const filtered = q
     ? models.filter((m) => (m.name + " " + m.slug).toLowerCase().includes(q.toLowerCase()))
     : models;
-  const { textToImage, imageToImage } = groupModels(filtered);
+  const { textToImage, imageToImage, textToVideo, imageToVideo } = groupModels(filtered);
 
   const section = (title: string, list: CloudModel[]) =>
     list.length > 0 && (
@@ -46,7 +46,7 @@ export default function ModelSidebar({ onAdd }: { onAdd: (m: CloudModel) => void
 
   return (
     <aside className="fc-sidebar">
-      <div className="fc-side-title">Image models</div>
+      <div className="fc-side-title">Models</div>
       <input
         className="fc-search"
         placeholder="Search…"
@@ -56,6 +56,8 @@ export default function ModelSidebar({ onAdd }: { onAdd: (m: CloudModel) => void
       {err && <div className="fc-error">{err}</div>}
       {section("Generate from text", textToImage)}
       {section("Edit with images", imageToImage)}
+      {section("Video from text", textToVideo)}
+      {section("Video from images", imageToVideo)}
     </aside>
   );
 }

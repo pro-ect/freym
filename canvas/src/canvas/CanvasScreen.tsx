@@ -53,6 +53,7 @@ function modelToNode(m: CloudModel, position: { x: number; y: number }): Node {
     data: {
       slug: m.slug,
       modelName: m.name,
+      category: m.category,
       provider: m.provider,
       costCoins: m.coin_cost,
       supportsPrompt: m.supports_prompt !== false,
@@ -249,6 +250,7 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
         const m = bySlug.get(d.slug);
         if (!m) continue;
         patchNodeData(n.id, {
+          category: m.category,
           paramSchema: m.param_schema ?? null,
           params: { ...d.params, custom: { ...defaultsFor(m.param_schema), ...d.params?.custom } },
         });

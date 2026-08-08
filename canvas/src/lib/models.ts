@@ -38,16 +38,21 @@ export async function fetchModels(): Promise<CloudModel[]> {
     const curated = Object.fromEntries(
       Object.entries(fromCatalog).filter(([key]) => !dead.includes(key)),
     );
-    // Catalog first so its curated labels and size lists win, then everything
-    // else the provider accepts.
-    const merged = { ...curated, ...(PARAM_MIRROR[m.slug] ?? {}) };
+    // Mirror first, catalog last: the catalog's curated labels, size lists and
+    // video durations always win, and the mirror only fills the gaps.
+    const merged = { ...(PARAM_MIRROR[m.slug] ?? {}), ...curated };
     return { ...m, param_schema: Object.keys(merged).length ? merged : null };
   });
   return cache;
 }
 
 export function groupModels(models: CloudModel[]) {
-  const textToImage = models.filter((m) => (m.reference_images_max ?? 0) === 0);
-  const imageToImage = models.filter((m) => (m.reference_images_max ?? 0) > 0);
-  return { textToImage, imageToImage };
+  const image = models.filter((m) => m.category !== "video");
+  const video = models.filter((m) => m.category === "video");
+  return {
+    textToImage: image.filter((m) => (m.reference_images_max ?? 0) === 0),
+    imageToImage: image.filter((m) => (m.reference_images_max ?? 0) > 0),
+    textToVideo: video.filter((m) => (m.reference_images_max ?? 0) === 0),
+    imageToVideo: video.filter((m) => (m.reference_images_max ?? 0) > 0),
+  };
 }

@@ -22,9 +22,11 @@ export function collectInputs(
       const u = (src.data as ImageNodeData).url;
       if (u) imageUrls.push(u);
     } else if (src.type === "model") {
-      // chaining: an upstream model's result feeds this model's image input
-      const imgs = (src.data as ModelNodeData).images;
-      if (imgs?.length) imageUrls.push(imgs[0]);
+      // chaining: an upstream model's result feeds this model's image input.
+      // A video result is not a usable reference image, so skip it.
+      const up = src.data as ModelNodeData;
+      const first = up.images?.[0];
+      if (first && !isVideo(first, up.category)) imageUrls.push(first);
     }
   }
   return { prompt: prompts.join("\n\n"), imageUrls };
@@ -59,6 +61,12 @@ export async function runModelNode(
   }
 }
 
+/** Trust the model's category, but fall back to the file extension for nodes
+ *  saved before video models existed. */
+function isVideo(url: string, category?: string): boolean {
+  return category === "video" || /\.(mp4|webm|mov)(\?|$)/i.test(url);
+}
+
 export default function ModelNode({ id, data, selected }: NodeProps) {
   const d = data as ModelNodeData;
   const { getEdges, getNode } = useReactFlow();
@@ -83,11 +91,15 @@ export default function ModelNode({ id, data, selected }: NodeProps) {
         {d.status === "error" && <div className="fc-error">{d.errorMessage}</div>}
         {d.status !== "running" && d.images?.length > 0 && (
           <div className={`fc-results n${Math.min(d.images.length, 4)}`}>
-            {d.images.map((u, i) => (
-              <a key={i} href={u} target="_blank" rel="noreferrer">
-                <img src={u} alt={`result ${i + 1}`} draggable={false} />
-              </a>
-            ))}
+            {d.images.map((u, i) =>
+              isVideo(u, d.category) ? (
+                <video key={i} className="nodrag" src={u} controls loop playsInline preload="metadata" />
+              ) : (
+                <a key={i} href={u} target="_blank" rel="noreferrer">
+                  <img src={u} alt={`result ${i + 1}`} draggable={false} />
+                </a>
+              ),
+            )}
           </div>
         )}
         {d.status === "idle" && !d.images?.length && (

@@ -153,7 +153,8 @@ input, textarea, select { font: inherit; }
 .fc-results.n1 { grid-template-columns: 1fr; }
 .fc-results.n2, .fc-results.n4 { grid-template-columns: 1fr 1fr; }
 .fc-results.n3 { grid-template-columns: 1fr 1fr 1fr; }
-.fc-results img { width: 100%; border-radius: 7px; display: block; }
+.fc-results img, .fc-results video { width: 100%; border-radius: 7px; display: block; }
+.fc-results video { background: #000; }
 .fc-error { color: #f87171; font-size: 12px; padding: 6px 0; line-height: 1.4; word-break: break-word; }
 
 .fc-run-btn {

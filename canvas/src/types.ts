@@ -56,6 +56,8 @@ export type ImageNodeData = {
 export type ModelNodeData = {
   slug: string;
   modelName: string;
+  /** "video" nodes play their result instead of showing it as an image. */
+  category?: "image" | "video";
   provider: "fal" | "magnific" | "replicate" | "cloudflare";
   costCoins: number | null;
   supportsPrompt: boolean;
