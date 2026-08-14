@@ -47,6 +47,31 @@ export const PARAM_MIRROR: Record<string, ParamSchema> = {
       ]
     }
   },
+  "nano-banana-2-lite-fal": {
+    "safety_tolerance": {
+      "type": "select",
+      "label": "Safety tolerance",
+      "description": "The safety tolerance level for content moderation. 1 is the most strict (blocks most content), 6 is the least strict",
+      "default": "4",
+      "options": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ]
+    },
+    "thinking_level": {
+      "type": "select",
+      "label": "Thinking level",
+      "description": "When set, enables model thinking with the given level ('minimal' or 'high') and includes thoughts in the generation. Omit to disable",
+      "options": [
+        "minimal",
+        "high"
+      ]
+    }
+  },
   "nano-banana-pro-4k-fal": {
     "enable_web_search": {
       "type": "boolean",
