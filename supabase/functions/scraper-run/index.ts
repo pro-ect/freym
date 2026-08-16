@@ -285,20 +285,42 @@ function parseCreatorsParam(raw: string | null): CreatorRef[] {
     });
 }
 
+// The platform kills the request at 150s. Every phase checks the clock and stops
+// early rather than being killed mid-phase, so a slow phase can never starve the
+// ones behind it — that starvation is what silently stopped prompt extraction and
+// image mirroring while the creator loop was still sequential.
+const PLATFORM_LIMIT_MS = 150_000;
+
 Deno.serve(async (req) => {
+  const started = Date.now();
   const url = new URL(req.url);
   const creators = parseCreatorsParam(url.searchParams.get("handles"));
   const extractLimit = Number(url.searchParams.get("extract_limit") ?? "60");
+  const budgetMs = Number(url.searchParams.get("budget_ms") ?? "125000");
+  const deadline = Math.min(budgetMs, PLATFORM_LIMIT_MS - 20_000);
+  const timeLeft = () => deadline - (Date.now() - started);
 
   const summary: Record<string, unknown>[] = [];
+  const skipped: Record<string, number> = {};
 
-  for (const ref of creators) {
-    try {
-      const posts = ref.platform === "x" ? await scrapeX(ref) : await scrapeThreads(ref);
-      summary.push({ platform: ref.platform, handle: ref.handle, posts });
-    } catch (e) {
-      summary.push({ platform: ref.platform, handle: ref.handle, error: String(e) });
+  // Phase 1: scrape creators in parallel batches. Sequentially this alone took
+  // ~150s for 18 creators and consumed the whole request.
+  const creatorBatch = Number(url.searchParams.get("creator_batch") ?? "5");
+  for (let i = 0; i < creators.length; i += creatorBatch) {
+    if (timeLeft() < 75_000) {
+      skipped.creators = creators.length - i;
+      break;
     }
+    await Promise.all(
+      creators.slice(i, i + creatorBatch).map(async (ref) => {
+        try {
+          const posts = ref.platform === "x" ? await scrapeX(ref) : await scrapeThreads(ref);
+          summary.push({ platform: ref.platform, handle: ref.handle, posts });
+        } catch (e) {
+          summary.push({ platform: ref.platform, handle: ref.handle, error: String(e) });
+        }
+      }),
+    );
   }
 
   // Phase 2: for prompt-less Threads posts, fetch the reply thread — creators often post the prompt as a reply.
@@ -316,6 +338,10 @@ Deno.serve(async (req) => {
   let promptsFromReplies = 0;
   const replyBatch = 4;
   for (let i = 0; i < (noPrompt?.length ?? 0); i += replyBatch) {
+    if (timeLeft() < 60_000) {
+      skipped.replies = noPrompt!.length - i;
+      break;
+    }
     const batch = noPrompt!.slice(i, i + replyBatch);
     await Promise.all(
       batch.map(async (post) => {
@@ -376,6 +402,10 @@ Deno.serve(async (req) => {
   let extracted = 0;
   const batchSize = 5;
   for (let i = 0; i < (pending?.length ?? 0); i += batchSize) {
+    if (timeLeft() < 40_000) {
+      skipped.extract = pending!.length - i;
+      break;
+    }
     const batch = pending!.slice(i, i + batchSize);
     await Promise.all(
       batch.map(async (post) => {
@@ -427,6 +457,10 @@ Deno.serve(async (req) => {
     .limit(mirrorLimit);
   const mBatch = 8;
   for (let i = 0; i < (toMirror?.length ?? 0); i += mBatch) {
+    if (timeLeft() < 10_000) {
+      skipped.mirror = toMirror!.length - i;
+      break;
+    }
     await Promise.all(
       toMirror!.slice(i, i + mBatch).map(async (im) => {
         try {
@@ -450,16 +484,38 @@ Deno.serve(async (req) => {
     .select("id, profile_pic_url")
     .is("stored_avatar_path", null)
     .not("profile_pic_url", "is", null);
-  for (const a of avs ?? []) {
-    try {
-      const path = await mirrorOne(a.profile_pic_url, `avatars/${a.id}`);
-      if (path) await supabase.from("sc_creators").update({ stored_avatar_path: path }).eq("id", a.id);
-    } catch (e) {
-      console.error("mirror avatar", a.id, String(e));
+  const aBatch = 6;
+  for (let i = 0; i < (avs?.length ?? 0); i += aBatch) {
+    if (timeLeft() < 4_000) {
+      skipped.avatars = avs!.length - i;
+      break;
     }
+    await Promise.all(
+      avs!.slice(i, i + aBatch).map(async (a) => {
+        try {
+          const path = await mirrorOne(a.profile_pic_url, `avatars/${a.id}`);
+          if (path) await supabase.from("sc_creators").update({ stored_avatar_path: path }).eq("id", a.id);
+        } catch (e) {
+          console.error("mirror avatar", a.id, String(e));
+        }
+      }),
+    );
   }
 
-  return new Response(JSON.stringify({ summary, extracted, repliesChecked, promptsFromReplies, mirrored }, null, 2), {
-    headers: { "content-type": "application/json" },
-  });
+  return new Response(
+    JSON.stringify(
+      {
+        summary,
+        extracted,
+        repliesChecked,
+        promptsFromReplies,
+        mirrored,
+        elapsed_ms: Date.now() - started,
+        ...(Object.keys(skipped).length ? { skipped } : {}),
+      },
+      null,
+      2,
+    ),
+    { headers: { "content-type": "application/json" } },
+  );
 });
