@@ -22,7 +22,7 @@ export type CloudModel = {
   tags: string[] | null;
   icon_url: string | null;
   coin_cost: number | null;
-  provider: "fal" | "magnific" | "replicate" | "cloudflare";
+  provider: "fal" | "magnific" | "replicate" | "cloudflare" | "pika";
   reference_images_min: number | null;
   reference_images_max: number | null;
   supports_prompt: boolean | null;
@@ -58,7 +58,7 @@ export type ModelNodeData = {
   modelName: string;
   /** "video" nodes play their result instead of showing it as an image. */
   category?: "image" | "video";
-  provider: "fal" | "magnific" | "replicate" | "cloudflare";
+  provider: "fal" | "magnific" | "replicate" | "cloudflare" | "pika";
   costCoins: number | null;
   supportsPrompt: boolean;
   maxRefImages: number;

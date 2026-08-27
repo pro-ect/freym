@@ -85,6 +85,7 @@ function endpointFor(provider: string | undefined, slug: string): string {
         : "replicate");
   if (p === "fal" || p === "magnific") return "start-prediction-fal";
   if (p === "cloudflare") return "start-prediction-cloudflare";
+  if (p === "pika") return "start-prediction-pika";
   return "start-prediction";
 }
 
@@ -120,7 +121,7 @@ export async function startRun(opts: {
       model: opts.slug,
       prompt: opts.prompt,
       parameters,
-      metadata: { source: "freym-canvas" },
+      metadata: { source: "freym-canvas", app: "freym" },
     }),
   });
   const json = await res.json().catch(() => ({}));
