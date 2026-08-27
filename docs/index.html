@@ -207,7 +207,7 @@
   /* ---------- pricing table ---------- */
   .ptable { margin-top: 40px; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--card); }
   .prow {
-    display: grid; grid-template-columns: 1.6fr .9fr .9fr .7fr; gap: 12px;
+    display: grid; grid-template-columns: 1.5fr .75fr .75fr .75fr .85fr .6fr; gap: 12px;
     padding: 15px 22px; align-items: center; border-top: 1px solid var(--line); font-size: 15px;
   }
   .prow:first-child {
@@ -293,8 +293,8 @@
     .hero p.sub { font-size: 15.5px; }
     section.band { padding: 70px 24px; }
     .cards { grid-template-columns: 1fr; }
-    .prow { grid-template-columns: 1.4fr 1fr; row-gap: 6px; }
-    .prow .off { grid-column: 2; justify-self: end; }
+    .prow { grid-template-columns: 1.5fr .9fr .9fr .7fr; row-gap: 6px; }
+    .prow .hm { display: none; }
     .prow:first-child { display: none; }
     .closer { padding: 0 24px; }
     .closer .inner { padding: 52px 26px; }
@@ -344,40 +344,52 @@
 
   <div class="ptable">
     <div class="prow">
-      <div>Model</div><div>List price</div><div>freym price</div><div>Saving</div>
+      <div>Model</div><div class="hm">fal</div><div class="hm">Replicate</div><div>Direct</div><div>freym price</div><div>Saving</div>
     </div>
     <div class="prow">
       <div class="m">Nano Banana Pro 4K <small>Google · 4K image</small></div>
-      <div class="was">$0.30</div><div class="now">$0.15</div><div class="off">−50%</div>
+      <div class="was hm">$0.30</div><div class="was hm">$0.30</div><div class="was">$0.30</div>
+      <div class="now">$0.15</div><div class="off">−50%</div>
     </div>
     <div class="prow">
       <div class="m">GPT Image 2 <small>OpenAI · image + edit</small></div>
-      <div class="was">$0.20</div><div class="now">$0.10</div><div class="off">−50%</div>
+      <div class="was hm">$0.20</div><div class="was hm">$0.20</div><div class="was">$0.20</div>
+      <div class="now">$0.10</div><div class="off">−50%</div>
     </div>
     <div class="prow">
       <div class="m">Nano Banana 2 <small>Google · image + edit</small></div>
-      <div class="was">$0.08</div><div class="now">$0.04</div><div class="off">−50%</div>
+      <div class="was hm">$0.08</div><div class="was hm">$0.08</div><div class="was">$0.08</div>
+      <div class="now">$0.04</div><div class="off">−50%</div>
     </div>
     <div class="prow">
       <div class="m">Seedream 5.0 Pro <small>ByteDance · image + edit</small></div>
-      <div class="was">$0.068</div><div class="now">$0.034</div><div class="off">−50%</div>
+      <div class="was hm">$0.068</div><div class="was hm">$0.068</div><div class="was">$0.068</div>
+      <div class="now">$0.034</div><div class="off">−50%</div>
     </div>
     <div class="prow">
       <div class="m">Krea 2 Large <small>Krea · photoreal image</small></div>
-      <div class="was">$0.06</div><div class="now">$0.03</div><div class="off">−50%</div>
+      <div class="was hm">$0.06</div><div class="was hm">—</div><div class="was">$0.06</div>
+      <div class="now">$0.03</div><div class="off">−50%</div>
+    </div>
+    <div class="prow">
+      <div class="m">Seedance 2.5 <small>ByteDance · 5 s video with audio</small></div>
+      <div class="was hm">$2.31</div><div class="was hm">$2.31</div><div class="was">$2.31</div>
+      <div class="now">$1.15</div><div class="off">−50%</div>
     </div>
     <div class="prow">
       <div class="m">Kling 3.0 Pro <small>Kuaishou · 5 s video</small></div>
-      <div class="was">$0.56</div><div class="now">$0.28</div><div class="off">−50%</div>
+      <div class="was hm">$0.56</div><div class="was hm">$0.56</div><div class="was">$0.56</div>
+      <div class="now">$0.28</div><div class="off">−50%</div>
     </div>
     <div class="prow">
       <div class="m">Google Veo 3.1 <small>Google · 8 s video with audio</small></div>
-      <div class="was">$3.20</div><div class="now">$1.60</div><div class="off">−50%</div>
+      <div class="was hm">$3.20</div><div class="was hm">$3.20</div><div class="was">$3.20</div>
+      <div class="now">$1.60</div><div class="off">−50%</div>
     </div>
   </div>
   <p class="pfoot">
-    List price = the provider's public price for the same call. Prices per generation,
-    in US dollars. Launch pricing, while the offer runs.
+    fal, Replicate and the provider's own API charge the same public price for these
+    calls. Prices per generation, in US dollars. Launch pricing, while the offer runs.
   </p>
 </section>
 
