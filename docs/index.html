@@ -86,7 +86,11 @@
     position: absolute; inset: 0;
     display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
   }
-  .hero-strip img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hero-strip img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    opacity: 0; transition: opacity .45s ease;
+  }
+  .hero-strip img.in { opacity: 1; }
   /* until the artwork is dropped in, the panel still reads as a designed surface */
   .hero-art::after {
     content: ""; position: absolute; inset: 0;
@@ -103,7 +107,12 @@
     font-size: clamp(34px, 4.2vw, 60px); font-weight: 500;
     letter-spacing: -0.03em; line-height: 1.0; color: #fff;
   }
-  .hero h1 em { font-style: normal; color: #ffb08a; }
+  /* white chip with knockout letters — the photos show through the text */
+  .hero h1 em {
+    font-style: normal; display: inline-block;
+    background: #fff; color: #000; mix-blend-mode: screen;
+    border-radius: .28em; padding: 0 .28em .04em; line-height: 1.15;
+  }
   .hero p.sub { font-size: 17px; line-height: 1.5; color: rgba(255,255,255,.86); max-width: 420px; }
   .hero .cta { margin-top: 26px; display: flex; gap: 12px; flex-wrap: wrap; }
   .hero .note { margin-top: 16px; font-size: 13px; color: rgba(255,255,255,.7); }
@@ -117,7 +126,7 @@
     border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 600;
     backdrop-filter: blur(6px);
   }
-  .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: #fff; }
   .shotwrap { margin-top: 36px; }
 
   /* the header rides on top of the hero artwork */
@@ -564,47 +573,69 @@ const FEED_URL = "https://lmuksetmkzssoewkzdlm.supabase.co/functions/v1/scraper-
 const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxtdWtzZXRta3pzc29ld2t6ZGxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyNTUwNTMsImV4cCI6MjA3NzgzMTA1M30.mvX1o1RBSDgfX5OwRu3ArxsTxQzeZ5ah6J0aR2ZwNuk";
 
 // Hero: admin-starred posts (starred on /work/ or /next/) fill the artwork panel
-// with up to 4 photos, portrait first. No starred posts → the clay hero.jpg stays.
+// with a RANDOM set of up to 4 photos, portrait first. No starred posts → the
+// clay hero.jpg stays. The last payload is cached locally so repeat visits
+// paint photos immediately instead of flashing the clay artwork first.
+function renderHero(data) {
+  const imgs = (data.posts ?? []).flatMap((p) =>
+    (p.sc_images ?? [])
+      .slice().sort((a, b) => a.position - b.position)
+      .map((im) => ({ ...im, creator_id: p.creator_id }))
+  );
+  // Fisher-Yates — a fresh random selection on every load.
+  for (let i = imgs.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [imgs[i], imgs[j]] = [imgs[j], imgs[i]];
+  }
+  const picks = [
+    ...imgs.filter((im) => (im.height ?? 0) > (im.width ?? 0)),
+    ...imgs.filter((im) => !((im.height ?? 0) > (im.width ?? 0))),
+  ].slice(0, 4);
+  if (!picks.length) return false;
+
+  const strip = document.getElementById("heroStrip");
+  strip.innerHTML = "";
+  picks.forEach((im) => {
+    const img = document.createElement("img");
+    img.alt = ""; img.referrerPolicy = "no-referrer";
+    img.onload = () => img.classList.add("in");
+    img.src = im.url;
+    if (img.complete) img.classList.add("in");
+    strip.appendChild(img);
+  });
+
+  // Credit the authors of the photos on display, linking to their accounts.
+  const accountUrl = (c) =>
+    c.platform === "x" ? `https://x.com/${c.handle}`
+    : c.platform === "threads" ? `https://www.threads.net/@${c.handle}`
+    : `https://${c.handle}.com`;
+  const byId = Object.fromEntries((data.creators ?? []).map((c) => [c.id, c]));
+  const shown = [...new Set(picks.map((im) => im.creator_id))]
+    .map((id) => byId[id]).filter(Boolean);
+  if (shown.length) {
+    const esc = (s) => (s ?? "").replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+    const links = shown.map((c) =>
+      `<a href="${esc(accountUrl(c))}" target="_blank" rel="noopener">@${esc(c.handle)}</a>`
+    ).join(", ");
+    const credit = document.getElementById("heroCredit");
+    credit.innerHTML = (shown.length === 1 ? "Work by " : "Works by ") + links;
+    credit.hidden = false;
+  }
+  return true;
+}
+
 (async () => {
+  let painted = false;
+  try {
+    const cached = localStorage.getItem("freym_hero_cache");
+    if (cached) painted = renderHero(JSON.parse(cached));
+  } catch (e) { /* no cache */ }
   try {
     const res = await fetch(FEED_URL + "?hero=1", { headers: { Authorization: "Bearer " + ANON_KEY } });
     const data = await res.json();
-    const imgs = (data.posts ?? []).flatMap((p) =>
-      (p.sc_images ?? [])
-        .slice().sort((a, b) => a.position - b.position)
-        .map((im) => ({ ...im, creator_id: p.creator_id }))
-    );
-    const picks = [
-      ...imgs.filter((im) => (im.height ?? 0) > (im.width ?? 0)),
-      ...imgs.filter((im) => !((im.height ?? 0) > (im.width ?? 0))),
-    ].slice(0, 4);
-    if (!picks.length) return;
-    const strip = document.getElementById("heroStrip");
-    strip.innerHTML = "";
-    picks.forEach((im) => {
-      const img = document.createElement("img");
-      img.src = im.url; img.alt = ""; img.referrerPolicy = "no-referrer";
-      strip.appendChild(img);
-    });
-
-    // Credit the authors of the photos on display, linking to their accounts.
-    const accountUrl = (c) =>
-      c.platform === "x" ? `https://x.com/${c.handle}`
-      : c.platform === "threads" ? `https://www.threads.net/@${c.handle}`
-      : `https://${c.handle}.com`;
-    const byId = Object.fromEntries((data.creators ?? []).map((c) => [c.id, c]));
-    const shown = [...new Set(picks.map((im) => im.creator_id))]
-      .map((id) => byId[id]).filter(Boolean);
-    if (shown.length) {
-      const esc = (s) => (s ?? "").replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
-      const links = shown.map((c) =>
-        `<a href="${esc(accountUrl(c))}" target="_blank" rel="noopener">@${esc(c.handle)}</a>`
-      ).join(", ");
-      const credit = document.getElementById("heroCredit");
-      credit.innerHTML = (shown.length === 1 ? "Work by " : "Works by ") + links;
-      credit.hidden = false;
-    }
-  } catch (e) { /* keep the fallback artwork */ }
+    try { localStorage.setItem("freym_hero_cache", JSON.stringify(data)); } catch (e) { /* full/blocked */ }
+    if (!painted) renderHero(data);
+  } catch (e) { /* keep whatever is showing */ }
 })();
 
 // The feed powers two decorations: the scattered thumbnails and the strip above the
