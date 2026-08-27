@@ -293,6 +293,7 @@
     /* bottom: 46px keeps the headline clear of the corner author credit */
     .hero-copy { grid-template-columns: 1fr; gap: 20px; padding: 0 24px; bottom: 46px; }
     .hero h1 { font-size: clamp(46px, 13vw, 68px); }
+    .hero h1 br.db { display: none; } /* mobile: chip flows inline */
     .hero-credit { right: 16px; bottom: 12px; }
     .hero-strip img:nth-child(n+2), .hero-strip video:nth-child(n+2) { display: none; }
     .hero p.sub { font-size: 15.5px; }
@@ -333,7 +334,7 @@
   <div class="hero-copy">
     <div class="hero-left">
       <div class="badge"><span class="dot"></span> <span class="deal" id="heroDeal">Seedance 2.5 is 50% off</span></div>
-      <h1>The latest AI models.&nbsp;<em>Up to half the price.</em></h1>
+      <h1>The latest AI models.<br class="db"> <em>Up to half the price.</em></h1>
     </div>
   </div>
   <p class="hero-credit" id="heroCredit" hidden></p>
