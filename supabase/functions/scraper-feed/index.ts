@@ -49,7 +49,17 @@ Deno.serve(async (req) => {
       });
     }
     useMirrors(heroPosts ?? []);
-    return new Response(JSON.stringify({ posts: heroPosts ?? [] }), {
+    // Authors of the starred posts — the hero credits them by name + account link.
+    const creatorIds = [...new Set((heroPosts ?? []).map((p) => p.creator_id).filter(Boolean))];
+    let heroCreators: unknown[] = [];
+    if (creatorIds.length) {
+      const { data } = await supabase
+        .from("sc_creators")
+        .select("id, handle, platform, full_name")
+        .in("id", creatorIds);
+      heroCreators = data ?? [];
+    }
+    return new Response(JSON.stringify({ posts: heroPosts ?? [], creators: heroCreators }), {
       headers: { ...cors, "content-type": "application/json", "cache-control": "public, max-age=60" },
     });
   }

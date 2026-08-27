@@ -107,6 +107,7 @@
   .hero p.sub { font-size: 17px; line-height: 1.5; color: rgba(255,255,255,.86); max-width: 420px; }
   .hero .cta { margin-top: 26px; display: flex; gap: 12px; flex-wrap: wrap; }
   .hero .note { margin-top: 16px; font-size: 13px; color: rgba(255,255,255,.7); }
+  .hero .note a { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
   .hero .btn.accent { background: #fff; border-color: #fff; color: var(--ink); }
   .hero .btn.ghost { color: #fff; border-color: rgba(255,255,255,.5); }
   .hero .btn.ghost:hover { border-color: #fff; }
@@ -326,7 +327,7 @@
         Nano Banana, GPT Image, Seedream, Veo or Kling, then chain the result straight
         into the next model.
       </p>
-      <p class="note">Pay per generation. No monthly seat. Your projects stay saved.</p>
+      <p class="note" id="heroCredit" hidden></p>
     </div>
   </div>
 </section>
@@ -569,7 +570,9 @@ const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
     const res = await fetch(FEED_URL + "?hero=1", { headers: { Authorization: "Bearer " + ANON_KEY } });
     const data = await res.json();
     const imgs = (data.posts ?? []).flatMap((p) =>
-      (p.sc_images ?? []).slice().sort((a, b) => a.position - b.position)
+      (p.sc_images ?? [])
+        .slice().sort((a, b) => a.position - b.position)
+        .map((im) => ({ ...im, creator_id: p.creator_id }))
     );
     const picks = [
       ...imgs.filter((im) => (im.height ?? 0) > (im.width ?? 0)),
@@ -583,6 +586,24 @@ const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
       img.src = im.url; img.alt = ""; img.referrerPolicy = "no-referrer";
       strip.appendChild(img);
     });
+
+    // Credit the authors of the photos on display, linking to their accounts.
+    const accountUrl = (c) =>
+      c.platform === "x" ? `https://x.com/${c.handle}`
+      : c.platform === "threads" ? `https://www.threads.net/@${c.handle}`
+      : `https://${c.handle}.com`;
+    const byId = Object.fromEntries((data.creators ?? []).map((c) => [c.id, c]));
+    const shown = [...new Set(picks.map((im) => im.creator_id))]
+      .map((id) => byId[id]).filter(Boolean);
+    if (shown.length) {
+      const esc = (s) => (s ?? "").replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+      const links = shown.map((c) =>
+        `<a href="${esc(accountUrl(c))}" target="_blank" rel="noopener">@${esc(c.handle)}</a>`
+      ).join(", ");
+      const credit = document.getElementById("heroCredit");
+      credit.innerHTML = (shown.length === 1 ? "Work by " : "Works by ") + links;
+      credit.hidden = false;
+    }
   } catch (e) { /* keep the fallback artwork */ }
 })();
 
