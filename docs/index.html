@@ -22,8 +22,8 @@
     --muted: #6f6d66;
     --line: #e4e2d8;
     --card: #ffffff;
-    --accent: #d8541f;      /* used sparingly — small marks only */
-    --accent-soft: #f7ede7;
+    --accent: #ff4d00;      /* used sparingly — small marks only */
+    --accent-soft: #fff0e9;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -60,25 +60,47 @@
   .btn.accent { background: var(--ink); border-color: var(--ink); color: var(--bg); }
 
   /* ---------- hero ---------- */
-  .hero {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center;
-    max-width: 1280px; margin: 0 auto; padding: 40px 40px 90px;
+  .hero { position: relative; padding: 0 20px 26px; }
+  .hero-art {
+    position: relative; border-radius: 26px; overflow: hidden;
+    min-height: min(72vh, 660px);
+    background-color: #2b2a24;
+    /* the artwork sits on top; the gradient below stands in until it is dropped at
+       docs/assets/hero.jpg, so a missing file still renders a designed panel */
+    background-image:
+      url("/assets/hero.jpg"),
+      radial-gradient(90% 70% at 50% 12%, #f0d9c6 0%, #e2b892 42%, #b8764a 72%, #6d4630 100%);
+    background-size: cover, cover; background-position: center, center;
+  }
+  /* until the artwork is dropped in, the panel still reads as a designed surface */
+  .hero-art::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(20,20,15,0) 45%, rgba(20,20,15,.72) 100%);
+  }
+  .hero-copy {
+    position: absolute; left: 0; right: 0; bottom: 44px;
+    display: grid; grid-template-columns: 1.25fr 1fr; gap: 48px; align-items: end;
+    padding: 0 62px; color: #fff;
   }
   .hero h1 {
-    font-size: clamp(40px, 5.2vw, 74px); font-weight: 500;
-    letter-spacing: -0.035em; line-height: 0.98;
+    font-size: clamp(34px, 4.2vw, 60px); font-weight: 500;
+    letter-spacing: -0.03em; line-height: 1.0; color: #fff;
   }
-  .hero h1 em { font-style: normal; color: var(--accent); }
-  .eyebrow, .fcard .num { color: var(--muted); }
-  .hero p.sub { margin-top: 22px; font-size: 17px; line-height: 1.55; color: var(--muted); max-width: 480px; }
-  .hero .cta { margin-top: 32px; display: flex; gap: 12px; flex-wrap: wrap; }
-  .hero .note { margin-top: 16px; font-size: 13px; color: var(--muted); }
+  .hero h1 em { font-style: normal; color: #ffb08a; }
+  .hero p.sub { font-size: 17px; line-height: 1.5; color: rgba(255,255,255,.86); max-width: 420px; }
+  .hero .cta { margin-top: 22px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .hero .note { margin-top: 14px; font-size: 13px; color: rgba(255,255,255,.7); }
+  .hero .btn.accent { background: #fff; border-color: #fff; color: var(--ink); }
+  .hero .btn.ghost { color: #fff; border-color: rgba(255,255,255,.5); }
+  .hero .btn.ghost:hover { border-color: #fff; }
   .badge {
-    display: inline-flex; align-items: center; gap: 8px; margin-bottom: 22px;
-    background: var(--accent-soft); color: var(--accent); border: 1px solid #ece0d7;
+    display: inline-flex; align-items: center; gap: 8px; margin-bottom: 18px;
+    background: rgba(255,255,255,.14); color: #fff; border: 1px solid rgba(255,255,255,.3);
     border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 600;
+    backdrop-filter: blur(6px);
   }
   .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .shotwrap { margin-top: 36px; }
 
   /* gradient frame with a mock canvas inside (like a product shot) */
   .shot { position: relative; }
@@ -86,7 +108,7 @@
     position: relative; border-radius: 14px; background: #14140f;
     background-image: radial-gradient(rgba(255,255,255,.12) 1px, transparent 1px);
     background-size: 18px 18px;
-    min-height: 390px; padding: 20px; overflow: hidden;
+    min-height: 470px; width: 100%; max-width: 680px; margin: 0 auto; overflow: hidden;
     box-shadow: 0 24px 60px rgba(17,17,16,.18);
   }
   .node {
@@ -102,26 +124,21 @@
   .node .head .d { width: 6px; height: 6px; border-radius: 50%; background: #7d786a; }
   .node .body { padding: 9px; line-height: 1.4; color: #d7d5cc; }
   .node.sel { border-color: #6f6a5c; box-shadow: 0 0 0 2px rgba(200,193,175,.18), 0 8px 22px rgba(0,0,0,.35); }
-  .node .pricetag {
-    display: inline-flex; gap: 6px; align-items: center; margin-top: 8px;
-    background: #2a2922; border-radius: 999px; padding: 3px 8px; font-size: 10px; color: #e7e4da;
-  }
-  .node .pricetag s { color: #7d7b72; }
-  .node .thumb { height: 84px; border-radius: 6px; background: linear-gradient(135deg,#8f8b80,#3c3a33); }
-  .n1 { top: 26px; left: 20px; }
-  .n2 { top: 96px; left: 214px; }
-  .n3 { top: 36px; right: 14px; width: 160px; }
-  .n4 { top: 216px; left: 60px; }
+  .node .thumb { height: 74px; border-radius: 6px; background: linear-gradient(135deg,#8f8b80,#3c3a33); }
+  .node .thumb.big { height: 104px; background: linear-gradient(150deg,#b6b1a4,#4a483f 70%); }
+  .n1 { top: 20px;  left: 20px;  width: 172px; }
+  .n2 { top: 250px; left: 20px;  width: 150px; }
+  .n3 { top: 120px; left: 236px; width: 176px; }
+  .n4 { top: 20px;  right: 20px; width: 158px; }
+  .n5 { top: 262px; left: 236px; width: 178px; }
+  .n6 { top: 300px; right: 20px; width: 152px; }
+  .node .meta { display: block; margin-top: 6px; color: #93907f; font-size: 10px; letter-spacing: .02em; }
+  .node .run { display: flex; align-items: center; gap: 5px; margin-top: 8px; font-size: 10px; color: #d7d5cc; }
+  .node .run i { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); font-style: normal; }
+  .node .bar { display: block; margin-top: 6px; height: 3px; border-radius: 3px; background: #33322b; overflow: hidden; }
+  .node .bar span { display: block; width: 62%; height: 100%; background: #8d8778; }
   .wire { position: absolute; inset: 0; pointer-events: none; }
   .wire path { fill: none; stroke: #6f6a5c; stroke-width: 2; opacity: .9; }
-  .float-chip {
-    position: absolute; background: #fff; border-radius: 999px; padding: 7px 13px;
-    font-size: 12.5px; font-weight: 600; box-shadow: 0 8px 22px rgba(17,17,16,.18);
-    display: flex; align-items: center; gap: 7px;
-  }
-  .float-chip .off { color: var(--accent); }
-  .chip-a { top: -14px; right: 10px; }
-  .chip-b { bottom: -16px; left: 6px; }
 
   /* ---------- section shell ---------- */
   section.band { max-width: 1280px; margin: 0 auto; padding: 96px 40px; }
@@ -194,7 +211,10 @@
   footer a { text-decoration: underline; text-underline-offset: 3px; }
 
   @media (max-width: 980px) {
-    .hero { grid-template-columns: 1fr; gap: 40px; padding: 20px 24px 70px; }
+    .hero { padding: 0 12px 20px; }
+    .hero-art { min-height: 78vh; }
+    .hero-copy { grid-template-columns: 1fr; gap: 20px; padding: 0 24px; bottom: 22px; }
+    .hero p.sub { font-size: 15.5px; }
     section.band { padding: 70px 24px; }
     .cards { grid-template-columns: 1fr; }
     .prow { grid-template-columns: 1.4fr 1fr; row-gap: 6px; }
@@ -203,7 +223,11 @@
     .closer { padding: 0 24px; }
     .closer .inner { padding: 52px 26px; }
     header { padding: 18px 20px; }
-    .n3 { display: none; }
+    .n4, .n6, .wire { display: none; }
+    .n1, .n2 { left: 12px; }
+    .n3 { left: 150px; width: 176px; }
+    .n5 { left: 150px; width: 178px; }
+    .node { font-size: 10.5px; }
   }
 </style>
 </head>
@@ -223,53 +247,24 @@
 </header>
 
 <section class="hero">
-  <div>
-    <div class="badge"><span class="dot"></span> Launch pricing — up to 50% off</div>
-    <h1>The models everyone is posting about. <em>Half the price.</em></h1>
-    <p class="sub">
-      freym canvas is a node canvas for image and video models. Wire a prompt into
-      Nano Banana, GPT Image, Seedream, Veo or Kling, then chain the result straight
-      into the next model. One canvas, one balance, no subscription per tool.
-    </p>
-    <div class="cta">
-      <a class="btn accent" href="/canvas/">Open canvas</a>
-      <a class="btn ghost" href="#pricing">See the prices</a>
+  <div class="hero-art" role="img" aria-label="Claymation scene of a photo studio built from soft shapes"></div>
+  <div class="hero-copy">
+    <div class="hero-left">
+      <div class="badge"><span class="dot"></span> Launch pricing — up to 50% off</div>
+      <h1>The models everyone is posting about. <em>Half the price.</em></h1>
     </div>
-    <p class="note">Pay per generation. No monthly seat. Your projects stay saved.</p>
-  </div>
-
-  <div class="shot">
-    <div class="board">
-      <svg class="wire" viewBox="0 0 600 340" preserveAspectRatio="none">
-        <path d="M176 60 C 200 60, 190 122, 214 122" />
-        <path d="M176 244 C 205 244, 195 150, 214 150" />
-        <path d="M370 136 C 400 136, 398 78, 430 78" />
-      </svg>
-      <div class="node n1">
-        <div class="head"><span class="d"></span> Prompt</div>
-        <div class="body">a ceramic vase on wet sand, low winter sun, 35 mm</div>
+    <div class="hero-right">
+      <p class="sub">
+        freym canvas is a node canvas for image and video models. Wire a prompt into
+        Nano Banana, GPT Image, Seedream, Veo or Kling, then chain the result straight
+        into the next model.
+      </p>
+      <div class="cta">
+        <a class="btn accent" href="/canvas/">Open canvas</a>
+        <a class="btn ghost" href="#pricing">See the prices</a>
       </div>
-      <div class="node n4">
-        <div class="head"><span class="d"></span> Image</div>
-        <div class="body"><div class="thumb"></div></div>
-      </div>
-      <div class="node n2 sel">
-        <div class="head"><span class="d"></span> Nano Banana 2</div>
-        <div class="body">
-          4K · 10 refs
-          <span class="pricetag"><s>$0.08</s> $0.04</span>
-        </div>
-      </div>
-      <div class="node n3">
-        <div class="head"><span class="d"></span> Kling 3.0 Pro</div>
-        <div class="body">
-          5 s · 1080p
-          <span class="pricetag"><s>$0.56</s> $0.28</span>
-        </div>
-      </div>
+      <p class="note">Pay per generation. No monthly seat. Your projects stay saved.</p>
     </div>
-    <div class="float-chip chip-a">Nano Banana Pro 4K <span class="off">−50%</span></div>
-    <div class="float-chip chip-b">Veo 3.1 <span class="off">−50%</span></div>
   </div>
 </section>
 
@@ -364,6 +359,63 @@
   </p>
   <div class="strip" id="strip"></div>
   <p class="pfoot"><a href="/work/" style="text-decoration:underline;text-underline-offset:3px">Browse the full feed →</a></p>
+</section>
+
+<section class="band" id="interface" style="padding-top:0">
+  <div class="eyebrow">The interface</div>
+  <h2 class="big">This is the board.</h2>
+  <p class="lede">
+    Nodes for prompts, references, models and results. Drag a wire from one to the next
+    and the whole chain stays in front of you, ready to re-run with a different model.
+  </p>
+  <div class="shotwrap">
+  <div class="shot">
+    <div class="board">
+      <svg class="wire" viewBox="0 0 680 470" preserveAspectRatio="none">
+        <path d="M192 75  C 214 75,  214 155, 236 155" />
+        <path d="M170 292 C 200 292, 210 182, 236 182" />
+        <path d="M412 155 C 450 155, 470 70,  502 70" />
+        <path d="M324 214 C 324 236, 325 240, 325 262" />
+        <path d="M414 332 C 450 332, 470 336, 510 336" />
+      </svg>
+
+      <div class="node n1">
+        <div class="head"><span class="d"></span> Prompt</div>
+        <div class="body">a ceramic vase on wet sand, low winter sun, 35 mm
+          <span class="meta">text input</span>
+        </div>
+      </div>
+
+      <div class="node n2">
+        <div class="head"><span class="d"></span> Reference</div>
+        <div class="body"><div class="thumb"></div><span class="meta">1 image</span></div>
+      </div>
+
+      <div class="node n3 sel">
+        <div class="head"><span class="d"></span> Nano Banana 2</div>
+        <div class="body">4K · 3:4 · 10 refs
+          <span class="run"><i></i> running</span>
+          <span class="bar"><span></span></span>
+        </div>
+      </div>
+
+      <div class="node n4">
+        <div class="head"><span class="d"></span> Kling 3.0 Pro</div>
+        <div class="body">5 s · 1080p<span class="meta">image to video</span></div>
+      </div>
+
+      <div class="node n5">
+        <div class="head"><span class="d"></span> Result</div>
+        <div class="body"><div class="thumb big"></div><span class="meta">3024 × 4032</span></div>
+      </div>
+
+      <div class="node n6">
+        <div class="head"><span class="d"></span> Topaz Upscale</div>
+        <div class="body">4× · face detail<span class="meta">post-process</span></div>
+      </div>
+    </div>
+  </div>
+  </div>
 </section>
 
 <section class="closer">
