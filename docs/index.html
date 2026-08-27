@@ -75,6 +75,11 @@
       radial-gradient(90% 70% at 50% 12%, #f0d9c6 0%, #e2b892 42%, #b8764a 72%, #6d4630 100%);
     background-size: cover, cover; background-position: center, center;
   }
+  .hero-video {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  @media (prefers-reduced-motion: reduce) { .hero-video { display: none; } }
   /* until the artwork is dropped in, the panel still reads as a designed surface */
   .hero-art::after {
     content: ""; position: absolute; inset: 0;
@@ -282,7 +287,11 @@
     </nav>
     <a class="btn sm" href="/canvas/">Open canvas</a>
   </header>
-  <div class="hero-art" role="img" aria-label="Claymation scene of a photo studio built from soft shapes"></div>
+  <div class="hero-art" role="img" aria-label="Claymation scene of a photo studio built from soft shapes">
+    <video class="hero-video" autoplay muted loop playsinline poster="/assets/hero.jpg" aria-hidden="true">
+      <source src="/assets/hero.mp4" type="video/mp4" />
+    </video>
+  </div>
   <div class="hero-copy">
     <div class="hero-left">
       <div class="badge"><span class="dot"></span> Launch pricing — up to 50% off</div>
