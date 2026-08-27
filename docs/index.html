@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>freym — prompts behind the best AI images</title>
-<meta name="description" content="A live feed of AI creators on Threads and X: their images, and the prompts behind them." />
+<title>freym canvas — every popular AI model, up to 50% off</title>
+<meta name="description" content="freym canvas is a node canvas for AI image and video models. Wire a prompt into any model, chain the result into the next one, and pay up to 50% less than provider list price." />
 <link rel="canonical" href="https://freym.app/" />
-<meta property="og:title" content="freym — prompts behind the best AI images" />
-<meta property="og:description" content="A live feed of AI creators on Threads and X: their images, and the prompts behind them." />
+<meta property="og:title" content="freym canvas — every popular AI model, up to 50% off" />
+<meta property="og:description" content="A node canvas for AI image and video models. Nano Banana, GPT Image, Seedream, Veo, Kling — one canvas, up to 50% off list price." />
 <meta property="og:url" content="https://freym.app/" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="freym" />
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"freym","url":"https://freym.app/","description":"freym tracks generative-AI models: a model catalog built from official announcements, a live model-news feed, and a gallery of AI works with the full prompts behind them."},{"@type":"Organization","name":"freym","url":"https://freym.app/"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"freym","url":"https://freym.app/","description":"freym canvas is a node canvas for generative-AI image and video models, with a live model-news feed and a gallery of AI works with the prompts behind them."},{"@type":"Organization","name":"freym","url":"https://freym.app/"},{"@type":"SoftwareApplication","name":"freym canvas","applicationCategory":"DesignApplication","operatingSystem":"Web","url":"https://freym.app/canvas/","description":"Node canvas for AI image and video models: wire prompts into models, chain outputs, pay per generation."}]}</script>
 <style>
   :root {
     --bg: #f5f4ee;
@@ -28,344 +28,427 @@
     color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
   a { color: inherit; text-decoration: none; }
 
   header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 22px 40px;
+    padding: 22px 40px; gap: 16px;
   }
   .wordmark { font-weight: 700; font-size: 19px; letter-spacing: -0.02em; }
   .wordmark span { color: var(--accent); }
-  .hdr-right { font-size: 14px; color: var(--muted); }
   nav.top { display: flex; gap: 4px; flex-wrap: wrap; }
   nav.top a { font-size: 14px; color: var(--muted); padding: 6px 13px; border-radius: 999px; transition: color .15s ease; }
   nav.top a:hover { color: var(--ink); }
   nav.top a.active { background: var(--ink); color: var(--bg); }
-  @media (max-width: 700px) { .hdr-right { display: none; } }
 
-  .hero { text-align: center; padding: 84px 24px 48px; }
-  .hero h1 {
-    font-size: clamp(38px, 6vw, 68px);
-    font-weight: 500; letter-spacing: -0.03em; line-height: 1.05;
-    max-width: 800px; margin: 0 auto;
-  }
-  .hero p { margin-top: 20px; font-size: 17px; color: var(--muted); }
-
-  .filters {
-    display: flex; flex-direction: column; align-items: center; gap: 12px;
-    padding: 26px 24px 8px; position: sticky; top: 0; z-index: 5;
-    background: linear-gradient(var(--bg) 75%, transparent);
-  }
-  .filters-toggle {
-    display: inline-flex; align-items: center; gap: 7px;
-    border: 1px solid var(--line); background: var(--card); color: var(--ink);
-    border-radius: 999px; padding: 7px 15px; font-size: 13px; font-weight: 500;
-    cursor: pointer; transition: border-color .15s ease; font-family: inherit;
-  }
-  .filters-toggle:hover { border-color: var(--ink); }
-  .filters-toggle .n {
-    background: var(--ink); color: var(--bg); border-radius: 999px;
-    font-size: 11px; font-weight: 600; padding: 1px 7px;
-  }
-  .pills { display: none; flex-wrap: wrap; gap: 8px; justify-content: center; }
-  .filters.open .pills { display: flex; }
-  .pill {
-    display: inline-flex; align-items: center; gap: 8px;
-    border: 1px solid var(--line); background: var(--card);
-    border-radius: 999px; padding: 8px 16px; font-size: 14px;
-    cursor: pointer; transition: all .15s ease; user-select: none;
-  }
-  .pill img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
-  .pill:hover { border-color: var(--ink); }
-  .pill.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-  .pill.active img { filter: none; }
-
-  /* JS-driven masonry: round-robin columns so the newest posts sit across the top row
-     (CSS `columns` fills top-to-bottom, pushing old posts to the tops of later columns). */
-  .grid {
-    display: flex; align-items: flex-start; gap: 14px;
-    max-width: 1280px; margin: 26px auto 80px; padding: 0 24px;
-  }
-  .grid .col { flex: 1; min-width: 0; }
-  .card {
-    margin-bottom: 14px; position: relative;
-    border-radius: 12px; overflow: hidden; background: var(--card);
-    border: 1px solid var(--line); cursor: pointer;
-  }
-  .card img { width: 100%; display: block; }
-  .card .tag {
-    position: absolute; top: 10px; left: 10px;
-    background: rgba(17,17,16,.82); color: #fff;
-    font-size: 11px; font-weight: 600; letter-spacing: .04em;
-    padding: 4px 9px; border-radius: 999px; text-transform: uppercase;
-  }
-  .card .who {
-    position: absolute; bottom: 0; left: 0; right: 0;
-    padding: 26px 12px 10px; font-size: 13px; color: #fff;
-    background: linear-gradient(transparent, rgba(0,0,0,.55));
-    opacity: 0; transition: opacity .15s ease;
-  }
-  .card:hover .who { opacity: 1; }
-  .card .count {
-    position: absolute; top: 10px; right: 10px;
-    background: rgba(255,255,255,.85); color: var(--ink);
-    font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 999px;
-  }
-
-  /* overlay */
-  .overlay {
-    position: fixed; inset: 0; z-index: 50; display: none;
-    background: rgba(20,20,18,.5); backdrop-filter: blur(6px);
-    align-items: center; justify-content: center; padding: 24px;
-  }
-  .overlay.open { display: flex; }
-  .sheet {
-    background: var(--bg); border-radius: 16px; overflow: hidden;
-    display: flex; max-width: 1060px; width: 100%; max-height: 90vh;
-    position: relative;
-  }
-  .sheet .left { flex: 1.2; background: #0d0d0c; position: relative; min-width: 0; overflow-y: auto; }
-  .sheet .left .imgs {
-    min-height: 100%; display: flex; flex-direction: column; gap: 8px;
-    align-items: center; justify-content: center;
-  }
-  .sheet .left img { max-width: 100%; display: block; }
-  .sheet .left .imgs.single img { max-height: 90vh; object-fit: contain; }
-  .sheet .right {
-    flex: 1; padding: 32px; overflow-y: auto; display: flex; flex-direction: column; gap: 18px;
-    min-width: 320px;
-  }
-  .creator-line { display: flex; align-items: center; gap: 10px; }
-  .creator-line img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
-  .creator-line .h { font-weight: 600; font-size: 15px; }
-  .creator-line .f { font-size: 13px; color: var(--muted); }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip {
-    font-size: 12px; border: 1px solid var(--line); background: var(--card);
-    padding: 4px 10px; border-radius: 999px; color: var(--muted);
-  }
-  .chip.model { color: var(--ink); font-weight: 600; }
-  .prompt-box {
-    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
-    padding: 16px; font-size: 14px; line-height: 1.55; white-space: pre-wrap;
-    font-family: ui-monospace, "SF Mono", Menlo, monospace; color: #2a2a27;
-  }
-  .label { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
   .btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: var(--ink); color: var(--bg); border: none; cursor: pointer;
-    border-radius: 999px; padding: 10px 18px; font-size: 14px; font-weight: 500;
-    width: fit-content; transition: opacity .15s;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: var(--ink); color: var(--bg); border: 1px solid var(--ink);
+    border-radius: 999px; padding: 13px 26px; font-size: 15px; font-weight: 600;
+    font-family: inherit; cursor: pointer; transition: transform .15s ease, background .15s ease;
   }
-  .btn:hover { opacity: .85; }
-  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
-  .src-link { font-size: 14px; color: var(--accent); }
-  .no-prompt { font-size: 14px; color: var(--muted); font-style: italic; }
-  .close-x {
-    position: absolute; top: 14px; right: 14px; z-index: 2;
-    background: rgba(255,255,255,.9); border: none; width: 32px; height: 32px;
-    border-radius: 50%; cursor: pointer; font-size: 15px;
+  .btn:hover { transform: translateY(-1px); background: #2a2926; }
+  .btn.sm { padding: 9px 18px; font-size: 14px; }
+  .btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+  .btn.ghost:hover { background: transparent; border-color: var(--ink); }
+  .btn.accent { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.accent:hover { background: #e64500; }
+
+  /* ---------- hero ---------- */
+  .hero {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center;
+    max-width: 1280px; margin: 0 auto; padding: 40px 40px 90px;
   }
-  footer { text-align: center; padding: 40px; font-size: 13px; color: var(--muted); }
-  .loading { text-align: center; color: var(--muted); padding: 60px; }
-  @media (max-width: 760px) {
-    .filters { position: static; background: none; }
-    .sheet { flex-direction: column; overflow-y: auto; }
-    .sheet .left { overflow: visible; }
-    .sheet .left .imgs.single img { max-height: 46vh; }
+  .hero h1 {
+    font-size: clamp(42px, 5.4vw, 78px); font-weight: 800;
+    letter-spacing: -0.035em; line-height: 0.98;
+  }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero p.sub { margin-top: 22px; font-size: 17px; line-height: 1.55; color: var(--muted); max-width: 480px; }
+  .hero .cta { margin-top: 32px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .hero .note { margin-top: 16px; font-size: 13px; color: var(--muted); }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px; margin-bottom: 22px;
+    background: #fff0e9; color: var(--accent); border: 1px solid #ffd6c4;
+    border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 600;
+  }
+  .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+  /* gradient frame with a mock canvas inside (like a product shot) */
+  .shot {
+    position: relative; border-radius: 22px; padding: 26px;
+    background:
+      radial-gradient(120% 90% at 15% 15%, #ffb37a 0%, transparent 55%),
+      radial-gradient(110% 100% at 85% 25%, #c8a6ff 0%, transparent 55%),
+      radial-gradient(120% 110% at 60% 95%, #ff6a2b 0%, transparent 60%),
+      linear-gradient(140deg, #ff8a3d, #ff4d00 60%, #b23bff);
+    box-shadow: 0 24px 60px rgba(17,17,16,.16);
+  }
+  .board {
+    position: relative; border-radius: 14px; background: #14140f;
+    background-image: radial-gradient(rgba(255,255,255,.12) 1px, transparent 1px);
+    background-size: 18px 18px;
+    min-height: 390px; padding: 20px; overflow: hidden;
+  }
+  .node {
+    position: absolute; background: #1e1e19; border: 1px solid #33322b;
+    border-radius: 10px; color: #f2f1eb; font-size: 11px; width: 154px;
+    box-shadow: 0 8px 22px rgba(0,0,0,.35);
+  }
+  .node .head {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 9px; border-bottom: 1px solid #33322b;
+    font-weight: 600; font-size: 10.5px; letter-spacing: .03em; text-transform: uppercase; color: #a9a79d;
+  }
+  .node .head .d { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .node .body { padding: 9px; line-height: 1.4; color: #d7d5cc; }
+  .node.sel { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(255,77,0,.35), 0 8px 22px rgba(0,0,0,.35); }
+  .node .pricetag {
+    display: inline-flex; gap: 6px; align-items: center; margin-top: 8px;
+    background: #2a2922; border-radius: 999px; padding: 3px 8px; font-size: 10px; color: #ffb894;
+  }
+  .node .pricetag s { color: #7d7b72; }
+  .node .thumb { height: 84px; border-radius: 6px; background: linear-gradient(135deg,#ff9d5c,#b23bff); }
+  .n1 { top: 26px; left: 20px; }
+  .n2 { top: 96px; left: 214px; }
+  .n3 { top: 36px; right: 14px; width: 160px; }
+  .n4 { top: 216px; left: 60px; }
+  .wire { position: absolute; inset: 0; pointer-events: none; }
+  .wire path { fill: none; stroke: var(--accent); stroke-width: 2; opacity: .85; }
+  .float-chip {
+    position: absolute; background: #fff; border-radius: 999px; padding: 7px 13px;
+    font-size: 12.5px; font-weight: 600; box-shadow: 0 8px 22px rgba(17,17,16,.18);
+    display: flex; align-items: center; gap: 7px;
+  }
+  .float-chip .off { color: var(--accent); }
+  .chip-a { top: -14px; right: 34px; }
+  .chip-b { bottom: -16px; left: 30px; }
+
+  /* ---------- logo row ---------- */
+  .marquee { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #fbfaf5; }
+  .marquee .inner {
+    max-width: 1280px; margin: 0 auto; padding: 18px 40px;
+    display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: center;
+  }
+  .marquee span.lbl { font-size: 13px; color: var(--muted); margin-right: 6px; }
+  .mchip {
+    font-size: 13px; border: 1px solid var(--line); background: var(--card);
+    border-radius: 999px; padding: 6px 13px; color: var(--ink); white-space: nowrap;
+  }
+
+  /* ---------- section shell ---------- */
+  section.band { max-width: 1280px; margin: 0 auto; padding: 96px 40px; }
+  .eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+  h2.big {
+    font-size: clamp(34px, 4.6vw, 62px); font-weight: 800; letter-spacing: -0.035em;
+    line-height: 1.0; margin-top: 14px;
+  }
+  .lede { margin-top: 18px; font-size: 17px; line-height: 1.55; color: var(--muted); max-width: 620px; }
+
+  /* ---------- scattered proof ---------- */
+  .scatter { position: relative; text-align: center; padding: 120px 40px; overflow: hidden; }
+  .scatter h2 { font-size: clamp(34px, 5vw, 66px); font-weight: 800; letter-spacing: -0.035em; line-height: 1.02; max-width: 900px; margin: 0 auto; }
+  .scatter p { margin: 22px auto 0; font-size: 17px; color: var(--muted); max-width: 520px; }
+  .scatter .cta { margin-top: 30px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .sc-img {
+    position: absolute; width: 128px; height: 128px; border-radius: 18px; object-fit: cover;
+    border: 6px solid #fff; box-shadow: 0 12px 30px rgba(17,17,16,.14);
+  }
+  .sc-1 { top: 40px; left: 6%; transform: rotate(-6deg); }
+  .sc-2 { top: 92px; right: 8%; transform: rotate(5deg); }
+  .sc-3 { bottom: 70px; left: 12%; transform: rotate(4deg); }
+  .sc-4 { bottom: 40px; right: 13%; transform: rotate(-5deg); }
+  @media (max-width: 900px) { .sc-img { display: none; } }
+
+  /* ---------- pricing table ---------- */
+  .ptable { margin-top: 40px; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--card); }
+  .prow {
+    display: grid; grid-template-columns: 1.6fr .9fr .9fr .7fr; gap: 12px;
+    padding: 15px 22px; align-items: center; border-top: 1px solid var(--line); font-size: 15px;
+  }
+  .prow:first-child {
+    border-top: 0; background: #fbfaf5; font-size: 12px; font-weight: 600;
+    letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+  }
+  .prow .m { font-weight: 600; }
+  .prow .m small { display: block; font-weight: 400; font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .prow .was { color: var(--muted); text-decoration: line-through; }
+  .prow .now { font-weight: 700; }
+  .prow .off { justify-self: start; background: var(--accent); color: #fff; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 3px 10px; }
+  .pfoot { margin-top: 14px; font-size: 13px; color: var(--muted); }
+
+  /* ---------- feature cards ---------- */
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 44px; }
+  .fcard { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 26px; }
+  .fcard .num { font-size: 13px; font-weight: 700; color: var(--accent); }
+  .fcard h3 { margin-top: 12px; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+  .fcard p { margin-top: 10px; font-size: 15px; line-height: 1.55; color: var(--muted); }
+
+  /* ---------- feed strip ---------- */
+  .strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-top: 36px; }
+  .strip img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; display: block; background: #e9e7dd; }
+  @media (max-width: 900px) { .strip { grid-template-columns: repeat(3, 1fr); } .strip img:nth-child(n+7) { display: none; } }
+
+  /* ---------- closing ---------- */
+  .closer { max-width: 1280px; margin: 0 auto 96px; padding: 0 40px; }
+  .closer .inner {
+    border-radius: 24px; padding: 72px 48px; text-align: center; color: #fff;
+    background:
+      radial-gradient(100% 120% at 20% 0%, #ff8a3d 0%, transparent 60%),
+      radial-gradient(90% 120% at 90% 100%, #b23bff 0%, transparent 60%),
+      linear-gradient(140deg, #ff4d00, #7a1fd6);
+  }
+  .closer h2 { font-size: clamp(32px, 4.4vw, 56px); font-weight: 800; letter-spacing: -0.035em; line-height: 1.02; }
+  .closer p { margin-top: 18px; font-size: 17px; opacity: .9; }
+  .closer .btn { margin-top: 28px; background: #fff; color: var(--ink); border-color: #fff; }
+  .closer .btn:hover { background: #f3f1ea; }
+
+  footer {
+    border-top: 1px solid var(--line); padding: 34px 40px 60px;
+    font-size: 13px; color: var(--muted); text-align: center; line-height: 1.7;
+  }
+  footer a { text-decoration: underline; text-underline-offset: 3px; }
+
+  @media (max-width: 980px) {
+    .hero { grid-template-columns: 1fr; gap: 40px; padding: 20px 24px 70px; }
+    section.band { padding: 70px 24px; }
+    .cards { grid-template-columns: 1fr; }
+    .prow { grid-template-columns: 1.4fr 1fr; row-gap: 6px; }
+    .prow .off { grid-column: 2; justify-self: end; }
+    .prow:first-child { display: none; }
+    .closer { padding: 0 24px; }
+    .closer .inner { padding: 52px 26px; }
     header { padding: 18px 20px; }
+    .n3 { display: none; }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="wordmark">freym<span>.</span></div>
+  <a class="wordmark" href="/">freym<span>.</span></a>
   <nav class="top">
-    <a href="/" class="active">work</a>
+    <a href="/" class="active">canvas</a>
+    <a href="/work/">work</a>
     <a href="/news/">news</a>
     <a href="/models/">models</a>
     <a href="/blog/">blog</a>
     <a href="/creators/">creators</a>
-    <a href="/youtube/">youtube</a>
   </nav>
+  <a class="btn sm" href="/canvas/">Open canvas</a>
 </header>
 
 <section class="hero">
-  <h1>Like Behance, but for AI work.</h1>
-  <p>A live feed of AI creators on Threads and X — their pictures, and the exact prompts that made them.</p>
+  <div>
+    <div class="badge"><span class="dot"></span> Launch pricing — up to 50% off</div>
+    <h1>The models everyone is posting about. <em>Half the price.</em></h1>
+    <p class="sub">
+      freym canvas is a node canvas for image and video models. Wire a prompt into
+      Nano Banana, GPT Image, Seedream, Veo or Kling, then chain the result straight
+      into the next model. One canvas, one balance, no subscription per tool.
+    </p>
+    <div class="cta">
+      <a class="btn accent" href="/canvas/">Open canvas</a>
+      <a class="btn ghost" href="#pricing">See the prices</a>
+    </div>
+    <p class="note">Pay per generation. No monthly seat. Your projects stay saved.</p>
+  </div>
+
+  <div class="shot">
+    <div class="board">
+      <svg class="wire" viewBox="0 0 600 340" preserveAspectRatio="none">
+        <path d="M176 60 C 200 60, 190 122, 214 122" />
+        <path d="M176 244 C 205 244, 195 150, 214 150" />
+        <path d="M370 136 C 400 136, 398 78, 430 78" />
+      </svg>
+      <div class="node n1">
+        <div class="head"><span class="d"></span> Prompt</div>
+        <div class="body">a ceramic vase on wet sand, low winter sun, 35 mm</div>
+      </div>
+      <div class="node n4">
+        <div class="head"><span class="d"></span> Image</div>
+        <div class="body"><div class="thumb"></div></div>
+      </div>
+      <div class="node n2 sel">
+        <div class="head"><span class="d"></span> Nano Banana 2</div>
+        <div class="body">
+          4K · 10 refs
+          <span class="pricetag"><s>$0.08</s> $0.04</span>
+        </div>
+      </div>
+      <div class="node n3">
+        <div class="head"><span class="d"></span> Kling 3.0 Pro</div>
+        <div class="body">
+          5 s · 1080p
+          <span class="pricetag"><s>$0.56</s> $0.28</span>
+        </div>
+      </div>
+    </div>
+    <div class="float-chip chip-a">Nano Banana Pro 4K <span class="off">−50%</span></div>
+    <div class="float-chip chip-b">Veo 3.1 <span class="off">−50%</span></div>
+  </div>
 </section>
 
-<div class="filters" id="filters"></div>
-<div class="grid" id="grid"><div class="loading">Loading feed…</div></div>
-
-<div class="overlay" id="overlay">
-  <div class="sheet" id="sheet"></div>
+<div class="marquee">
+  <div class="inner">
+    <span class="lbl">Models in the canvas today:</span>
+    <span class="mchip">Nano Banana 2</span>
+    <span class="mchip">Nano Banana Pro 4K</span>
+    <span class="mchip">GPT Image 2</span>
+    <span class="mchip">Seedream 5.0 Pro</span>
+    <span class="mchip">Flux 2 Max</span>
+    <span class="mchip">Krea 2 Large</span>
+    <span class="mchip">Recraft v4</span>
+    <span class="mchip">Veo 3.1</span>
+    <span class="mchip">Kling 3.0 Pro</span>
+    <span class="mchip">Seedance 2.5</span>
+    <span class="mchip">Gemini Omni</span>
+  </div>
 </div>
 
-<footer><span id="stats"></span><br>freym — an experiment. Images belong to their creators.</footer>
+<section class="band" id="pricing">
+  <div class="eyebrow">Pricing</div>
+  <h2 class="big">Same models.<br>Up to 50% off list price.</h2>
+  <p class="lede">
+    Every model runs on its official provider. You pay per generation, and you pay
+    less than the provider asks for the same call. No seat, no tier, no wasted credits.
+  </p>
+
+  <div class="ptable">
+    <div class="prow">
+      <div>Model</div><div>List price</div><div>freym price</div><div>Saving</div>
+    </div>
+    <div class="prow">
+      <div class="m">Nano Banana Pro 4K <small>Google · 4K image</small></div>
+      <div class="was">$0.30</div><div class="now">$0.15</div><div class="off">−50%</div>
+    </div>
+    <div class="prow">
+      <div class="m">GPT Image 2 <small>OpenAI · image + edit</small></div>
+      <div class="was">$0.20</div><div class="now">$0.10</div><div class="off">−50%</div>
+    </div>
+    <div class="prow">
+      <div class="m">Nano Banana 2 <small>Google · image + edit</small></div>
+      <div class="was">$0.08</div><div class="now">$0.04</div><div class="off">−50%</div>
+    </div>
+    <div class="prow">
+      <div class="m">Seedream 5.0 Pro <small>ByteDance · image + edit</small></div>
+      <div class="was">$0.068</div><div class="now">$0.034</div><div class="off">−50%</div>
+    </div>
+    <div class="prow">
+      <div class="m">Krea 2 Large <small>Krea · photoreal image</small></div>
+      <div class="was">$0.06</div><div class="now">$0.03</div><div class="off">−50%</div>
+    </div>
+    <div class="prow">
+      <div class="m">Kling 3.0 Pro <small>Kuaishou · 5 s video</small></div>
+      <div class="was">$0.56</div><div class="now">$0.28</div><div class="off">−50%</div>
+    </div>
+    <div class="prow">
+      <div class="m">Google Veo 3.1 <small>Google · 8 s video with audio</small></div>
+      <div class="was">$3.20</div><div class="now">$1.60</div><div class="off">−50%</div>
+    </div>
+  </div>
+  <p class="pfoot">
+    List price = the provider's public price for the same call. Prices per generation,
+    in US dollars. Launch pricing, while the offer runs.
+  </p>
+</section>
+
+<section class="scatter">
+  <img class="sc-img sc-1" alt="" referrerpolicy="no-referrer" />
+  <img class="sc-img sc-2" alt="" referrerpolicy="no-referrer" />
+  <img class="sc-img sc-3" alt="" referrerpolicy="no-referrer" />
+  <img class="sc-img sc-4" alt="" referrerpolicy="no-referrer" />
+  <h2>Built for people who run<br>ten versions, not one.</h2>
+  <p>Branch a prompt, send one image into three models, and compare the results side by side on the same board.</p>
+  <div class="cta">
+    <a class="btn accent" href="/canvas/">Open canvas</a>
+    <a class="btn ghost" href="/work/">Browse the feed</a>
+  </div>
+</section>
+
+<section class="band">
+  <div class="eyebrow">How it works</div>
+  <h2 class="big">Three nodes, one board.</h2>
+  <div class="cards">
+    <div class="fcard">
+      <div class="num">01</div>
+      <h3>Write or drop</h3>
+      <p>Add a prompt node, or drag an image straight onto the board. Both become inputs you can reuse in every branch.</p>
+    </div>
+    <div class="fcard">
+      <div class="num">02</div>
+      <h3>Wire a model</h3>
+      <p>Pick any image or video model from the catalog, connect the wire, and set its own controls — size, references, duration.</p>
+    </div>
+    <div class="fcard">
+      <div class="num">03</div>
+      <h3>Chain the result</h3>
+      <p>The output is a node too. Send it into an upscaler, an editor, or a video model, and keep the whole chain on the canvas.</p>
+    </div>
+  </div>
+</section>
+
+<section class="band" style="padding-top:0">
+  <div class="eyebrow">From the feed</div>
+  <h2 class="big">The prompts behind the work.</h2>
+  <p class="lede">
+    freym also tracks what creators post on Threads and X, with the full prompt when they
+    share it. Copy a prompt, paste it into the canvas, run it on any model.
+  </p>
+  <div class="strip" id="strip"></div>
+  <p class="pfoot"><a href="/work/" style="text-decoration:underline;text-underline-offset:3px">Browse the full feed →</a></p>
+</section>
+
+<section class="closer">
+  <div class="inner">
+    <h2>Open the canvas.</h2>
+    <p>Every popular model, up to 50% off list price, on one board.</p>
+    <a class="btn" href="/canvas/">Open canvas</a>
+  </div>
+</section>
+
+<footer>
+  <a href="/canvas/">canvas</a> · <a href="/work/">work</a> · <a href="/news/">news</a> ·
+  <a href="/models/">models</a> · <a href="/blog/">blog</a> · <a href="/creators/">creators</a><br>
+  freym — an experiment. Images belong to their creators.
+</footer>
 
 <script>
 const FEED_URL = "https://lmuksetmkzssoewkzdlm.supabase.co/functions/v1/scraper-feed";
 const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxtdWtzZXRta3pzc29ld2t6ZGxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyNTUwNTMsImV4cCI6MjA3NzgzMTA1M30.mvX1o1RBSDgfX5OwRu3ArxsTxQzeZ5ah6J0aR2ZwNuk";
 
-let DATA = { creators: [], posts: [] };
-let filterModel = null;     // model name or null
-let promptsOnly = false;
-let filtersOpen = false;
+// The feed powers two decorations: the scattered thumbnails and the strip above the
+// footer. Both are progressive — the page reads fine if the fetch fails.
+(async () => {
+  try {
+    const res = await fetch(FEED_URL, { headers: { Authorization: "Bearer " + ANON_KEY } });
+    const data = await res.json();
+    const posts = (data.posts ?? [])
+      .filter((p) => (p.sc_images ?? []).length)
+      .map((p) => p.sc_images.slice().sort((a, b) => a.position - b.position)[0].url);
+    if (!posts.length) return;
 
-const $ = (s) => document.querySelector(s);
-const esc = (s) => (s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-// X appends a t.co shortlink to every tweet's text pointing at its own media — strip it.
-const clean = (s) => (s ?? "").replace(/\s*https?:\/\/t\.co\/\w+/g, "").trim();
+    document.querySelectorAll(".sc-img").forEach((el, i) => {
+      const u = posts[i];
+      if (u) el.src = u; else el.remove();
+    });
 
-async function load() {
-  const res = await fetch(FEED_URL, { headers: { Authorization: "Bearer " + ANON_KEY } });
-  DATA = await res.json();
-  DATA.posts = DATA.posts.filter((p) => (p.sc_images ?? []).length);
-  DATA.posts.forEach((p) => p.sc_images.sort((a, b) => a.position - b.position));
-  renderFilters();
-  renderGrid();
-  const dayAgo = Date.now() - 24 * 3600 * 1000;
-  const fresh = DATA.posts.filter((p) => p.taken_at && new Date(p.taken_at).getTime() > dayAgo).length;
-  $("#stats").textContent = fresh
-    ? `${fresh} new ${fresh === 1 ? "work" : "works"} in the last 24 hours`
-    : `${DATA.posts.length} works · updated daily`;
-}
-
-function renderFilters() {
-  const el = $("#filters");
-  el.innerHTML = "";
-  el.classList.toggle("open", filtersOpen);
-
-  const activeCount = (filterModel ? 1 : 0) + (promptsOnly ? 1 : 0);
-  const toggle = document.createElement("button");
-  toggle.className = "filters-toggle";
-  toggle.innerHTML = "Filters" + (activeCount ? ` <span class="n">${activeCount}</span>` : "");
-  toggle.onclick = () => { filtersOpen = !filtersOpen; renderFilters(); };
-  el.appendChild(toggle);
-
-  const pills = document.createElement("div");
-  pills.className = "pills";
-  el.appendChild(pills);
-
-  const all = pill("All", null, filterModel === null && !promptsOnly);
-  all.onclick = () => { filterModel = null; promptsOnly = false; renderFilters(); renderGrid(); };
-  pills.appendChild(all);
-
-  const wp = pill("With prompt", null, promptsOnly);
-  wp.onclick = () => { promptsOnly = !promptsOnly; renderFilters(); renderGrid(); };
-  pills.appendChild(wp);
-
-  const counts = {};
-  for (const p of DATA.posts) if (p.model_name) counts[p.model_name] = (counts[p.model_name] ?? 0) + 1;
-  const models = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
-  for (const m of models) {
-    const pl = pill(m, null, filterModel === m);
-    pl.onclick = () => { filterModel = filterModel === m ? null : m; renderFilters(); renderGrid(); };
-    pills.appendChild(pl);
+    const strip = document.getElementById("strip");
+    strip.innerHTML = "";
+    posts.slice(4, 16).forEach((u) => {
+      const a = document.createElement("a");
+      a.href = "/work/";
+      const img = document.createElement("img");
+      img.src = u; img.loading = "lazy"; img.alt = ""; img.referrerPolicy = "no-referrer";
+      a.appendChild(img);
+      strip.appendChild(a);
+    });
+  } catch (e) {
+    document.querySelectorAll(".sc-img").forEach((el) => el.remove());
   }
-}
-
-function pill(text, img, active) {
-  const d = document.createElement("div");
-  d.className = "pill" + (active ? " active" : "");
-  d.innerHTML = (img ? `<img src="${esc(img)}" referrerpolicy="no-referrer" alt="">` : "") + esc(text);
-  return d;
-}
-
-function renderGrid() {
-  const grid = $("#grid");
-  grid.innerHTML = "";
-  const posts = DATA.posts.filter((p) =>
-    (!filterModel || p.model_name === filterModel) && (!promptsOnly || p.has_prompt)
-  );
-  if (!posts.length) { grid.innerHTML = '<div class="loading">Nothing here yet.</div>'; return; }
-  const nCols = Math.max(1, Math.min(4, Math.floor(grid.clientWidth / 270) || 1));
-  const cols = [];
-  for (let i = 0; i < nCols; i++) {
-    const col = document.createElement("div");
-    col.className = "col";
-    grid.appendChild(col);
-    cols.push(col);
-  }
-  posts.forEach((p, i) => {
-    const c = DATA.creators.find((x) => x.id === p.creator_id);
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-      <img src="${esc(p.sc_images[0].url)}" loading="lazy" referrerpolicy="no-referrer" alt="">
-      ${p.has_prompt ? '<div class="tag">Prompt</div>' : ""}
-      ${p.sc_images.length > 1 ? `<div class="count">${p.sc_images.length}</div>` : ""}
-      <div class="who">@${esc(c?.handle ?? "")}</div>`;
-    card.onclick = () => openPost(p);
-    cols[i % nCols].appendChild(card);
-  });
-}
-let resizeTimer = null;
-window.addEventListener("resize", () => {
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(renderGrid, 200);
-});
-
-let currentPost = null;
-
-function openPost(p) {
-  currentPost = p;
-  renderSheet();
-  $("#overlay").classList.add("open");
-  document.body.style.overflow = "hidden";
-}
-
-function renderSheet() {
-  const p = currentPost;
-  const c = DATA.creators.find((x) => x.id === p.creator_id);
-  const tags = (p.style_tags ?? []).map((t) => `<span class="chip">${esc(t)}</span>`).join("");
-  const imgs = p.sc_images.map((im) => `<img src="${esc(im.url)}" referrerpolicy="no-referrer" alt="">`).join("");
-  $("#sheet").innerHTML = `
-    <button class="close-x" onclick="closeOverlay()">✕</button>
-    <div class="left">
-      <div class="imgs${p.sc_images.length === 1 ? " single" : ""}">${imgs}</div>
-    </div>
-    <div class="right">
-      <div class="creator-line">
-        ${c?.profile_pic_url ? `<img src="${esc(c.profile_pic_url)}" referrerpolicy="no-referrer" alt="">` : ""}
-        <div>
-          <div class="h">@${esc(c?.handle ?? "")}</div>
-          <div class="f">${esc(c?.full_name ?? "")}</div>
-        </div>
-      </div>
-      <div class="chips">
-        ${p.model_name ? `<span class="chip model">${esc(p.model_name)}</span>` : ""}
-        ${tags}
-      </div>
-      ${p.has_prompt && p.prompt_text
-        ? `<div><div class="label">Prompt</div><div class="prompt-box" id="ptext">${esc(clean(p.prompt_text))}</div></div>
-           <button class="btn" onclick="copyPrompt(this)">Copy prompt</button>`
-        : `<div class="no-prompt">No prompt shared for this post.</div>`}
-      ${clean(p.caption) && !p.has_prompt ? `<div><div class="label">Caption</div><div style="font-size:14px;line-height:1.5;white-space:pre-wrap;">${esc(clean(p.caption))}</div></div>` : ""}
-      ${p.url ? `<a class="src-link" href="${esc(p.url)}" target="_blank" rel="noopener">View original →</a>` : ""}
-    </div>`;
-}
-
-function copyPrompt(btn) {
-  navigator.clipboard.writeText(clean(currentPost.prompt_text)).then(() => {
-    btn.textContent = "Copied ✓";
-    setTimeout(() => (btn.textContent = "Copy prompt"), 1500);
-  });
-}
-
-function closeOverlay() {
-  $("#overlay").classList.remove("open");
-  document.body.style.overflow = "";
-}
-$("#overlay").addEventListener("click", (e) => { if (e.target === e.currentTarget) closeOverlay(); });
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") closeOverlay();
-});
-
-load().catch((e) => { $("#grid").innerHTML = `<div class="loading">Failed to load: ${esc(String(e))}</div>`; });
+})();
 </script>
 </body>
 </html>

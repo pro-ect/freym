@@ -189,7 +189,8 @@ ${ld.map((o) => `<script type="application/ld+json">${JSON.stringify(o)}</script
 <header>
   <a class="wordmark" href="/">freym<span>.</span></a>
   <nav class="top">
-    <a href="/"${active === "work" ? ' class="active"' : ""}>work</a>
+    <a href="/canvas/">canvas</a>
+    <a href="/work/"${active === "work" ? ' class="active"' : ""}>work</a>
     <a href="/news/"${active === "news" ? ' class="active"' : ""}>news</a>
     <a href="/models/"${active === "models" ? ' class="active"' : ""}>models</a>
     <a href="/blog/"${active === "blog" ? ' class="active"' : ""}>blog</a>
