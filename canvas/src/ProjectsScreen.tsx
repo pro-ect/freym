@@ -69,7 +69,13 @@ export default function ProjectsScreen({ onOpen }: { onOpen: (id: string) => voi
                   isVideoUrl(preview) ? (
                     <video src={preview} muted loop playsInline preload="metadata" autoPlay />
                   ) : (
-                    <img src={preview} loading="lazy" alt="" referrerPolicy="no-referrer" />
+                    <img
+                      src={preview}
+                      loading="lazy"
+                      alt=""
+                      referrerPolicy="no-referrer"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    />
                   )
                 ) : (
                   <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
