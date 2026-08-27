@@ -208,6 +208,18 @@
   .prow .off { justify-self: start; background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 600; border-radius: 999px; padding: 3px 10px; }
   .pfoot { margin-top: 14px; font-size: 13px; color: var(--muted); }
 
+  /* ---------- pay as you go ---------- */
+  .buys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 44px; }
+  .buy {
+    background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+    padding: 24px 22px;
+  }
+  .buy .n { font-size: clamp(30px, 3vw, 42px); font-weight: 600; letter-spacing: -0.03em; }
+  .buy .n span { font-size: 15px; font-weight: 500; color: var(--muted); margin-left: 4px; }
+  .buy .what { margin-top: 8px; font-size: 14.5px; line-height: 1.45; color: var(--muted); }
+  .buy .what b { color: var(--ink); font-weight: 600; }
+  @media (max-width: 980px) { .buys { grid-template-columns: repeat(2, 1fr); } }
+
   /* ---------- feature cards ---------- */
   .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 44px; }
   .fcard { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 26px; }
@@ -364,6 +376,58 @@
     List price = the provider's public price for the same call. Prices per generation,
     in US dollars. Launch pricing, while the offer runs.
   </p>
+</section>
+
+<section class="band" id="payg" style="padding-top:0">
+  <div class="eyebrow">Pay as you go</div>
+  <h2 class="big">No subscription.<br>Credits you spend when you create.</h2>
+  <p class="lede">
+    Top up once and generate whenever you want. There is no monthly seat, no tier to
+    outgrow, and nothing resets at the end of the month — unused credits just stay
+    on your account.
+  </p>
+
+  <div class="cards">
+    <div class="fcard">
+      <div class="num">01</div>
+      <h3>Nothing monthly</h3>
+      <p>You pay for generations, not for access. Skip a month, come back for one
+        campaign, leave again — your balance is exactly where you left it.</p>
+    </div>
+    <div class="fcard">
+      <div class="num">02</div>
+      <h3>One balance, every model</h3>
+      <p>Credits are not locked to a tool. Spend the same balance on images today,
+        video tomorrow, an upscale after that — across every model in the catalog.</p>
+    </div>
+    <div class="fcard">
+      <div class="num">03</div>
+      <h3>The price is on the node</h3>
+      <p>Every model node shows its cost before you hit Run, so a big board never
+        surprises you. Failed generations are refunded automatically.</p>
+    </div>
+  </div>
+
+  <div class="buys">
+    <div class="buy">
+      <div class="n">125<span>images</span></div>
+      <div class="what"><b>Nano Banana 2</b> generations for $5 — enough to iterate a
+        whole visual direction.</div>
+    </div>
+    <div class="buy">
+      <div class="n">50<span>images</span></div>
+      <div class="what"><b>GPT Image 2</b> generations and edits for $5.</div>
+    </div>
+    <div class="buy">
+      <div class="n">17<span>clips</span></div>
+      <div class="what"><b>Kling 3.0 Pro</b> 5-second videos for $5.</div>
+    </div>
+    <div class="buy">
+      <div class="n">3<span>scenes</span></div>
+      <div class="what"><b>Veo 3.1</b> 8-second videos with audio for $5.</div>
+    </div>
+  </div>
+  <p class="pfoot">Counts use the freym launch prices above, on a $5 top-up. Mix freely — it is one balance.</p>
 </section>
 
 <section class="scatter">
