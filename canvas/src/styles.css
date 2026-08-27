@@ -206,8 +206,15 @@ input, textarea, select { font: inherit; }
 
 /* ---------- projects screen ---------- */
 .fc-projects { max-width: 1060px; margin: 0 auto; padding: 40px 24px; }
-.fc-projects-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+.fc-projects-head { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
 .fc-projects-head h1 { font-size: 20px; font-weight: 600; margin: 0; margin-right: auto; }
+/* header controls share one pill grammar: height, radius, type size */
+.fc-projects-head .fc-balance,
+.fc-projects-head .fc-signout,
+.fc-projects-head .fc-primary {
+  height: 36px; display: inline-flex; align-items: center;
+  border-radius: 999px; padding: 0 16px; font-size: 13.5px; font-weight: 600;
+}
 .fc-primary {
   background: #f4f4f5; color: #101013; border: none;
   padding: 9px 16px; border-radius: 9px; font-weight: 500;
@@ -261,6 +268,8 @@ input, textarea, select { font: inherit; }
   font-size: 13px; padding: 6px 8px; font-family: inherit;
 }
 .fc-signout:hover { color: #e5e5e5; }
+.fc-projects-head .fc-signout { border: 1px solid #2e2e35; }
+.fc-projects-head .fc-signout:hover { border-color: #55555e; color: #e5e5e5; }
 
 /* ---------- balance + buy coins ---------- */
 .fc-balance {

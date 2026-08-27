@@ -47,7 +47,7 @@ export default function ProjectsScreen({ onOpen }: { onOpen: (id: string) => voi
             window.location.assign(window.location.pathname);
           }}
         >
-          sign out
+          Sign out
         </button>
         <button className="fc-primary" onClick={create}>
           + New project
