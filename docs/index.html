@@ -111,7 +111,7 @@
   .hero h1 em {
     font-style: normal; display: inline;
     background: #fff; color: #000; mix-blend-mode: screen;
-    border-radius: .22em; padding: .02em .16em;
+    border-radius: .18em; padding: 0 .09em;
     -webkit-box-decoration-break: clone; box-decoration-break: clone;
   }
   .hero .cta { margin-top: 26px; display: flex; gap: 12px; flex-wrap: wrap; }
@@ -290,9 +290,10 @@
     .hero { padding: 0; }
     .hero header nav.top { display: none; }
     .hero-art { min-height: 78vh; }
-    .hero-copy { grid-template-columns: 1fr; gap: 20px; padding: 0 24px; bottom: 22px; }
+    /* bottom: 46px keeps the headline clear of the corner author credit */
+    .hero-copy { grid-template-columns: 1fr; gap: 20px; padding: 0 24px; bottom: 46px; }
     .hero h1 { font-size: clamp(46px, 13vw, 68px); }
-    .hero-credit { right: 16px; bottom: 10px; }
+    .hero-credit { right: 16px; bottom: 12px; }
     .hero-strip img:nth-child(n+2), .hero-strip video:nth-child(n+2) { display: none; }
     .hero p.sub { font-size: 15.5px; }
     section.band { padding: 70px 24px; }
