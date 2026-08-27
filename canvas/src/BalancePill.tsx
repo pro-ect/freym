@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { fetchBalance, startCoinCheckout, type CoinPack } from "./lib/balance";
+import { fetchBalance, startCoinCheckout, usd, type CoinPack } from "./lib/balance";
 
 const PACKS: { pack: CoinPack; label: string }[] = [
-  { pack: "freym-2500", label: "2,500 coins — $5" },
-  { pack: "freym-7500", label: "7,500 coins — $15" },
-  { pack: "freym-15000", label: "15,000 coins — $30" },
+  { pack: "freym-2500", label: "Top up $5" },
+  { pack: "freym-7500", label: "Top up $15" },
+  { pack: "freym-15000", label: "Top up $30" },
 ];
 
 /**
@@ -63,17 +63,18 @@ export default function BalancePill() {
 
   return (
     <>
-      <button className="fc-balance" title="Coin balance — click to top up" onClick={() => setOpen(true)}>
-        ✳ {balance == null ? "…" : balance.toLocaleString()}
+      <button className="fc-balance" title="Balance — click to top up" onClick={() => setOpen(true)}>
+        {balance == null ? "…" : usd(balance)}
       </button>
       {toast && <span className="fc-toast">{toast}</span>}
       {open && (
         <div className="fc-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}>
           <div className="fc-modal">
-            <h2>Buy coins</h2>
+            <h2>Top up</h2>
             <p className="fc-modal-sub">
-              One-time top-up, no subscription. Coins never expire and work on
-              every model. Checkout runs on Stripe.
+              $1 in equals $1 of generations — every model shows its price
+              before you run it. One-time payment, no subscription, credit
+              never expires. Checkout runs on Stripe.
             </p>
             {PACKS.map(({ pack, label }) => (
               <button key={pack} className="fc-primary fc-pack" disabled={busy !== null} onClick={() => buy(pack)}>

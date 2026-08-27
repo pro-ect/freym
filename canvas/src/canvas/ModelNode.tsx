@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { Handle, Position, useReactFlow, type NodeProps, type Node } from "@xyflow/react";
 import { patchNodeData, type ModelNodeData, type PromptNodeData, type ImageNodeData } from "../types";
 import { startRun } from "../lib/runner";
+import { usd } from "../lib/balance";
 
 /** Collect prompt text + input image URLs from nodes wired into this model node. */
 export function collectInputs(
@@ -78,7 +79,7 @@ export default function ModelNode({ id, data, selected }: NodeProps) {
       <div className="fc-node-header">
         <span className="fc-dot" style={{ background: "#8b5cf6" }} />
         <span className="fc-model-name">{d.modelName}</span>
-        {d.costCoins != null && <span className="fc-cost">✳ {d.costCoins}</span>}
+        {d.costCoins != null && <span className="fc-cost">{usd(d.costCoins)}</span>}
       </div>
 
       <div className="fc-model-body">

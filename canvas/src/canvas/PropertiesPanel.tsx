@@ -1,5 +1,6 @@
 import type { Node } from "@xyflow/react";
 import { patchNodeData, type ModelNodeData, type ParamField, type ParamSchema } from "../types";
+import { usd } from "../lib/balance";
 
 const ASPECTS = ["default", "1:1", "9:16", "16:9", "4:5", "3:4", "3:2"];
 
@@ -54,7 +55,7 @@ export default function PropertiesPanel({
       <div className="fc-props-title">
         <span className="fc-dot" style={{ background: "#8b5cf6" }} />
         {many ? `${models.length} models` : first.modelName}
-        {totalCoins > 0 && <span className="fc-cost">✳ {totalCoins}</span>}
+        {totalCoins > 0 && <span className="fc-cost">{usd(totalCoins)}</span>}
       </div>
 
       {many && <div className="fc-hint">{names.join(" · ")}</div>}

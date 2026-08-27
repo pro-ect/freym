@@ -1,5 +1,16 @@
 import { supabase, SUPABASE_URL } from "./supabase";
 
+/**
+ * The wallet is denominated in coins at a fixed 500 coins = $1; the canvas
+ * presents everything in dollars. Cheap generations keep a third decimal
+ * ($0.034), larger amounts read like money ($1.15, $152.60).
+ */
+export function usd(coins: number): string {
+  const dollars = coins / 500;
+  const decimals = dollars > 0 && dollars < 0.1 ? 3 : 2;
+  return "$" + dollars.toFixed(decimals);
+}
+
 /** Spendable coins = permanent balance + current subscription allowance. */
 export async function fetchBalance(): Promise<number | null> {
   const { data } = await supabase
