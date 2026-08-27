@@ -108,6 +108,12 @@
     background: none; border: none; cursor: pointer; color: var(--muted);
     font-size: 17px; line-height: 1; padding: 4px 2px; font-family: inherit;
   }
+  /* admin-only: star toggles a post into the homepage hero */
+  .star-act {
+    background: none; border: none; cursor: pointer; color: var(--faint);
+    font-size: 17px; line-height: 1; padding: 4px 6px; font-family: inherit;
+  }
+  .star-act.on { color: #e08a56; }
 
   .post-body { padding: 12px 18px 0; }
   .post-title { font-size: 15.5px; line-height: 1.45; letter-spacing: -.01em; }
@@ -220,6 +226,36 @@
 
 <script>
 const FEED_URL = "https://lmuksetmkzssoewkzdlm.supabase.co/functions/v1/scraper-feed?creator=nextunyte";
+const STAR_URL = "https://lmuksetmkzssoewkzdlm.supabase.co/functions/v1/scraper-star";
+
+// Admin mode: visit once with ?admin=<key> to store it; stars then show on posts.
+// Starred posts fill the homepage hero.
+const _adminParam = new URL(location.href).searchParams.get("admin");
+if (_adminParam) {
+  localStorage.setItem("freym_admin", _adminParam);
+  history.replaceState({}, "", location.pathname);
+}
+const ADMIN_KEY = localStorage.getItem("freym_admin");
+
+async function toggleStar(p) {
+  const next = !p.starred_at;
+  const res = await fetch(STAR_URL, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      Authorization: "Bearer " + ANON_KEY,
+      "x-admin-key": ADMIN_KEY,
+    },
+    body: JSON.stringify({ post_id: p.id, starred: next }),
+  });
+  if (!res.ok) {
+    if (res.status === 401) localStorage.removeItem("freym_admin");
+    alert("Star failed (" + res.status + ")");
+    return;
+  }
+  p.starred_at = next ? new Date().toISOString() : null;
+  renderFeed();
+}
 const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxtdWtzZXRta3pzc29ld2t6ZGxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyNTUwNTMsImV4cCI6MjA3NzgzMTA1M30.mvX1o1RBSDgfX5OwRu3ArxsTxQzeZ5ah6J0aR2ZwNuk";
 
 let DATA = { creators: [], posts: [] };
@@ -319,6 +355,7 @@ function renderFeed() {
           : ""}
         <span class="when">${esc(ago(p.taken_at))}</span>
         <span class="spacer"></span>
+        ${ADMIN_KEY ? `<button class="star-act${p.starred_at ? " on" : ""}" data-star title="Star for the hero">★</button>` : ""}
         ${p.url ? `<a class="more-btn" href="${esc(p.url)}" target="_blank" rel="noopener" title="Open original">•••</a>` : ""}
       </div>
 
@@ -350,6 +387,9 @@ function renderFeed() {
 
     const toggle = el.querySelector("[data-toggle]");
     if (toggle) toggle.onclick = () => el.classList.toggle("open");
+
+    const starBtn = el.querySelector("[data-star]");
+    if (starBtn) starBtn.onclick = () => toggleStar(p);
 
     const copyBtn = el.querySelector("[data-copy]");
     if (copyBtn) copyBtn.onclick = () => {

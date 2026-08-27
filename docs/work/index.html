@@ -112,6 +112,16 @@
     background: rgba(255,255,255,.85); color: var(--ink);
     font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 999px;
   }
+  /* admin-only: star toggles a post into the homepage hero */
+  .card .star {
+    position: absolute; bottom: 10px; right: 10px;
+    width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+    background: rgba(17,17,16,.6); color: rgba(255,255,255,.75);
+    font-size: 16px; border-radius: 999px; border: 0; cursor: pointer;
+  }
+  .card .star.on { background: #ffb08a; color: #1c1b16; }
+  .star-btn { margin-top: 10px; }
+  .star-btn.on { background: #ffb08a; border-color: #ffb08a; color: #1c1b16; }
 
   /* overlay */
   .overlay {
@@ -209,7 +219,38 @@
 
 <script>
 const FEED_URL = "https://lmuksetmkzssoewkzdlm.supabase.co/functions/v1/scraper-feed";
+const STAR_URL = "https://lmuksetmkzssoewkzdlm.supabase.co/functions/v1/scraper-star";
 const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxtdWtzZXRta3pzc29ld2t6ZGxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyNTUwNTMsImV4cCI6MjA3NzgzMTA1M30.mvX1o1RBSDgfX5OwRu3ArxsTxQzeZ5ah6J0aR2ZwNuk";
+
+// Admin mode: visit once with ?admin=<key> to store it; stars then show on cards.
+// Starred posts fill the homepage hero.
+const _adminParam = new URL(location.href).searchParams.get("admin");
+if (_adminParam) {
+  localStorage.setItem("freym_admin", _adminParam);
+  history.replaceState({}, "", location.pathname);
+}
+const ADMIN_KEY = localStorage.getItem("freym_admin");
+
+async function toggleStar(p) {
+  const next = !p.starred_at;
+  const res = await fetch(STAR_URL, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      Authorization: "Bearer " + ANON_KEY,
+      "x-admin-key": ADMIN_KEY,
+    },
+    body: JSON.stringify({ post_id: p.id, starred: next }),
+  });
+  if (!res.ok) {
+    if (res.status === 401) localStorage.removeItem("freym_admin");
+    alert("Star failed (" + res.status + ")");
+    return;
+  }
+  p.starred_at = next ? new Date().toISOString() : null;
+  renderGrid();
+  if (currentPost === p && $("#overlay").classList.contains("open")) renderSheet();
+}
 
 let DATA = { creators: [], posts: [] };
 let filterModel = null;     // model name or null
@@ -299,8 +340,11 @@ function renderGrid() {
       <img src="${esc(p.sc_images[0].url)}" loading="lazy" referrerpolicy="no-referrer" alt="">
       ${p.has_prompt ? '<div class="tag">Prompt</div>' : ""}
       ${p.sc_images.length > 1 ? `<div class="count">${p.sc_images.length}</div>` : ""}
+      ${ADMIN_KEY ? `<button class="star${p.starred_at ? " on" : ""}" title="Star for the hero">★</button>` : ""}
       <div class="who">@${esc(c?.handle ?? "")}</div>`;
     card.onclick = () => openPost(p);
+    const starBtn = card.querySelector(".star");
+    if (starBtn) starBtn.onclick = (e) => { e.stopPropagation(); toggleStar(p); };
     cols[i % nCols].appendChild(card);
   });
 }
@@ -347,6 +391,7 @@ function renderSheet() {
         : `<div class="no-prompt">No prompt shared for this post.</div>`}
       ${clean(p.caption) && !p.has_prompt ? `<div><div class="label">Caption</div><div style="font-size:14px;line-height:1.5;white-space:pre-wrap;">${esc(clean(p.caption))}</div></div>` : ""}
       ${p.url ? `<a class="src-link" href="${esc(p.url)}" target="_blank" rel="noopener">View original →</a>` : ""}
+      ${ADMIN_KEY ? `<button class="btn star-btn${p.starred_at ? " on" : ""}" onclick="toggleStar(currentPost)">${p.starred_at ? "★ In the hero" : "☆ Star for the hero"}</button>` : ""}
     </div>`;
 }
 

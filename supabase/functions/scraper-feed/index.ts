@@ -14,10 +14,45 @@ const cors = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Rewrite image URLs to the mirrored copies — IG CDN blocks cross-origin
+// rendering and its URLs expire.
+function useMirrors(posts: { sc_images?: { url: string; stored_path?: string | null }[] }[]) {
+  for (const p of posts) {
+    for (const im of p.sc_images ?? []) {
+      if (im.stored_path) im.url = STORAGE_BASE + im.stored_path;
+      delete im.stored_path;
+    }
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
-  const wanted = new URL(req.url).searchParams.get("creator");
+  const params = new URL(req.url).searchParams;
+  const wanted = params.get("creator");
+
+  // ?hero=1 — just the admin-starred posts, newest star first. Powers the
+  // freym.app hero strip, so it stays small and short-cached.
+  if (params.get("hero")) {
+    const { data: heroPosts, error: hErr } = await supabase
+      .from("sc_posts")
+      .select(
+        "id, creator_id, url, caption, taken_at, model_name, has_prompt, prompt_text, starred_at, sc_images(url, stored_path, width, height, position)",
+      )
+      .not("starred_at", "is", null)
+      .order("starred_at", { ascending: false })
+      .limit(12);
+    if (hErr) {
+      return new Response(JSON.stringify({ error: hErr.message }), {
+        status: 500,
+        headers: { ...cors, "content-type": "application/json" },
+      });
+    }
+    useMirrors(heroPosts ?? []);
+    return new Response(JSON.stringify({ posts: heroPosts ?? [] }), {
+      headers: { ...cors, "content-type": "application/json", "cache-control": "public, max-age=60" },
+    });
+  }
 
   const { data: allCreators, error: cErr } = await supabase
     .from("sc_creators")
@@ -38,7 +73,7 @@ Deno.serve(async (req) => {
   let postsQuery = supabase
     .from("sc_posts")
     .select(
-      "id, creator_id, url, caption, taken_at, like_count, has_prompt, prompt_text, model_name, style_tags, confidence, sc_images(url, stored_path, width, height, position)",
+      "id, creator_id, url, caption, taken_at, like_count, has_prompt, prompt_text, model_name, style_tags, confidence, starred_at, sc_images(url, stored_path, width, height, position)",
     )
     .order("taken_at", { ascending: false })
     .limit(2000);
@@ -65,12 +100,7 @@ Deno.serve(async (req) => {
     if (c.stored_avatar_path) c.profile_pic_url = STORAGE_BASE + c.stored_avatar_path;
     delete c.stored_avatar_path;
   }
-  for (const p of posts ?? []) {
-    for (const im of p.sc_images ?? []) {
-      if (im.stored_path) im.url = STORAGE_BASE + im.stored_path;
-      delete im.stored_path;
-    }
-  }
+  useMirrors(posts ?? []);
 
   return new Response(JSON.stringify({ creators, posts }), {
     headers: {
