@@ -572,21 +572,18 @@
 const FEED_URL = "https://lmuksetmkzssoewkzdlm.supabase.co/functions/v1/scraper-feed";
 const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxtdWtzZXRta3pzc29ld2t6ZGxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyNTUwNTMsImV4cCI6MjA3NzgzMTA1M30.mvX1o1RBSDgfX5OwRu3ArxsTxQzeZ5ah6J0aR2ZwNuk";
 
-// Hero: admin-starred posts (starred on /work/ or /next/) fill the artwork panel
-// with a RANDOM set of up to 4 photos, portrait first. No starred posts → the
-// clay hero.jpg stays. The last payload is cached locally so repeat visits
-// paint photos immediately instead of flashing the clay artwork first.
+// Hero: one RANDOM admin-starred post (starred on /work/ or /next/) fills the
+// artwork panel with up to 4 of its own photos, portrait first — never a mix
+// of different posts. No starred posts → the clay hero.jpg stays. The last
+// payload is cached locally so repeat visits paint photos immediately instead
+// of flashing the clay artwork first.
 function renderHero(data) {
-  const imgs = (data.posts ?? []).flatMap((p) =>
-    (p.sc_images ?? [])
-      .slice().sort((a, b) => a.position - b.position)
-      .map((im) => ({ ...im, creator_id: p.creator_id }))
-  );
-  // Fisher-Yates — a fresh random selection on every load.
-  for (let i = imgs.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [imgs[i], imgs[j]] = [imgs[j], imgs[i]];
-  }
+  const posts = (data.posts ?? []).filter((p) => (p.sc_images ?? []).length);
+  if (!posts.length) return false;
+  const post = posts[Math.floor(Math.random() * posts.length)];
+  const imgs = post.sc_images
+    .slice().sort((a, b) => a.position - b.position)
+    .map((im) => ({ ...im, creator_id: post.creator_id }));
   const picks = [
     ...imgs.filter((im) => (im.height ?? 0) > (im.width ?? 0)),
     ...imgs.filter((im) => !((im.height ?? 0) > (im.width ?? 0))),
