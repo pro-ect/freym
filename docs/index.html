@@ -43,7 +43,7 @@
     display: flex; align-items: center; justify-content: space-between;
     padding: 22px 40px; gap: 16px;
   }
-  .wordmark { font-weight: 700; font-size: 19px; letter-spacing: -0.02em; }
+  .wordmark { font-weight: 700; font-size: 19px; }
   .wordmark span { color: var(--accent); }
   nav.top { display: flex; gap: 4px; flex-wrap: wrap; }
   nav.top a { font-size: 14px; color: var(--muted); padding: 6px 13px; border-radius: 999px; transition: color .15s ease; }
@@ -103,7 +103,7 @@
   }
   .hero h1 {
     font-size: clamp(40px, 5.2vw, 76px); font-weight: 500;
-    letter-spacing: -0.03em; line-height: 1.0; color: #fff;
+ line-height: 1.0; color: #fff;
   }
   /* white chip with knockout letters — the photos show through the text */
   .hero h1 em {
@@ -184,14 +184,14 @@
   section.band { max-width: 1280px; margin: 0 auto; padding: 96px 40px; }
   .eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
   h2.big {
-    font-size: clamp(32px, 4.4vw, 58px); font-weight: 500; letter-spacing: -0.03em;
+    font-size: clamp(32px, 4.4vw, 58px); font-weight: 500;
     line-height: 1.0; margin-top: 14px;
   }
   .lede { margin-top: 18px; font-size: 17px; line-height: 1.55; color: var(--muted); max-width: 620px; }
 
   /* ---------- scattered proof ---------- */
   .scatter { position: relative; text-align: center; padding: 120px 40px; overflow: hidden; }
-  .scatter h2 { font-size: clamp(32px, 4.6vw, 60px); font-weight: 500; letter-spacing: -0.035em; line-height: 1.02; max-width: 900px; margin: 0 auto; }
+  .scatter h2 { font-size: clamp(32px, 4.6vw, 60px); font-weight: 500; line-height: 1.02; max-width: 900px; margin: 0 auto; }
   .scatter p { margin: 22px auto 0; font-size: 17px; color: var(--muted); max-width: 520px; }
   .scatter .cta { margin-top: 30px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
   .sc-img {
@@ -222,13 +222,13 @@
   .pfoot { margin-top: 14px; font-size: 13px; color: var(--muted); }
 
   /* ---------- pay as you go ---------- */
-  .buys-h { margin-top: 52px; font-size: 22px; font-weight: 600; letter-spacing: -0.015em; }
+  .buys-h { margin-top: 52px; font-size: 22px; font-weight: 600; }
   .buys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 18px; }
   .buy {
     background: var(--card); border: 1px solid var(--line); border-radius: 16px;
     padding: 24px 22px;
   }
-  .buy .n { font-size: clamp(30px, 3vw, 42px); font-weight: 600; letter-spacing: -0.03em; }
+  .buy .n { font-size: clamp(30px, 3vw, 42px); font-weight: 600; }
   .buy .n span { font-size: 15px; font-weight: 500; color: var(--muted); margin-left: 4px; }
   .buy .what { margin-top: 8px; font-size: 14.5px; line-height: 1.45; color: var(--muted); }
   .buy .what b { color: var(--ink); font-weight: 600; }
@@ -238,7 +238,7 @@
   .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 44px; }
   .fcard { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 26px; }
   .fcard .num { font-size: 13px; font-weight: 700; color: var(--accent); }
-  .fcard h3 { margin-top: 12px; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+  .fcard h3 { margin-top: 12px; font-size: 20px; font-weight: 700; }
   .fcard p { margin-top: 10px; font-size: 15px; line-height: 1.55; color: var(--muted); }
 
   /* ---------- feed strip ---------- */
@@ -256,7 +256,7 @@
   .news-card:hover { border-color: var(--ink); }
   .news-card .co { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
   .news-card .co img { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; }
-  .news-card .hl { font-size: 16px; font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; }
+  .news-card .hl { font-size: 16px; font-weight: 600; line-height: 1.3; }
   .news-card .sm { font-size: 14px; line-height: 1.5; color: var(--muted); }
   .news-card .foot { margin-top: auto; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
   .news-card .cat {
@@ -272,7 +272,7 @@
     border-radius: 24px; padding: 72px 48px; text-align: center; color: #fff;
     background: linear-gradient(150deg, #23231f, #14140f 70%);
   }
-  .closer h2 { font-size: clamp(30px, 4.2vw, 52px); font-weight: 500; letter-spacing: -0.035em; line-height: 1.02; }
+  .closer h2 { font-size: clamp(30px, 4.2vw, 52px); font-weight: 500; line-height: 1.02; }
   .closer p { margin-top: 18px; font-size: 17px; opacity: .9; }
   .closer .btn { margin-top: 28px; background: #fff; color: var(--ink); border-color: #fff; }
   .closer .btn:hover { background: #f3f1ea; }
