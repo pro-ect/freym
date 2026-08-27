@@ -12,6 +12,9 @@
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="freym" />
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"freym","url":"https://freym.app/","description":"freym canvas is a node canvas for generative-AI image and video models, with a live model-news feed and a gallery of AI works with the prompts behind them."},{"@type":"Organization","name":"freym","url":"https://freym.app/"},{"@type":"SoftwareApplication","name":"freym canvas","applicationCategory":"DesignApplication","operatingSystem":"Web","url":"https://freym.app/canvas/","description":"Node canvas for AI image and video models: wire prompts into models, chain outputs, pay per generation."}]}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #f5f4ee;
@@ -19,14 +22,15 @@
     --muted: #6f6d66;
     --line: #e4e2d8;
     --card: #ffffff;
-    --accent: #ff4d00;
+    --accent: #d8541f;      /* used sparingly — small marks only */
+    --accent-soft: #f7ede7;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
   body {
     background: var(--bg);
     color: var(--ink);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Helvetica, Arial, sans-serif;
+    font-family: ui-rounded, "SF Pro Rounded", "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
   }
@@ -53,8 +57,7 @@
   .btn.sm { padding: 9px 18px; font-size: 14px; }
   .btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
   .btn.ghost:hover { background: transparent; border-color: var(--ink); }
-  .btn.accent { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .btn.accent:hover { background: #e64500; }
+  .btn.accent { background: var(--ink); border-color: var(--ink); color: var(--bg); }
 
   /* ---------- hero ---------- */
   .hero {
@@ -62,35 +65,29 @@
     max-width: 1280px; margin: 0 auto; padding: 40px 40px 90px;
   }
   .hero h1 {
-    font-size: clamp(42px, 5.4vw, 78px); font-weight: 800;
+    font-size: clamp(40px, 5.2vw, 74px); font-weight: 500;
     letter-spacing: -0.035em; line-height: 0.98;
   }
   .hero h1 em { font-style: normal; color: var(--accent); }
+  .eyebrow, .fcard .num { color: var(--muted); }
   .hero p.sub { margin-top: 22px; font-size: 17px; line-height: 1.55; color: var(--muted); max-width: 480px; }
   .hero .cta { margin-top: 32px; display: flex; gap: 12px; flex-wrap: wrap; }
   .hero .note { margin-top: 16px; font-size: 13px; color: var(--muted); }
   .badge {
     display: inline-flex; align-items: center; gap: 8px; margin-bottom: 22px;
-    background: #fff0e9; color: var(--accent); border: 1px solid #ffd6c4;
+    background: var(--accent-soft); color: var(--accent); border: 1px solid #ece0d7;
     border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 600;
   }
   .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
 
   /* gradient frame with a mock canvas inside (like a product shot) */
-  .shot {
-    position: relative; border-radius: 22px; padding: 26px;
-    background:
-      radial-gradient(120% 90% at 15% 15%, #ffb37a 0%, transparent 55%),
-      radial-gradient(110% 100% at 85% 25%, #c8a6ff 0%, transparent 55%),
-      radial-gradient(120% 110% at 60% 95%, #ff6a2b 0%, transparent 60%),
-      linear-gradient(140deg, #ff8a3d, #ff4d00 60%, #b23bff);
-    box-shadow: 0 24px 60px rgba(17,17,16,.16);
-  }
+  .shot { position: relative; }
   .board {
     position: relative; border-radius: 14px; background: #14140f;
     background-image: radial-gradient(rgba(255,255,255,.12) 1px, transparent 1px);
     background-size: 18px 18px;
     min-height: 390px; padding: 20px; overflow: hidden;
+    box-shadow: 0 24px 60px rgba(17,17,16,.18);
   }
   .node {
     position: absolute; background: #1e1e19; border: 1px solid #33322b;
@@ -102,54 +99,42 @@
     padding: 7px 9px; border-bottom: 1px solid #33322b;
     font-weight: 600; font-size: 10.5px; letter-spacing: .03em; text-transform: uppercase; color: #a9a79d;
   }
-  .node .head .d { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .node .head .d { width: 6px; height: 6px; border-radius: 50%; background: #7d786a; }
   .node .body { padding: 9px; line-height: 1.4; color: #d7d5cc; }
-  .node.sel { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(255,77,0,.35), 0 8px 22px rgba(0,0,0,.35); }
+  .node.sel { border-color: #6f6a5c; box-shadow: 0 0 0 2px rgba(200,193,175,.18), 0 8px 22px rgba(0,0,0,.35); }
   .node .pricetag {
     display: inline-flex; gap: 6px; align-items: center; margin-top: 8px;
-    background: #2a2922; border-radius: 999px; padding: 3px 8px; font-size: 10px; color: #ffb894;
+    background: #2a2922; border-radius: 999px; padding: 3px 8px; font-size: 10px; color: #e7e4da;
   }
   .node .pricetag s { color: #7d7b72; }
-  .node .thumb { height: 84px; border-radius: 6px; background: linear-gradient(135deg,#ff9d5c,#b23bff); }
+  .node .thumb { height: 84px; border-radius: 6px; background: linear-gradient(135deg,#8f8b80,#3c3a33); }
   .n1 { top: 26px; left: 20px; }
   .n2 { top: 96px; left: 214px; }
   .n3 { top: 36px; right: 14px; width: 160px; }
   .n4 { top: 216px; left: 60px; }
   .wire { position: absolute; inset: 0; pointer-events: none; }
-  .wire path { fill: none; stroke: var(--accent); stroke-width: 2; opacity: .85; }
+  .wire path { fill: none; stroke: #6f6a5c; stroke-width: 2; opacity: .9; }
   .float-chip {
     position: absolute; background: #fff; border-radius: 999px; padding: 7px 13px;
     font-size: 12.5px; font-weight: 600; box-shadow: 0 8px 22px rgba(17,17,16,.18);
     display: flex; align-items: center; gap: 7px;
   }
   .float-chip .off { color: var(--accent); }
-  .chip-a { top: -14px; right: 34px; }
-  .chip-b { bottom: -16px; left: 30px; }
-
-  /* ---------- logo row ---------- */
-  .marquee { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #fbfaf5; }
-  .marquee .inner {
-    max-width: 1280px; margin: 0 auto; padding: 18px 40px;
-    display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: center;
-  }
-  .marquee span.lbl { font-size: 13px; color: var(--muted); margin-right: 6px; }
-  .mchip {
-    font-size: 13px; border: 1px solid var(--line); background: var(--card);
-    border-radius: 999px; padding: 6px 13px; color: var(--ink); white-space: nowrap;
-  }
+  .chip-a { top: -14px; right: 10px; }
+  .chip-b { bottom: -16px; left: 6px; }
 
   /* ---------- section shell ---------- */
   section.band { max-width: 1280px; margin: 0 auto; padding: 96px 40px; }
   .eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
   h2.big {
-    font-size: clamp(34px, 4.6vw, 62px); font-weight: 800; letter-spacing: -0.035em;
+    font-size: clamp(32px, 4.4vw, 58px); font-weight: 500; letter-spacing: -0.03em;
     line-height: 1.0; margin-top: 14px;
   }
   .lede { margin-top: 18px; font-size: 17px; line-height: 1.55; color: var(--muted); max-width: 620px; }
 
   /* ---------- scattered proof ---------- */
   .scatter { position: relative; text-align: center; padding: 120px 40px; overflow: hidden; }
-  .scatter h2 { font-size: clamp(34px, 5vw, 66px); font-weight: 800; letter-spacing: -0.035em; line-height: 1.02; max-width: 900px; margin: 0 auto; }
+  .scatter h2 { font-size: clamp(32px, 4.6vw, 60px); font-weight: 500; letter-spacing: -0.035em; line-height: 1.02; max-width: 900px; margin: 0 auto; }
   .scatter p { margin: 22px auto 0; font-size: 17px; color: var(--muted); max-width: 520px; }
   .scatter .cta { margin-top: 30px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
   .sc-img {
@@ -176,7 +161,7 @@
   .prow .m small { display: block; font-weight: 400; font-size: 12.5px; color: var(--muted); margin-top: 2px; }
   .prow .was { color: var(--muted); text-decoration: line-through; }
   .prow .now { font-weight: 700; }
-  .prow .off { justify-self: start; background: var(--accent); color: #fff; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 3px 10px; }
+  .prow .off { justify-self: start; background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 600; border-radius: 999px; padding: 3px 10px; }
   .pfoot { margin-top: 14px; font-size: 13px; color: var(--muted); }
 
   /* ---------- feature cards ---------- */
@@ -188,19 +173,16 @@
 
   /* ---------- feed strip ---------- */
   .strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-top: 36px; }
-  .strip img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; display: block; background: #e9e7dd; }
+  .strip img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 12px; display: block; background: #e9e7dd; }
   @media (max-width: 900px) { .strip { grid-template-columns: repeat(3, 1fr); } .strip img:nth-child(n+7) { display: none; } }
 
   /* ---------- closing ---------- */
   .closer { max-width: 1280px; margin: 0 auto 96px; padding: 0 40px; }
   .closer .inner {
     border-radius: 24px; padding: 72px 48px; text-align: center; color: #fff;
-    background:
-      radial-gradient(100% 120% at 20% 0%, #ff8a3d 0%, transparent 60%),
-      radial-gradient(90% 120% at 90% 100%, #b23bff 0%, transparent 60%),
-      linear-gradient(140deg, #ff4d00, #7a1fd6);
+    background: linear-gradient(150deg, #23231f, #14140f 70%);
   }
-  .closer h2 { font-size: clamp(32px, 4.4vw, 56px); font-weight: 800; letter-spacing: -0.035em; line-height: 1.02; }
+  .closer h2 { font-size: clamp(30px, 4.2vw, 52px); font-weight: 500; letter-spacing: -0.035em; line-height: 1.02; }
   .closer p { margin-top: 18px; font-size: 17px; opacity: .9; }
   .closer .btn { margin-top: 28px; background: #fff; color: var(--ink); border-color: #fff; }
   .closer .btn:hover { background: #f3f1ea; }
@@ -290,23 +272,6 @@
     <div class="float-chip chip-b">Veo 3.1 <span class="off">−50%</span></div>
   </div>
 </section>
-
-<div class="marquee">
-  <div class="inner">
-    <span class="lbl">Models in the canvas today:</span>
-    <span class="mchip">Nano Banana 2</span>
-    <span class="mchip">Nano Banana Pro 4K</span>
-    <span class="mchip">GPT Image 2</span>
-    <span class="mchip">Seedream 5.0 Pro</span>
-    <span class="mchip">Flux 2 Max</span>
-    <span class="mchip">Krea 2 Large</span>
-    <span class="mchip">Recraft v4</span>
-    <span class="mchip">Veo 3.1</span>
-    <span class="mchip">Kling 3.0 Pro</span>
-    <span class="mchip">Seedance 2.5</span>
-    <span class="mchip">Gemini Omni</span>
-  </div>
-</div>
 
 <section class="band" id="pricing">
   <div class="eyebrow">Pricing</div>
