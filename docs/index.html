@@ -68,12 +68,10 @@
     position: relative; overflow: hidden;
     min-height: min(88vh, 820px);
     background-color: #2b2a24;
-    /* the artwork sits on top; the gradient below stands in until it is dropped at
-       docs/assets/hero.jpg, so a missing file still renders a designed panel */
+    /* starred photos fill the panel; the gradient is only the pre-load surface */
     background-image:
-      url("/assets/hero.jpg"),
       radial-gradient(90% 70% at 50% 12%, #f0d9c6 0%, #e2b892 42%, #b8764a 72%, #6d4630 100%);
-    background-size: cover, cover; background-position: center, center;
+    background-size: cover; background-position: center;
   }
   .hero-video {
     position: absolute; inset: 0; width: 100%; height: 100%;
@@ -317,12 +315,7 @@
     </nav>
     <a class="btn sm" href="/canvas/">Open canvas</a>
   </header>
-  <div class="hero-art" role="img" aria-label="Claymation scene of a photo studio built from soft shapes">
-    <!-- video paused while we test the still artwork; restore by uncommenting
-    <video class="hero-video" autoplay muted loop playsinline poster="/assets/hero.jpg" aria-hidden="true">
-      <source src="/assets/hero.mp4" type="video/mp4" />
-    </video>
-    -->
+  <div class="hero-art" role="img" aria-label="Selected works from the freym feed">
     <div class="hero-strip" id="heroStrip" aria-hidden="true"></div>
   </div>
   <div class="hero-copy">
