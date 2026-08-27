@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getSession, signInWithPassphrase } from "./lib/auth";
+import { getSession, onAuthChange, signInWithGoogle, signInWithPassphrase } from "./lib/auth";
 import ProjectsScreen from "./ProjectsScreen";
 import CanvasScreen from "./canvas/CanvasScreen";
 
@@ -18,9 +18,17 @@ export default function App() {
 
   useEffect(() => {
     getSession().then((s) => setStage(s ? "ready" : "gate"));
+    // Covers the return leg of the Google OAuth redirect, where the session
+    // lands after the initial getSession() check.
+    const offAuth = onAuthChange((signedIn) => {
+      if (signedIn) setStage("ready");
+    });
     const onPop = () => setProjectId(readProjectFromUrl());
     window.addEventListener("popstate", onPop);
-    return () => window.removeEventListener("popstate", onPop);
+    return () => {
+      offAuth();
+      window.removeEventListener("popstate", onPop);
+    };
   }, []);
 
   const open = (id: string | null) => {
@@ -47,12 +55,24 @@ export default function App() {
           }}
         >
           <h1>freym canvas</h1>
+          <button
+            type="button"
+            className="fc-primary fc-google"
+            disabled={busy}
+            onClick={async () => {
+              setErr(null);
+              const { error } = await signInWithGoogle();
+              if (error) setErr(error);
+            }}
+          >
+            Continue with Google
+          </button>
+          <div className="fc-gate-sep">or use an access key</div>
           <input
             type="password"
             placeholder="access key"
             value={pass}
             onChange={(e) => setPass(e.target.value)}
-            autoFocus
           />
           <button className="fc-primary" disabled={busy}>
             {busy ? "…" : "Enter"}

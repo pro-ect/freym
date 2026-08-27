@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { listProjects, createProject, deleteProject } from "./lib/projects";
+import { signOut } from "./lib/auth";
 import type { ProjectRow } from "./types";
 
 export default function ProjectsScreen({ onOpen }: { onOpen: (id: string) => void }) {
@@ -19,6 +20,15 @@ export default function ProjectsScreen({ onOpen }: { onOpen: (id: string) => voi
     <div className="fc-projects">
       <header className="fc-projects-head">
         <h1>freym canvas</h1>
+        <button
+          className="fc-signout"
+          onClick={async () => {
+            await signOut();
+            window.location.assign(window.location.pathname);
+          }}
+        >
+          sign out
+        </button>
         <button className="fc-primary" onClick={create}>
           + New project
         </button>

@@ -34,3 +34,22 @@ export async function getSession() {
   const { data } = await supabase.auth.getSession();
   return data.session;
 }
+
+/** Google OAuth via Supabase — redirects away and comes back to /canvas/. */
+export async function signInWithGoogle(): Promise<{ error?: string }> {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: `${window.location.origin}/canvas/` },
+  });
+  return error ? { error: error.message } : {};
+}
+
+export async function signOut(): Promise<void> {
+  await supabase.auth.signOut();
+}
+
+/** Fires on OAuth returns and token refreshes; returns the unsubscribe fn. */
+export function onAuthChange(cb: (signedIn: boolean) => void): () => void {
+  const { data } = supabase.auth.onAuthStateChange((_event, session) => cb(!!session));
+  return () => data.subscription.unsubscribe();
+}

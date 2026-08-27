@@ -207,7 +207,7 @@ input, textarea, select { font: inherit; }
 /* ---------- projects screen ---------- */
 .fc-projects { max-width: 1060px; margin: 0 auto; padding: 40px 24px; }
 .fc-projects-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
-.fc-projects-head h1 { font-size: 20px; font-weight: 600; margin: 0; }
+.fc-projects-head h1 { font-size: 20px; font-weight: 600; margin: 0; margin-right: auto; }
 .fc-primary {
   background: #f4f4f5; color: #101013; border: none;
   padding: 9px 16px; border-radius: 9px; font-weight: 500;
@@ -243,3 +243,11 @@ input, textarea, select { font: inherit; }
   border-radius: 9px; padding: 10px 12px; text-align: center;
 }
 .fc-gate input:focus { outline: none; border-color: #55555e; }
+.fc-google { background: #fff; color: #17171b; border-color: #fff; }
+.fc-google:hover { background: #ececec; }
+.fc-gate-sep { font-size: 12px; color: #6b6b74; margin-top: 6px; }
+.fc-signout {
+  background: none; border: none; cursor: pointer; color: #6b6b74;
+  font-size: 13px; padding: 6px 8px; font-family: inherit;
+}
+.fc-signout:hover { color: #e5e5e5; }
