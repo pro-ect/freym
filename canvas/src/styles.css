@@ -268,8 +268,27 @@ input, textarea, select { font: inherit; }
   font-size: 13px; padding: 6px 8px; font-family: inherit;
 }
 .fc-signout:hover { color: #e5e5e5; }
-.fc-projects-head .fc-signout { border: 1px solid #2e2e35; }
+.fc-projects-head .fc-signout { border: 1px solid #2e2e35; max-width: 240px; }
 .fc-projects-head .fc-signout:hover { border-color: #55555e; color: #e5e5e5; }
+.fc-account { position: relative; }
+.fc-account-menu {
+  position: absolute; right: 0; top: 100%; z-index: 20; min-width: 220px;
+  background: #17171b; border: 1px solid #2e2e35; border-radius: 12px;
+  padding: 8px; display: none; flex-direction: column; gap: 6px;
+}
+/* opens on hover or on click (.open) */
+.fc-account:hover .fc-account-menu,
+.fc-account-menu.open { display: flex; }
+.fc-account-email {
+  font-size: 12.5px; color: #9a9aa4; padding: 6px 8px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.fc-account-out {
+  background: none; border: 1px solid #2e2e35; border-radius: 9px;
+  color: #e5e5e5; font-family: inherit; font-size: 13px;
+  padding: 8px 10px; cursor: pointer; text-align: left;
+}
+.fc-account-out:hover { border-color: #55555e; }
 
 /* ---------- balance + buy coins ---------- */
 .fc-balance {

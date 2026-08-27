@@ -1,8 +1,15 @@
 import { useEffect, useState } from "react";
 import { listProjects, createProject, deleteProject } from "./lib/projects";
-import { signOut } from "./lib/auth";
+import { getSession, signOut } from "./lib/auth";
 import BalancePill from "./BalancePill";
 import type { ProjectRow } from "./types";
+
+/** Guest accounts sign in through the access-key door; their synthetic
+ *  deviceId@guest.local address means nothing to the user. */
+function accountLabel(email: string | null | undefined): string {
+  if (!email) return "account";
+  return email.endsWith("@guest.local") ? "access-key account" : email;
+}
 
 const isVideoUrl = (u: string) => /\.(mp4|webm|mov)(\?|$)/i.test(u);
 
@@ -24,10 +31,16 @@ function previewOf(nodes: unknown[]): string | null {
 
 export default function ProjectsScreen({ onOpen }: { onOpen: (id: string) => void }) {
   const [projects, setProjects] = useState<ProjectRow[] | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const refresh = () => listProjects().then(setProjects);
   useEffect(() => {
     void refresh();
+    getSession().then((s) => setEmail(s?.user.email ?? null));
+    const close = () => setMenuOpen(false);
+    window.addEventListener("click", close);
+    return () => window.removeEventListener("click", close);
   }, []);
 
   const create = async () => {
@@ -40,15 +53,30 @@ export default function ProjectsScreen({ onOpen }: { onOpen: (id: string) => voi
       <header className="fc-projects-head">
         <h1>freym canvas</h1>
         <BalancePill />
-        <button
-          className="fc-signout"
-          onClick={async () => {
-            await signOut();
-            window.location.assign(window.location.pathname);
-          }}
-        >
-          Sign out
-        </button>
+        <div className="fc-account">
+          <button
+            className="fc-signout"
+            title={email ?? undefined}
+            onClick={(e) => {
+              e.stopPropagation();
+              setMenuOpen((v) => !v);
+            }}
+          >
+            {accountLabel(email)}
+          </button>
+          <div className={`fc-account-menu${menuOpen ? " open" : ""}`} onClick={(e) => e.stopPropagation()}>
+            <div className="fc-account-email">{email ?? "signed in"}</div>
+            <button
+              className="fc-account-out"
+              onClick={async () => {
+                await signOut();
+                window.location.assign(window.location.pathname);
+              }}
+            >
+              Sign out
+            </button>
+          </div>
+        </div>
         <button className="fc-primary" onClick={create}>
           + New project
         </button>
