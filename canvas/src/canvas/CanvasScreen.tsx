@@ -22,6 +22,7 @@ import PromptNode from "./PromptNode";
 import PromptGenNode from "./PromptGenNode";
 import ImageNode from "./ImageNode";
 import ModelNode, { runModelNode } from "./ModelNode";
+import BalancePill from "../BalancePill";
 import CurvedEdge from "./CurvedEdge";
 import ModelSidebar from "./ModelSidebar";
 import PropertiesPanel from "./PropertiesPanel";
@@ -493,6 +494,7 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
         <span className={`fc-save-state ${saveState}`}>
           {saveState === "saved" ? "saved" : saveState === "saving" ? "saving…" : "…"}
         </span>
+        <BalancePill />
       </header>
 
       <ModelSidebar onAdd={(m) => addModel(m)} />

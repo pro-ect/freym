@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { listProjects, createProject, deleteProject } from "./lib/projects";
 import { signOut } from "./lib/auth";
+import BalancePill from "./BalancePill";
 import type { ProjectRow } from "./types";
 
 export default function ProjectsScreen({ onOpen }: { onOpen: (id: string) => void }) {
@@ -20,6 +21,7 @@ export default function ProjectsScreen({ onOpen }: { onOpen: (id: string) => voi
     <div className="fc-projects">
       <header className="fc-projects-head">
         <h1>freym canvas</h1>
+        <BalancePill />
         <button
           className="fc-signout"
           onClick={async () => {

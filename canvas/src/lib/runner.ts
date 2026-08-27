@@ -23,9 +23,11 @@ function settle(row: QueueRow) {
     ) as string[];
     jobToNode.delete(row.id);
     patchNodeData(nodeId, { status: "done", images, errorMessage: undefined });
+    window.dispatchEvent(new CustomEvent("fc-balance-refresh"));
   } else if (row.status === "failed") {
     jobToNode.delete(row.id);
     patchNodeData(nodeId, { status: "error", errorMessage: row.error_message ?? "generation failed" });
+    window.dispatchEvent(new CustomEvent("fc-balance-refresh"));
   }
   if (jobToNode.size === 0 && pollTimer) {
     clearInterval(pollTimer);
@@ -127,6 +129,10 @@ export async function startRun(opts: {
   const json = await res.json().catch(() => ({}));
   if (!res.ok || json.success === false) {
     const code = json?.error?.code ?? res.status;
+    if (code === "COINS_INSUFFICIENT_BALANCE" || res.status === 402) {
+      window.dispatchEvent(new CustomEvent("fc-buy-coins"));
+      throw new Error("Not enough coins — top up to run this model.");
+    }
     const msg = json?.error?.message ?? "request failed";
     throw new Error(`${code}: ${msg}`);
   }
