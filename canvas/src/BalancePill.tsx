@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { fetchBalance, startCoinCheckout, type CoinPack } from "./lib/balance";
 
 const PACKS: { pack: CoinPack; label: string }[] = [
-  { pack: "1000", label: "1,000 coins" },
-  { pack: "3000", label: "3,000 coins" },
-  { pack: "5000", label: "5,000 coins" },
+  { pack: "freym-2500", label: "2,500 coins — $5" },
+  { pack: "freym-7500", label: "7,500 coins — $15" },
+  { pack: "freym-15000", label: "15,000 coins — $30" },
 ];
 
 /**

@@ -10,7 +10,7 @@ export async function fetchBalance(): Promise<number | null> {
   return (data.coin_balance ?? 0) + (data.subscription_coins ?? 0);
 }
 
-export type CoinPack = "1000" | "3000" | "5000";
+export type CoinPack = "freym-2500" | "freym-7500" | "freym-15000";
 
 /**
  * One-time coin pack via the shared stripe-checkout-session function.
