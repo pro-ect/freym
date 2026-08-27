@@ -16,11 +16,16 @@ const cors = {
 
 // Rewrite image URLs to the mirrored copies — IG CDN blocks cross-origin
 // rendering and its URLs expire.
-function useMirrors(posts: { sc_images?: { url: string; stored_path?: string | null }[] }[]) {
+function useMirrors(
+  posts: { sc_images?: { url: string; stored_path?: string | null; video_path?: string | null; video_url?: string }[] }[],
+) {
   for (const p of posts) {
     for (const im of p.sc_images ?? []) {
       if (im.stored_path) im.url = STORAGE_BASE + im.stored_path;
       delete im.stored_path;
+      // hero animations (scraper-animate) — absent everywhere else
+      if (im.video_path) im.video_url = STORAGE_BASE + im.video_path;
+      delete im.video_path;
     }
   }
 }
@@ -37,7 +42,7 @@ Deno.serve(async (req) => {
     const { data: heroPosts, error: hErr } = await supabase
       .from("sc_posts")
       .select(
-        "id, creator_id, url, caption, taken_at, model_name, has_prompt, prompt_text, starred_at, sc_images(url, stored_path, width, height, position)",
+        "id, creator_id, url, caption, taken_at, model_name, has_prompt, prompt_text, starred_at, sc_images(url, stored_path, width, height, position, video_path)",
       )
       .not("starred_at", "is", null)
       .order("starred_at", { ascending: false })
