@@ -110,8 +110,8 @@
      text instead of boxing the whole run. */
   .hero h1 em {
     font-style: normal; display: inline;
-    background: #fff; color: #000; mix-blend-mode: screen;
-    border-radius: .18em; padding: 0 .09em;
+    background: rgba(255,255,255,.82); color: #000; mix-blend-mode: screen;
+    border-radius: .18em; padding: 0 .06em;
     -webkit-box-decoration-break: clone; box-decoration-break: clone;
   }
   .hero .cta { margin-top: 26px; display: flex; gap: 12px; flex-wrap: wrap; }
@@ -244,10 +244,11 @@
   .fcard h3 { margin-top: 12px; font-size: 20px; font-weight: 700; }
   .fcard p { margin-top: 10px; font-size: 15px; line-height: 1.55; color: var(--muted); }
 
-  /* ---------- feed strip ---------- */
-  .strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-top: 36px; }
-  .strip img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 12px; display: block; background: #e9e7dd; }
-  @media (max-width: 900px) { .strip { grid-template-columns: repeat(3, 1fr); } .strip img:nth-child(n+7) { display: none; } }
+  /* ---------- feed grid (pinterest-style masonry) ---------- */
+  .pgrid { columns: 6 180px; column-gap: 12px; margin-top: 36px; }
+  .pgrid a { display: block; margin-bottom: 12px; break-inside: avoid; }
+  .pgrid img { width: 100%; display: block; border-radius: 12px; background: #e9e7dd; }
+  @media (max-width: 900px) { .pgrid { columns: 2; } .pgrid a:nth-child(n+13) { display: none; } }
 
   /* ---------- news ---------- */
   .news-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 36px; }
@@ -340,6 +341,63 @@
   <p class="hero-credit" id="heroCredit" hidden></p>
 </section>
 
+<section class="band" id="interface">
+  <div class="eyebrow">The interface</div>
+  <h2 class="big">This is the board.</h2>
+  <p class="lede">
+    Nodes for prompts, references, models and results. Drag a wire from one to the next
+    and the whole chain stays in front of you, ready to re-run with a different model.
+  </p>
+  <div class="shotwrap">
+  <div class="shot">
+    <div class="board">
+      <svg class="wire" viewBox="0 0 680 470" preserveAspectRatio="none">
+        <path d="M192 75  C 214 75,  214 155, 236 155" />
+        <path d="M170 292 C 200 292, 210 182, 236 182" />
+        <path d="M412 155 C 450 155, 470 70,  502 70" />
+        <path d="M324 214 C 324 236, 325 240, 325 262" />
+        <path d="M414 332 C 450 332, 470 336, 510 336" />
+      </svg>
+
+      <div class="node n1">
+        <div class="head"><span class="d"></span> Prompt</div>
+        <div class="body">a ceramic vase on wet sand, low winter sun, 35 mm
+          <span class="meta">text input</span>
+        </div>
+      </div>
+
+      <div class="node n2">
+        <div class="head"><span class="d"></span> Reference</div>
+        <div class="body"><div class="thumb"></div><span class="meta">1 image</span></div>
+      </div>
+
+      <div class="node n3 sel">
+        <div class="head"><span class="d"></span> Nano Banana 2</div>
+        <div class="body">4K · 3:4 · 10 refs
+          <span class="run"><i></i> running</span>
+          <span class="bar"><span></span></span>
+        </div>
+      </div>
+
+      <div class="node n4">
+        <div class="head"><span class="d"></span> Kling 3.0 Pro</div>
+        <div class="body">5 s · 1080p<span class="meta">image to video</span></div>
+      </div>
+
+      <div class="node n5">
+        <div class="head"><span class="d"></span> Result</div>
+        <div class="body"><div class="thumb big"></div><span class="meta">3024 × 4032</span></div>
+      </div>
+
+      <div class="node n6">
+        <div class="head"><span class="d"></span> Topaz Upscale</div>
+        <div class="body">4× · face detail<span class="meta">post-process</span></div>
+      </div>
+    </div>
+  </div>
+  </div>
+</section>
+
 <section class="band" id="pricing">
   <div class="eyebrow">Pricing</div>
   <h2 class="big">Same models.<br>Up to 50% off list price.</h2>
@@ -403,53 +461,9 @@
   <div class="eyebrow">Pay as you go</div>
   <h2 class="big">No subscription.<br>Credits you spend when you create.</h2>
   <p class="lede">
-    Top up once and generate whenever you want. There is no monthly seat, no tier to
-    outgrow, and nothing resets at the end of the month — unused credits just stay
-    on your account.
+    Top up once, generate whenever you want. Nothing monthly, nothing expires,
+    and every failed generation refunds itself.
   </p>
-
-  <div class="cards">
-    <div class="fcard">
-      <div class="num">01</div>
-      <h3>Nothing monthly</h3>
-      <p>You pay for generations, not for access. Skip a month, come back for one
-        campaign, leave again — your balance is exactly where you left it.</p>
-    </div>
-    <div class="fcard">
-      <div class="num">02</div>
-      <h3>One balance, every model</h3>
-      <p>Credits are not locked to a tool. Spend the same balance on images today,
-        video tomorrow, an upscale after that — across every model in the catalog.</p>
-    </div>
-    <div class="fcard">
-      <div class="num">03</div>
-      <h3>The price is on the node</h3>
-      <p>Every model node shows its cost before you hit Run, so a big board never
-        surprises you. Failed generations are refunded automatically.</p>
-    </div>
-  </div>
-
-  <h3 class="buys-h">What you get for $10 — one-time payment</h3>
-  <div class="buys">
-    <div class="buy">
-      <div class="n">250<span>images</span></div>
-      <div class="what"><b>Nano Banana 2</b> generations — enough to iterate a
-        whole visual direction.</div>
-    </div>
-    <div class="buy">
-      <div class="n">100<span>images</span></div>
-      <div class="what"><b>GPT Image 2</b> generations and edits.</div>
-    </div>
-    <div class="buy">
-      <div class="n">35<span>clips</span></div>
-      <div class="what"><b>Kling 3.0 Pro</b> 5-second videos.</div>
-    </div>
-    <div class="buy">
-      <div class="n">6<span>scenes</span></div>
-      <div class="what"><b>Veo 3.1</b> 8-second videos with audio.</div>
-    </div>
-  </div>
-  <p class="pfoot">Counts use the freym launch prices above, on one $10 top-up. Mix freely — it is one balance, and it never expires.</p>
 </section>
 
 <section class="scatter">
@@ -457,17 +471,18 @@
   <img class="sc-img sc-2" alt="" referrerpolicy="no-referrer" />
   <img class="sc-img sc-3" alt="" referrerpolicy="no-referrer" />
   <img class="sc-img sc-4" alt="" referrerpolicy="no-referrer" />
-  <h2>Built for people who run<br>ten versions, not one.</h2>
-  <p>Branch a prompt, send one image into three models, and compare the results side by side on the same board.</p>
+  <h2>Built with real creators.</h2>
+  <p>freym is shaped in the open — working creators use the canvas daily, we ship
+    their feedback fast, and the interface stays honest: branch a prompt, send one
+    image into three models, compare side by side.</p>
   <div class="cta">
     <a class="btn accent" href="/canvas/">Open canvas</a>
     <a class="btn ghost" href="/work/">Browse the feed</a>
   </div>
 </section>
 
-<section class="band">
+<section class="band" style="padding-top:0">
   <div class="eyebrow">How it works</div>
-  <h2 class="big">Three nodes, one board.</h2>
   <div class="cards">
     <div class="fcard">
       <div class="num">01</div>
@@ -494,13 +509,13 @@
     freym also tracks what creators post on Threads and X, with the full prompt when they
     share it. Copy a prompt, paste it into the canvas, run it on any model.
   </p>
-  <div class="strip" id="strip"></div>
+  <div class="pgrid" id="strip"></div>
   <p class="pfoot"><a href="/work/" style="text-decoration:underline;text-underline-offset:3px">Browse the full feed →</a></p>
 </section>
 
 <section class="band" id="news" style="padding-top:0">
-  <div class="eyebrow">Model news</div>
-  <h2 class="big">What shipped this week.</h2>
+  <div class="eyebrow">Gen-AI news</div>
+  <h2 class="big">What the AI labs shipped.</h2>
   <p class="lede">
     freym reads the official accounts of every gen-AI lab and keeps the releases,
     not the noise. New models land in the canvas soon after they land here.
@@ -509,62 +524,6 @@
   <p class="pfoot"><a href="/news/" style="text-decoration:underline;text-underline-offset:3px">All model news →</a></p>
 </section>
 
-<section class="band" id="interface" style="padding-top:0">
-  <div class="eyebrow">The interface</div>
-  <h2 class="big">This is the board.</h2>
-  <p class="lede">
-    Nodes for prompts, references, models and results. Drag a wire from one to the next
-    and the whole chain stays in front of you, ready to re-run with a different model.
-  </p>
-  <div class="shotwrap">
-  <div class="shot">
-    <div class="board">
-      <svg class="wire" viewBox="0 0 680 470" preserveAspectRatio="none">
-        <path d="M192 75  C 214 75,  214 155, 236 155" />
-        <path d="M170 292 C 200 292, 210 182, 236 182" />
-        <path d="M412 155 C 450 155, 470 70,  502 70" />
-        <path d="M324 214 C 324 236, 325 240, 325 262" />
-        <path d="M414 332 C 450 332, 470 336, 510 336" />
-      </svg>
-
-      <div class="node n1">
-        <div class="head"><span class="d"></span> Prompt</div>
-        <div class="body">a ceramic vase on wet sand, low winter sun, 35 mm
-          <span class="meta">text input</span>
-        </div>
-      </div>
-
-      <div class="node n2">
-        <div class="head"><span class="d"></span> Reference</div>
-        <div class="body"><div class="thumb"></div><span class="meta">1 image</span></div>
-      </div>
-
-      <div class="node n3 sel">
-        <div class="head"><span class="d"></span> Nano Banana 2</div>
-        <div class="body">4K · 3:4 · 10 refs
-          <span class="run"><i></i> running</span>
-          <span class="bar"><span></span></span>
-        </div>
-      </div>
-
-      <div class="node n4">
-        <div class="head"><span class="d"></span> Kling 3.0 Pro</div>
-        <div class="body">5 s · 1080p<span class="meta">image to video</span></div>
-      </div>
-
-      <div class="node n5">
-        <div class="head"><span class="d"></span> Result</div>
-        <div class="body"><div class="thumb big"></div><span class="meta">3024 × 4032</span></div>
-      </div>
-
-      <div class="node n6">
-        <div class="head"><span class="d"></span> Topaz Upscale</div>
-        <div class="body">4× · face detail<span class="meta">post-process</span></div>
-      </div>
-    </div>
-  </div>
-  </div>
-</section>
 
 <section class="closer">
   <div class="inner">
@@ -694,7 +653,7 @@ function renderHero(data) {
 
     const strip = document.getElementById("strip");
     strip.innerHTML = "";
-    posts.slice(4, 16).forEach((u) => {
+    posts.slice(4, 32).forEach((u) => {
       const a = document.createElement("a");
       a.href = "/work/";
       const img = document.createElement("img");
