@@ -224,18 +224,13 @@
   .prow .off { justify-self: start; background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 600; border-radius: 999px; padding: 3px 10px; }
   .pfoot { margin-top: 14px; font-size: 13px; color: var(--muted); }
 
-  /* ---------- pay as you go ---------- */
-  .buys-h { margin-top: 52px; font-size: 22px; font-weight: 600; }
-  .buys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 18px; }
-  .buy {
-    background: var(--card); border: 1px solid var(--line); border-radius: 16px;
-    padding: 24px 22px;
+  /* ---------- pay as you go — one big centered statement ---------- */
+  #payg { text-align: center; padding-top: 170px; padding-bottom: 170px; }
+  #payg .big { font-size: clamp(46px, 7.4vw, 122px); }
+  #payg .lede { margin-left: auto; margin-right: auto; }
+  @media (max-width: 980px) {
+    #payg { padding-top: 110px; padding-bottom: 110px; }
   }
-  .buy .n { font-size: clamp(30px, 3vw, 42px); font-weight: 600; }
-  .buy .n span { font-size: 15px; font-weight: 500; color: var(--muted); margin-left: 4px; }
-  .buy .what { margin-top: 8px; font-size: 14.5px; line-height: 1.45; color: var(--muted); }
-  .buy .what b { color: var(--ink); font-weight: 600; }
-  @media (max-width: 980px) { .buys { grid-template-columns: repeat(2, 1fr); } }
 
   /* ---------- feature cards ---------- */
   .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 44px; }
@@ -457,13 +452,25 @@
   </p>
 </section>
 
-<section class="band" id="payg" style="padding-top:0">
+<section class="band" id="payg">
   <div class="eyebrow">Pay as you go</div>
   <h2 class="big">No subscription.<br>Credits you spend when you create.</h2>
   <p class="lede">
     Top up once, generate whenever you want. Nothing monthly, nothing expires,
     and every failed generation refunds itself.
   </p>
+</section>
+
+
+<section class="band" style="padding-top:0">
+  <div class="eyebrow">From the feed</div>
+  <h2 class="big">The prompts behind the work.</h2>
+  <p class="lede">
+    freym also tracks what creators post on Threads and X, with the full prompt when they
+    share it. Copy a prompt, paste it into the canvas, run it on any model.
+  </p>
+  <div class="pgrid" id="strip"></div>
+  <p class="pfoot"><a href="/work/" style="text-decoration:underline;text-underline-offset:3px">Browse the full feed →</a></p>
 </section>
 
 <section class="scatter">
@@ -500,17 +507,6 @@
       <p>The output is a node too. Send it into an upscaler, an editor, or a video model, and keep the whole chain on the canvas.</p>
     </div>
   </div>
-</section>
-
-<section class="band" style="padding-top:0">
-  <div class="eyebrow">From the feed</div>
-  <h2 class="big">The prompts behind the work.</h2>
-  <p class="lede">
-    freym also tracks what creators post on Threads and X, with the full prompt when they
-    share it. Copy a prompt, paste it into the canvas, run it on any model.
-  </p>
-  <div class="pgrid" id="strip"></div>
-  <p class="pfoot"><a href="/work/" style="text-decoration:underline;text-underline-offset:3px">Browse the full feed →</a></p>
 </section>
 
 <section class="band" id="news" style="padding-top:0">
