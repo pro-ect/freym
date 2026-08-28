@@ -124,8 +124,7 @@
   .hero .btn.accent { background: #fff; border-color: #fff; color: var(--ink); }
   .hero .btn.ghost { color: #fff; border-color: rgba(255,255,255,.5); }
   .hero .btn.ghost:hover { border-color: #fff; }
-  /* the board breaks out of the band to full viewport width */
-  .shotwrap { margin-top: 48px; margin-left: calc(50% - 50vw); width: 100vw; }
+  .shotwrap { margin-top: 48px; }
 
   /* the header rides on top of the hero artwork */
   .hero header { position: absolute; top: 0; left: 0; right: 0; z-index: 3; }
@@ -140,14 +139,18 @@
   /* full-bleed animated mock canvas: the board lives in a fixed 680x470
      coordinate space and is scaled to the viewport (--bs set by JS) */
   .shot { position: relative; }
-  .board-outer { position: relative; width: 100%; aspect-ratio: 680 / 470; overflow: hidden; }
-  .board {
-    position: absolute; top: 0; left: 0; width: 680px; height: 470px;
-    transform-origin: 0 0; transform: scale(var(--bs, 1));
+  /* the dotted surface is full-bleed; the node scene is centered and scaled
+     at most 1.2x so nodes keep canvas-like proportions on wide screens */
+  .board-outer {
+    position: relative; width: 100%; height: 560px; overflow: hidden;
     background: #14140f;
     background-image: radial-gradient(rgba(255,255,255,.12) 1px, transparent 1px);
     background-size: 18px 18px;
-    overflow: hidden;
+    border-radius: 16px; box-shadow: 0 24px 60px rgba(17,17,16,.18);
+  }
+  .board {
+    position: absolute; top: 0; left: 50%; width: 680px; height: 470px;
+    transform-origin: top center; transform: translateX(-50%) scale(var(--bs, 1));
   }
   /* build-up animation: nodes pop in, wires draw, the model runs */
   .board .node { opacity: 0; transform: translateY(10px) scale(.97); transition: opacity .5s ease, transform .5s ease; }
@@ -601,7 +604,11 @@ function renderHero(data) {
   const board = document.getElementById("board");
   const outer = document.getElementById("boardOuter");
   if (!board || !outer) return;
-  const setScale = () => outer.style.setProperty("--bs", String(outer.clientWidth / 680));
+  const setScale = () => {
+    const s = Math.min(1.2, outer.clientWidth / 680);
+    outer.style.setProperty("--bs", String(s));
+    outer.style.height = Math.round(470 * s + 40) + "px";
+  };
   setScale();
   window.addEventListener("resize", setScale);
 
