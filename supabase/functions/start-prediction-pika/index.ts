@@ -37,12 +37,15 @@ function errorResponse(status: number, code: string, message: string, details?: 
 }
 
 /**
- * Billable seconds for per-second-priced models. Pika 2.5 uses duration_s;
- * Pikaframes bills transition_duration_s per keyframe transition.
+ * Billable seconds for per-second-priced models. Pika 2.5 uses duration_s,
+ * the aggregated vendor models (Veo, Wan, MiniMax, Seedance) use duration,
+ * and Pikaframes bills transition_duration_s per keyframe transition.
  */
 function billableSeconds(parameters: Record<string, unknown>): number {
-  const duration = Number(parameters.duration_s);
-  if (Number.isFinite(duration) && duration > 0) return duration;
+  for (const key of ["duration_s", "duration"]) {
+    const v = Number(parameters[key]);
+    if (Number.isFinite(v) && v > 0) return v;
+  }
   const transition = Number(parameters.transition_duration_s);
   const images = parameters.images;
   if (Number.isFinite(transition) && transition > 0 && Array.isArray(images) && images.length >= 2) {
