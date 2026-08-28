@@ -124,16 +124,8 @@
   .hero .btn.accent { background: #fff; border-color: #fff; color: var(--ink); }
   .hero .btn.ghost { color: #fff; border-color: rgba(255,255,255,.5); }
   .hero .btn.ghost:hover { border-color: #fff; }
-  .badge {
-    display: inline-flex; align-items: center; gap: 9px; margin-bottom: 18px;
-    background: rgba(10,10,8,.38); color: #fff;
-    border-radius: 999px; padding: 8px 16px; font-size: 13.5px; font-weight: 600;
-    letter-spacing: .01em; backdrop-filter: blur(8px);
-  }
-  .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
-  .badge .deal { transition: opacity .35s ease; }
-  .badge .deal.out { opacity: 0; }
-  .shotwrap { margin-top: 36px; }
+  /* the board breaks out of the band to full viewport width */
+  .shotwrap { margin-top: 48px; margin-left: calc(50% - 50vw); width: 100vw; }
 
   /* the header rides on top of the hero artwork */
   .hero header { position: absolute; top: 0; left: 0; right: 0; z-index: 3; }
@@ -145,15 +137,27 @@
   .hero header .btn { background: #fff; border-color: #fff; color: var(--ink); }
   .hero header .btn:hover { background: #f1efe8; }
 
-  /* gradient frame with a mock canvas inside (like a product shot) */
+  /* full-bleed animated mock canvas: the board lives in a fixed 680x470
+     coordinate space and is scaled to the viewport (--bs set by JS) */
   .shot { position: relative; }
+  .board-outer { position: relative; width: 100%; aspect-ratio: 680 / 470; overflow: hidden; }
   .board {
-    position: relative; border-radius: 14px; background: #14140f;
+    position: absolute; top: 0; left: 0; width: 680px; height: 470px;
+    transform-origin: 0 0; transform: scale(var(--bs, 1));
+    background: #14140f;
     background-image: radial-gradient(rgba(255,255,255,.12) 1px, transparent 1px);
     background-size: 18px 18px;
-    min-height: 470px; width: 100%; max-width: 680px; margin: 0 auto; overflow: hidden;
-    box-shadow: 0 24px 60px rgba(17,17,16,.18);
+    overflow: hidden;
   }
+  /* build-up animation: nodes pop in, wires draw, the model runs */
+  .board .node { opacity: 0; transform: translateY(10px) scale(.97); transition: opacity .5s ease, transform .5s ease; }
+  .board .node.on { opacity: 1; transform: none; }
+  .wire path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .7s ease; }
+  .wire path.on { stroke-dashoffset: 0; }
+  .node .run { opacity: 0; transition: opacity .3s ease; }
+  .node .bar span { width: 0; transition: width 1.6s ease; }
+  .node.running .run { opacity: 1; }
+  .node.running .bar span { width: 100%; }
   .node {
     position: absolute; background: #1e1e19; border: 1px solid #33322b;
     border-radius: 10px; color: #f2f1eb; font-size: 11px; width: 154px;
@@ -179,7 +183,7 @@
   .node .run { display: flex; align-items: center; gap: 5px; margin-top: 8px; font-size: 10px; color: #d7d5cc; }
   .node .run i { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); font-style: normal; }
   .node .bar { display: block; margin-top: 6px; height: 3px; border-radius: 3px; background: #33322b; overflow: hidden; }
-  .node .bar span { display: block; width: 62%; height: 100%; background: #8d8778; }
+  .node .bar span { display: block; height: 100%; background: #8d8778; }
   .wire { position: absolute; inset: 0; pointer-events: none; }
   .wire path { fill: none; stroke: #6f6a5c; stroke-width: 2; opacity: .9; }
 
@@ -301,11 +305,6 @@
     .closer { padding: 0 24px; }
     .closer .inner { padding: 52px 26px; }
     header { padding: 18px 20px; }
-    .n4, .n6, .wire { display: none; }
-    .n1, .n2 { left: 12px; }
-    .n3 { left: 150px; width: 176px; }
-    .n5 { left: 150px; width: 178px; }
-    .node { font-size: 10.5px; }
   }
 </style>
 </head>
@@ -329,7 +328,6 @@
   </div>
   <div class="hero-copy">
     <div class="hero-left">
-      <div class="badge"><span class="dot"></span> <span class="deal" id="heroDeal">Seedance 2.5 is 50% off</span></div>
       <h1>The latest AI models.<br class="db"> <em>Up to half the price.</em></h1>
     </div>
   </div>
@@ -345,13 +343,14 @@
   </p>
   <div class="shotwrap">
   <div class="shot">
-    <div class="board">
+    <div class="board-outer" id="boardOuter">
+    <div class="board" id="board">
       <svg class="wire" viewBox="0 0 680 470" preserveAspectRatio="none">
-        <path d="M192 75  C 214 75,  214 155, 236 155" />
-        <path d="M170 292 C 200 292, 210 182, 236 182" />
-        <path d="M412 155 C 450 155, 470 70,  502 70" />
-        <path d="M324 214 C 324 236, 325 240, 325 262" />
-        <path d="M414 332 C 450 332, 470 336, 510 336" />
+        <path class="w1" pathLength="1" d="M192 75  C 214 75,  214 155, 236 155" />
+        <path class="w2" pathLength="1" d="M170 292 C 200 292, 210 182, 236 182" />
+        <path class="w3" pathLength="1" d="M412 155 C 450 155, 470 70,  502 70" />
+        <path class="w4" pathLength="1" d="M324 214 C 324 236, 325 240, 325 262" />
+        <path class="w5" pathLength="1" d="M414 332 C 450 332, 470 336, 510 336" />
       </svg>
 
       <div class="node n1">
@@ -368,14 +367,14 @@
 
       <div class="node n3 sel">
         <div class="head"><span class="d"></span> Nano Banana 2</div>
-        <div class="body">4K · 3:4 · 10 refs
+        <div class="body">1K · 3:4 · 10 refs
           <span class="run"><i></i> running</span>
           <span class="bar"><span></span></span>
         </div>
       </div>
 
       <div class="node n4">
-        <div class="head"><span class="d"></span> Kling 3.0 Pro</div>
+        <div class="head"><span class="d"></span> Seedance 2.5</div>
         <div class="body">5 s · 1080p<span class="meta">image to video</span></div>
       </div>
 
@@ -385,9 +384,10 @@
       </div>
 
       <div class="node n6">
-        <div class="head"><span class="d"></span> Topaz Upscale</div>
-        <div class="body">4× · face detail<span class="meta">post-process</span></div>
+        <div class="head"><span class="d"></span> Nano Banana Pro 2K</div>
+        <div class="body">2K · edit<span class="meta">image to image</span></div>
       </div>
+    </div>
     </div>
   </div>
   </div>
@@ -595,20 +595,35 @@ function renderHero(data) {
   } catch (e) { /* keep whatever is showing */ }
 })();
 
-// Rotating deal badge. Discounts vs the models' list prices; freym resells at
-// Pika API rates plus payment fees and a 10-15% margin.
+// The board mock plays the real flow on a loop: nodes appear, wires connect,
+// the model runs, the result lands and chains onward.
 (() => {
-  const DEALS = ["Seedance 2.5 is 50% off", "GPT Image 2 is 30% off", "Nano Banana 2 is 20% off"];
-  const el = document.getElementById("heroDeal");
-  let i = 0;
-  setInterval(() => {
-    el.classList.add("out");
-    setTimeout(() => {
-      i = (i + 1) % DEALS.length;
-      el.textContent = DEALS[i];
-      el.classList.remove("out");
-    }, 350);
-  }, 3500);
+  const board = document.getElementById("board");
+  const outer = document.getElementById("boardOuter");
+  if (!board || !outer) return;
+  const setScale = () => outer.style.setProperty("--bs", String(outer.clientWidth / 680));
+  setScale();
+  window.addEventListener("resize", setScale);
+
+  const STEPS = [
+    [".n1", "on", 300], [".n2", "on", 900],
+    [".w1", "on", 1400], [".w2", "on", 1500],
+    [".n3", "on", 2000], [".n3", "running", 2600],
+    [".w4", "on", 4300], [".n5", "on", 4500],
+    [".w3", "on", 5300], [".n4", "on", 5500],
+    [".w5", "on", 6100], [".n6", "on", 6300],
+  ];
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    STEPS.forEach(([sel, cls]) => board.querySelector(sel)?.classList.add(cls));
+    return;
+  }
+  const cycle = () => {
+    board.querySelectorAll(".on, .running").forEach((el) => el.classList.remove("on", "running"));
+    STEPS.forEach(([sel, cls, at]) =>
+      setTimeout(() => board.querySelector(sel)?.classList.add(cls), at + 400));
+  };
+  cycle();
+  setInterval(cycle, 9600);
 })();
 
 // The feed powers two decorations: the scattered thumbnails and the strip above the
@@ -617,8 +632,11 @@ function renderHero(data) {
   try {
     const res = await fetch(FEED_URL, { headers: { Authorization: "Bearer " + ANON_KEY } });
     const data = await res.json();
+    // Some creators are for the /work feed only, not the homepage showcase.
+    const HIDE_HANDLES = new Set(["lina_gengpt"]);
+    const hiddenIds = new Set((data.creators ?? []).filter((c) => HIDE_HANDLES.has(c.handle)).map((c) => c.id));
     const posts = (data.posts ?? [])
-      .filter((p) => (p.sc_images ?? []).length)
+      .filter((p) => (p.sc_images ?? []).length && !hiddenIds.has(p.creator_id))
       .map((p) => p.sc_images.slice().sort((a, b) => a.position - b.position)[0].url);
     if (!posts.length) return;
 
@@ -674,7 +692,7 @@ const ago = (iso) => {
         seen.add(key);
         return true;
       })
-      .slice(0, 4);
+      .slice(0, 8);
     if (!items.length) { grid.innerHTML = '<div class="news-empty">No model news in the last 30 days.</div>'; return; }
     grid.innerHTML = items.map((it) => {
       const src = byId[it.source_id] ?? {};
