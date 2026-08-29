@@ -227,6 +227,7 @@
   .node .bar { display: block; margin-top: 6px; height: 3px; border-radius: 3px; background: #33322b; overflow: hidden; }
   .node .bar span { display: block; height: 100%; background: #8d8778; }
   .wire { position: absolute; inset: 0; pointer-events: none; }
+  .wire-m { display: none; } /* mobile board wires — shown under 720px */
   .wire path { fill: none; stroke: #6f6a5c; stroke-width: 2; opacity: .9; }
 
   /* ---------- section shell ---------- */
@@ -343,20 +344,17 @@
         rgba(20,20,15,.78) 0%, rgba(20,20,15,.34) 62%, rgba(20,20,15,0) 100%);
     }
     .hero-latest { column-gap: 18px; font-size: 14px; }
-    /* the board mock reflows vertically: nodes stack in run order,
-       wires are replaced by short connector stubs */
-    .board-outer { height: auto; }
-    .board {
-      position: static; width: auto; height: auto; transform: none;
-      display: flex; flex-direction: column; gap: 26px; padding: 22px 18px;
-    }
-    .board .wire { display: none; }
-    .board .node { position: relative; width: auto; top: auto; left: auto; right: auto; bottom: auto; }
-    .board .node:not(:last-child)::after {
-      content: ""; position: absolute; left: 50%; bottom: -22px;
-      width: 2px; height: 18px; background: #6f6a5c; border-radius: 2px;
-    }
-    .node .res img, .node .res video { max-height: 240px; }
+    /* the board mock keeps its canvas feel on mobile: a portrait 360×760
+       coordinate space with its own scattered layout and wires */
+    .board { width: 360px; height: 760px; }
+    .wire-d { display: none; }
+    .wire-m { display: block; }
+    .n1 { top: 14px;  left: 10px;  width: 190px; }
+    .n2 { top: 84px;  left: 214px; width: 136px; }
+    .n3 { top: 200px; left: 22px;  width: 180px; }
+    .n7 { top: 330px; left: 216px; width: 134px; }
+    .n4 { top: 480px; left: 80px;  width: 200px; right: auto; }
+    .n6 { display: none; }
     .hero h1 { font-size: clamp(40px, 11vw, 60px); }
     .hero h1 br.db { display: none; } /* mobile: chip flows inline */
     .hero-credit { right: 16px; bottom: 12px; }
@@ -417,7 +415,13 @@
   <div class="shot">
     <div class="board-outer" id="boardOuter">
     <div class="board" id="board">
-      <svg class="wire" viewBox="0 0 680 470" preserveAspectRatio="none">
+      <svg class="wire wire-m" viewBox="0 0 360 760" preserveAspectRatio="none">
+        <path class="w1" pathLength="1" d="M105 138 C 105 168, 70 172, 66 200" />
+        <path class="w2" pathLength="1" d="M282 268 C 282 300, 228 288, 202 280" />
+        <path class="w3" pathLength="1" d="M112 444 C 112 466, 180 456, 180 480" />
+        <path class="w6" pathLength="1" d="M283 424 C 283 448, 280 460, 280 486" />
+      </svg>
+      <svg class="wire wire-d" viewBox="0 0 680 470" preserveAspectRatio="none">
         <path class="w1" pathLength="1" d="M192 75  C 214 75,  196 180, 218 180" />
         <path class="w2" pathLength="1" d="M170 292 C 196 292, 196 207, 218 207" />
         <path class="w3" pathLength="1" d="M394 180 C 428 180, 432 112, 460 112" />
@@ -815,15 +819,13 @@ function drawHeroWires() {
   const outer = document.getElementById("boardOuter");
   if (!board || !outer) return;
   const setScale = () => {
-    // Mobile: the board reflows into a vertical stack (CSS) — no fixed scale.
-    if (window.innerWidth <= 720) {
-      outer.style.height = "";
-      outer.style.removeProperty("--bs");
-      return;
-    }
-    const s = Math.min(1.2, outer.clientWidth / 680);
+    // Same scaled-stage approach on both: desktop 680×470, mobile 360×760.
+    const mobile = window.innerWidth <= 720;
+    const W = mobile ? 360 : 680;
+    const H = mobile ? 760 : 470;
+    const s = Math.min(mobile ? 1.1 : 1.2, outer.clientWidth / W);
     outer.style.setProperty("--bs", String(s));
-    outer.style.height = Math.round(470 * s + 40) + "px";
+    outer.style.height = Math.round(H * s + 40) + "px";
   };
   setScale();
   window.addEventListener("resize", setScale);
@@ -840,13 +842,14 @@ function drawHeroWires() {
   ];
   // Reveal + (re)start a node's video — hidden videos don't reliably autoplay.
   const applyStep = (sel, cls) => {
-    const el = board.querySelector(sel);
-    if (!el) return;
-    el.classList.add(cls);
-    if (cls === "done") {
-      const v = el.querySelector("video");
-      if (v) { v.currentTime = 0; v.play().catch(() => {}); }
-    }
+    // querySelectorAll: wires exist twice (desktop + mobile svg), same classes.
+    board.querySelectorAll(sel).forEach((el) => {
+      el.classList.add(cls);
+      if (cls === "done") {
+        const v = el.querySelector("video");
+        if (v) { v.currentTime = 0; v.play().catch(() => {}); }
+      }
+    });
   };
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     STEPS.forEach(([sel, cls]) => applyStep(sel, cls));
