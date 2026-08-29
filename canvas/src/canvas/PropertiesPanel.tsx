@@ -65,6 +65,16 @@ export default function PropertiesPanel({
         const field = schema[key];
         const value = valueOf(key);
 
+        if (field.type === "note") {
+          // Read-only fact (e.g. a vendor-fixed duration); never sent to the provider.
+          return (
+            <div key={key} className="fc-field">
+              <span>{labelFor(key, field)}</span>
+              <em className="fc-field-desc">{field.description}</em>
+            </div>
+          );
+        }
+
         if (field.type === "boolean") {
           return (
             <label key={key} className="fc-field fc-field-row">

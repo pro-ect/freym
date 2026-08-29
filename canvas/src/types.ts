@@ -1,6 +1,7 @@
 /** One control from a model's `param_schema` (same shape the mobile app renders). */
 export type ParamField = {
-  type: "select" | "boolean" | "number" | "slider" | "text";
+  /** "note" renders as read-only text (e.g. a fixed duration) and is never sent. */
+  type: "select" | "boolean" | "number" | "slider" | "text" | "note";
   label?: string;
   description?: string;
   default?: unknown;
