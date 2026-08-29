@@ -3,18 +3,19 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>freym canvas — every popular AI model, 20% below list price</title>
-<meta name="description" content="freym canvas is a node canvas for AI image and video models. Wire a prompt into any model, chain the result into the next one, and pay 20% less than provider list price." />
+<title>freym canvas — every popular AI model, up to 50% below list price</title>
+<meta name="description" content="freym canvas is a node canvas for AI image and video models. Wire a prompt into any model, chain the result into the next one, and pay 20–50% less than provider list price." />
 <link rel="canonical" href="https://freym.app/" />
-<meta property="og:title" content="freym canvas — every popular AI model, 20% below list price" />
-<meta property="og:description" content="A node canvas for AI image and video models. Nano Banana, GPT Image, Seedream, Veo, Kling — one canvas, 20% below list price." />
+<meta property="og:title" content="freym canvas — every popular AI model, up to 50% below list price" />
+<meta property="og:description" content="A node canvas for AI image and video models. Nano Banana, GPT Image 2, Seedream, Veo 3.1, Seedance 2.5, Google Omni 1.1 — one canvas, 20–50% below list price." />
 <meta property="og:url" content="https://freym.app/" />
 <meta property="og:type" content="website" />
-<meta property="og:image" content="https://freym.app/assets/hero.jpg" />
+<meta property="og:image" content="https://freym.app/assets/og.png" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:image" content="https://freym.app/assets/hero.jpg" />
+<meta name="twitter:image" content="https://freym.app/assets/og.png" />
 <meta property="og:site_name" content="freym" />
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"freym","url":"https://freym.app/","description":"freym canvas is a node canvas for generative-AI image and video models, with a live model-news feed and a gallery of AI works with the prompts behind them."},{"@type":"Organization","name":"freym","url":"https://freym.app/"},{"@type":"SoftwareApplication","name":"freym canvas","applicationCategory":"DesignApplication","operatingSystem":"Web","url":"https://freym.app/canvas/","description":"Node canvas for AI image and video models: wire prompts into models, chain outputs, pay per generation."}]}</script>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -45,8 +46,9 @@
     display: flex; align-items: center; justify-content: space-between;
     padding: 22px 40px; gap: 16px;
   }
-  .wordmark { font-weight: 700; font-size: 19px; }
-  .wordmark span { color: var(--accent); }
+  .wordmark { font-weight: 700; font-size: 19px; display: inline-flex; align-items: baseline; }
+  /* the corner mark — a node wire turning the corner — replaces the dot */
+  .wordmark svg { width: .44em; height: .44em; margin-left: .12em; transform: translateY(.22em); }
   nav.top { display: flex; gap: 4px; flex-wrap: wrap; }
   nav.top a { font-size: 14px; color: var(--muted); padding: 6px 13px; border-radius: 999px; transition: color .15s ease; }
   nav.top a:hover { color: var(--ink); }
@@ -343,7 +345,7 @@
 
 <section class="hero">
   <header>
-    <a class="wordmark" href="/">freym<span>.</span></a>
+    <a class="wordmark" href="/">freym<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3v8a8 8 0 0 0 8 8h8" fill="none" stroke="#ff4d00" stroke-width="4.5" stroke-linecap="round"/></svg></a>
     <nav class="top">
       <a href="/" class="active">canvas</a>
       <a href="/work/">work</a>
