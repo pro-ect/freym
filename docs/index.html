@@ -260,7 +260,7 @@
   #payg .big { font-size: clamp(46px, 7.4vw, 122px); }
   #payg .lede { margin-left: auto; margin-right: auto; }
   /* video testimonial: phone-shaped card under the copy, tap for sound */
-  .payg-video { position: relative; margin: 46px auto 0; width: min(300px, 78vw); }
+  .payg-video { position: relative; margin: 0 auto 46px; width: min(300px, 78vw); }
   .payg-video video {
     width: 100%; aspect-ratio: 9/16; object-fit: cover; display: block;
     border-radius: 20px; box-shadow: 0 24px 60px rgba(17,17,16,.22);
@@ -550,6 +550,10 @@
 </section>
 
 <section class="band" id="payg">
+  <div class="payg-video">
+    <video src="/assets/testimonial-1.mp4" autoplay muted loop playsinline id="pvVid"></video>
+    <button class="pv-sound" id="pvSound" type="button">unmute</button>
+  </div>
   <div class="eyebrow">Pay as you go</div>
   <!-- inline-block spans: a sentence never breaks mid-line -->
   <h2 class="big"><span style="display:inline-block">No subscription.</span> <span style="display:inline-block">Pay as you go.</span><br><span style="display:inline-block">Your credits keep forever.</span></h2>
@@ -557,10 +561,6 @@
     Top up once, generate whenever you want. Nothing monthly, nothing expires,
     and every failed generation refunds itself.
   </p>
-  <div class="payg-video">
-    <video src="/assets/testimonial-1.mp4" autoplay muted loop playsinline id="pvVid"></video>
-    <button class="pv-sound" id="pvSound" type="button">unmute</button>
-  </div>
 </section>
 
 
