@@ -3,6 +3,7 @@ import { Handle, Position, useReactFlow, type NodeProps, type Node } from "@xyfl
 import { patchNodeData, type ModelNodeData, type PromptNodeData, type ImageNodeData } from "../types";
 import { startRun } from "../lib/runner";
 import { usd } from "../lib/balance";
+import { estimateCoins } from "../lib/pricing";
 
 /** Collect prompt text + input image URLs from nodes wired into this model node. */
 export function collectInputs(
@@ -73,13 +74,14 @@ export default function ModelNode({ id, data, selected }: NodeProps) {
   const { getEdges, getNode } = useReactFlow();
 
   const run = useCallback(() => runModelNode(id, d, getEdges, getNode), [id, d, getEdges, getNode]);
+  const coins = estimateCoins(d);
 
   return (
     <div className={`fc-node fc-model ${selected ? "selected" : ""} status-${d.status}`}>
       <div className="fc-node-header">
         <span className="fc-dot" style={{ background: "#8b5cf6" }} />
         <span className="fc-model-name">{d.modelName}</span>
-        {d.costCoins != null && <span className="fc-cost">{usd(d.costCoins)}</span>}
+        {coins != null && <span className="fc-cost">{usd(coins)}</span>}
       </div>
 
       <div className="fc-model-body">

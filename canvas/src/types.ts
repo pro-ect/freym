@@ -14,6 +14,13 @@ export type ParamField = {
 
 export type ParamSchema = Record<string, ParamField>;
 
+/** Per-second cents keyed by the model's own resolution values; audio_off_rates
+ *  overrides when audio/generate_audio is false. Mirrors model_pricing.rate_table. */
+export type RateTable = {
+  rates?: Record<string, number>;
+  audio_off_rates?: Record<string, number>;
+};
+
 export type CloudModel = {
   slug: string;
   name: string;
@@ -22,6 +29,8 @@ export type CloudModel = {
   tags: string[] | null;
   icon_url: string | null;
   coin_cost: number | null;
+  price_per_second_cents: number | string | null;
+  rate_table: RateTable | null;
   provider: "fal" | "magnific" | "replicate" | "cloudflare" | "pika";
   reference_images_min: number | null;
   reference_images_max: number | null;
@@ -60,6 +69,9 @@ export type ModelNodeData = {
   category?: "image" | "video";
   provider: "fal" | "magnific" | "replicate" | "cloudflare" | "pika";
   costCoins: number | null;
+  /** Pricing inputs for the live cost estimate; absent on nodes saved earlier. */
+  perSecondCents?: number | null;
+  rateTable?: RateTable | null;
   supportsPrompt: boolean;
   maxRefImages: number;
   imageParamName: string | null;

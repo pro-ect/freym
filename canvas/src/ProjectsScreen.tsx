@@ -33,12 +33,19 @@ export default function ProjectsScreen({ onOpen }: { onOpen: (id: string) => voi
   const [projects, setProjects] = useState<ProjectRow[] | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  // Two-step delete: first ✕ arms the card, the second click deletes. No
+  // window.confirm — browsers can suppress it, which made delete look broken.
+  const [armedId, setArmedId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const refresh = () => listProjects().then(setProjects);
   useEffect(() => {
     void refresh();
     getSession().then((s) => setEmail(s?.user.email ?? null));
-    const close = () => setMenuOpen(false);
+    const close = () => {
+      setMenuOpen(false);
+      setArmedId(null);
+    };
     window.addEventListener("click", close);
     return () => window.removeEventListener("click", close);
   }, []);
@@ -82,6 +89,7 @@ export default function ProjectsScreen({ onOpen }: { onOpen: (id: string) => voi
         </button>
       </header>
 
+      {deleteError && <div className="fc-error">could not delete: {deleteError}</div>}
       {!projects && <div className="fc-muted">loading…</div>}
       {projects?.length === 0 && (
         <div className="fc-muted">No projects yet — create your first one.</div>
@@ -122,17 +130,27 @@ export default function ProjectsScreen({ onOpen }: { onOpen: (id: string) => voi
                 </span>
               </div>
               <button
-                className="fc-project-delete"
+                className={`fc-project-delete${armedId === p.id ? " armed" : ""}`}
                 title="Delete project"
                 onClick={async (e) => {
                   e.stopPropagation();
-                  if (window.confirm(`Delete "${p.name}"?`)) {
+                  if (armedId !== p.id) {
+                    setArmedId(p.id);
+                    setDeleteError(null);
+                    return;
+                  }
+                  setArmedId(null);
+                  // Optimistic: drop the card now, restore on failure.
+                  setProjects((ps) => (ps ?? []).filter((x) => x.id !== p.id));
+                  try {
                     await deleteProject(p.id);
+                  } catch (err) {
+                    setDeleteError(String((err as Error).message ?? err));
                     void refresh();
                   }
                 }}
               >
-                ✕
+                {armedId === p.id ? "delete?" : "✕"}
               </button>
             </div>
           );

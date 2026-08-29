@@ -10,8 +10,9 @@
  * - Pika has no webhooks. This function submits, then keeps polling in a
  *   background task (EdgeRuntime.waitUntil) until the job is terminal; the
  *   pika-poll cron sweeper is the backstop for jobs that outlive this instance.
- * - Pricing is fully data-driven from model_pricing (coin_cost or
- *   price_per_second_cents × duration) — no per-model code branches.
+ * - Pricing is fully data-driven from model_pricing (coin_cost, or per-second
+ *   cents × duration with the rate picked by resolution/audio from
+ *   rate_table) — no per-model code branches.
  * - Results are mirrored into the generation-results bucket at completion, so
  *   canvas projects keep working after Pika's CDN URLs expire.
  *
@@ -52,6 +53,36 @@ function billableSeconds(parameters: Record<string, unknown>): number {
     return transition * (images.length - 1);
   }
   return 5;
+}
+
+type RateTable = {
+  rates?: Record<string, number>;
+  audio_off_rates?: Record<string, number>;
+};
+
+/**
+ * Per-second rate in cents. Vendors price heavily by resolution (Seedance 2.5
+ * 1080p costs 4× its 480p) and Veo halves without audio, so model_pricing
+ * carries a rate_table keyed by the model's own resolution values. A resolution
+ * missing from the table falls back to the table's highest rate (never
+ * undercharge), and models without a table keep flat price_per_second_cents.
+ */
+function perSecondCentsFor(
+  pricing: Record<string, unknown>,
+  input: Record<string, unknown>,
+): number {
+  const table = pricing.rate_table as RateTable | null;
+  if (table?.rates && Object.keys(table.rates).length) {
+    const res = String(input.resolution ?? "");
+    const audioOff = input.generate_audio === false || input.audio === false;
+    const rate = Number(
+      (audioOff ? table.audio_off_rates?.[res] : undefined) ?? table.rates[res],
+    );
+    if (Number.isFinite(rate) && rate > 0) return rate;
+    const max = Math.max(...Object.values(table.rates).map(Number).filter(Number.isFinite));
+    if (Number.isFinite(max) && max > 0) return max;
+  }
+  return Number(pricing.price_per_second_cents) || 0;
 }
 
 Deno.serve(async (req) => {
@@ -113,8 +144,9 @@ Deno.serve(async (req) => {
     if (prompt && input.prompt === undefined) input.prompt = prompt;
     for (const key of Object.keys(input)) if (input[key] == null) delete input[key];
 
-    // Data-driven price: per-second models multiply out the billable duration.
-    const perSecondCents = Number(pricing.price_per_second_cents) || 0;
+    // Data-driven price: per-second models multiply out the billable duration,
+    // with the rate picked by resolution/audio from model_pricing.rate_table.
+    const perSecondCents = perSecondCentsFor(pricing, input);
     const coinsCost = perSecondCents > 0
       ? Math.ceil(perSecondCents * billableSeconds(input) * COINS_PER_CENT)
       : (pricing.coin_cost ?? 0);

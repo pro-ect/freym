@@ -37,7 +37,6 @@ export default function ModelSidebar({ onAdd }: { onAdd: (m: CloudModel) => void
             >
               {m.icon_url ? <img src={m.icon_url} alt="" /> : <div className="fc-model-card-fallback" />}
               <span>{m.name}</span>
-              {m.is_new && <em className="fc-badge">new</em>}
             </button>
           ))}
         </div>

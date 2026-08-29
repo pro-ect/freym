@@ -57,6 +57,8 @@ function modelToNode(m: CloudModel, position: { x: number; y: number }): Node {
       category: m.category,
       provider: m.provider,
       costCoins: m.coin_cost,
+      perSecondCents: m.price_per_second_cents != null ? Number(m.price_per_second_cents) : null,
+      rateTable: m.rate_table ?? null,
       supportsPrompt: m.supports_prompt !== false,
       maxRefImages: m.reference_images_max ?? 0,
       imageParamName: m.image_parameter_name,
@@ -253,6 +255,9 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
         patchNodeData(n.id, {
           category: m.category,
           paramSchema: m.param_schema ?? null,
+          costCoins: m.coin_cost,
+          perSecondCents: m.price_per_second_cents != null ? Number(m.price_per_second_cents) : null,
+          rateTable: m.rate_table ?? null,
           params: { ...d.params, custom: { ...defaultsFor(m.param_schema), ...d.params?.custom } },
         });
       }

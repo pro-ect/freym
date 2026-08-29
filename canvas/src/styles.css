@@ -249,6 +249,11 @@ input, textarea, select { font: inherit; }
 }
 .fc-project-card:hover .fc-project-delete { opacity: 1; }
 .fc-project-delete:hover { color: #f87171; }
+/* armed = one more click deletes */
+.fc-project-delete.armed {
+  opacity: 1; width: auto; padding: 0 10px;
+  background: #7f1d1d; color: #fff; font-size: 12px;
+}
 .fc-muted { color: #6b6b75; }
 
 /* ---------- access gate ---------- */

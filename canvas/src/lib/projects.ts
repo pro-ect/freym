@@ -43,5 +43,6 @@ export async function renameProject(id: string, name: string) {
 }
 
 export async function deleteProject(id: string) {
-  await supabase.from("canvas_projects").delete().eq("id", id);
+  const { error } = await supabase.from("canvas_projects").delete().eq("id", id);
+  if (error) throw error;
 }

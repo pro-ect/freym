@@ -182,11 +182,17 @@
   .node.sel { border-color: #6f6a5c; box-shadow: 0 0 0 2px rgba(200,193,175,.18), 0 8px 22px rgba(0,0,0,.35); }
   .node .thumb { height: 74px; border-radius: 6px; background: linear-gradient(135deg,#8f8b80,#3c3a33); }
   .node .thumb.big { height: 104px; background: linear-gradient(150deg,#b6b1a4,#4a483f 70%); }
+  /* real imagery in the mock: the reference input and the model's own result */
+  .node .refimg { width: 100%; max-height: 110px; object-fit: cover; border-radius: 6px; display: block; }
+  .node .res { display: none; margin-top: 8px; }
+  .node .res img { width: 100%; max-height: 150px; object-fit: cover; border-radius: 6px; display: block; }
+  /* like the real canvas, the result lands inside the model node */
+  .node.done .res { display: block; }
+  .node.done .run, .node.done .bar { display: none; }
   .n1 { top: 20px;  left: 20px;  width: 172px; }
   .n2 { top: 250px; left: 20px;  width: 150px; }
   .n3 { top: 120px; left: 236px; width: 176px; }
   .n4 { top: 20px;  right: 20px; width: 158px; }
-  .n5 { top: 262px; left: 236px; width: 178px; }
   .n6 { top: 300px; right: 20px; width: 152px; }
   .node .meta { display: block; margin-top: 6px; color: #93907f; font-size: 10px; letter-spacing: .02em; }
   .node .run { display: flex; align-items: center; gap: 5px; margin-top: 8px; font-size: 10px; color: #d7d5cc; }
@@ -374,20 +380,23 @@
         <path class="w1" pathLength="1" d="M192 75  C 214 75,  214 155, 236 155" />
         <path class="w2" pathLength="1" d="M170 292 C 200 292, 210 182, 236 182" />
         <path class="w3" pathLength="1" d="M412 155 C 450 155, 470 70,  502 70" />
-        <path class="w4" pathLength="1" d="M324 214 C 324 236, 325 240, 325 262" />
-        <path class="w5" pathLength="1" d="M414 332 C 450 332, 470 336, 510 336" />
+        <path class="w5" pathLength="1" d="M412 250 C 455 250, 465 336, 508 336" />
       </svg>
 
       <div class="node n1">
         <div class="head"><span class="d"></span> Prompt</div>
-        <div class="body">a ceramic vase on wet sand, low winter sun, 35 mm
+        <div class="body">a studio business portrait from my selfie, charcoal suit, soft key light
           <span class="meta">text input</span>
         </div>
       </div>
 
       <div class="node n2">
         <div class="head"><span class="d"></span> Reference</div>
-        <div class="body"><div class="thumb"></div><span class="meta">1 image</span></div>
+        <div class="body">
+          <img class="refimg" alt="" loading="lazy"
+            src="https://lmuksetmkzssoewkzdlm.supabase.co/storage/v1/object/public/generation-inputs/a3795f66-7f36-453a-be47-3c9651cb739a/1786353499969_s5w3tg.jpg" />
+          <span class="meta">1 image</span>
+        </div>
       </div>
 
       <div class="node n3 sel">
@@ -395,17 +404,17 @@
         <div class="body">1K · 3:4 · 10 refs
           <span class="run"><i></i> running</span>
           <span class="bar"><span></span></span>
+          <span class="res">
+            <img alt="" loading="lazy"
+              src="https://v3b.fal.media/files/b/0aa5c26f/pCY5_HqK4cuxstT7y3Fth_tqlGubN6.png" />
+            <span class="meta">3024 × 4032</span>
+          </span>
         </div>
       </div>
 
       <div class="node n4">
         <div class="head"><span class="d"></span> Seedance 2.5</div>
         <div class="body">5 s · 1080p<span class="meta">image to video</span></div>
-      </div>
-
-      <div class="node n5">
-        <div class="head"><span class="d"></span> Result</div>
-        <div class="body"><div class="thumb big"></div><span class="meta">3024 × 4032</span></div>
       </div>
 
       <div class="node n6">
@@ -644,7 +653,7 @@ function renderHero(data) {
     [".n1", "on", 300], [".n2", "on", 900],
     [".w1", "on", 1400], [".w2", "on", 1500],
     [".n3", "on", 2000], [".n3", "running", 2600],
-    [".w4", "on", 4300], [".n5", "on", 4500],
+    [".n3", "done", 4400],
     [".w3", "on", 5300], [".n4", "on", 5500],
     [".w5", "on", 6100], [".n6", "on", 6300],
   ];
@@ -653,7 +662,7 @@ function renderHero(data) {
     return;
   }
   const cycle = () => {
-    board.querySelectorAll(".on, .running").forEach((el) => el.classList.remove("on", "running"));
+    board.querySelectorAll(".on, .running, .done").forEach((el) => el.classList.remove("on", "running", "done"));
     STEPS.forEach(([sel, cls, at]) =>
       setTimeout(() => board.querySelector(sel)?.classList.add(cls), at + 400));
   };

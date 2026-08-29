@@ -1,6 +1,7 @@
 import type { Node } from "@xyflow/react";
 import { patchNodeData, type ModelNodeData, type ParamField, type ParamSchema } from "../types";
 import { usd } from "../lib/balance";
+import { estimateCoins } from "../lib/pricing";
 
 const ASPECTS = ["default", "1:1", "9:16", "16:9", "4:5", "3:4", "3:2"];
 
@@ -48,7 +49,7 @@ export default function PropertiesPanel({
   const valueOf = (key: string) => first.params?.custom?.[key] ?? schema[key].default;
 
   const names = [...new Set(models.map((n) => dataOf(n).modelName))];
-  const totalCoins = models.reduce((sum, n) => sum + (dataOf(n).costCoins ?? 0), 0);
+  const totalCoins = models.reduce((sum, n) => sum + (estimateCoins(dataOf(n)) ?? 0), 0);
 
   return (
     <aside className="fc-props">
