@@ -20,6 +20,8 @@ export type ParamSchema = Record<string, ParamField>;
 export type RateTable = {
   rates?: Record<string, number>;
   audio_off_rates?: Record<string, number>;
+  /** Flat per-generation cents keyed by joined input values (e.g. quality:resolution). */
+  flat?: { key?: string[]; rates: Record<string, number> };
 };
 
 export type CloudModel = {

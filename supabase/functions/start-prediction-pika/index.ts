@@ -58,7 +58,27 @@ function billableSeconds(parameters: Record<string, unknown>): number {
 type RateTable = {
   rates?: Record<string, number>;
   audio_off_rates?: Record<string, number>;
+  /** Flat per-generation cents keyed by joined input values (e.g. quality:resolution). */
+  flat?: { key?: string[]; rates: Record<string, number> };
 };
+
+/**
+ * Flat per-generation cents for models whose price moves with quality/resolution
+ * tiers rather than seconds (GPT Image 2). Unknown combos fall back to the
+ * table's highest rate — never undercharge.
+ */
+function flatCentsFor(
+  pricing: Record<string, unknown>,
+  input: Record<string, unknown>,
+): number | null {
+  const flat = (pricing.rate_table as RateTable | null)?.flat;
+  if (!flat?.rates || !Object.keys(flat.rates).length) return null;
+  const key = (flat.key ?? ["quality", "resolution"]).map((k) => String(input[k] ?? "")).join(":");
+  const rate = Number(flat.rates[key]);
+  if (Number.isFinite(rate) && rate > 0) return rate;
+  const max = Math.max(...Object.values(flat.rates).map(Number).filter(Number.isFinite));
+  return Number.isFinite(max) && max > 0 ? max : null;
+}
 
 /**
  * Per-second rate in cents. Vendors price heavily by resolution (Seedance 2.5
@@ -144,12 +164,16 @@ Deno.serve(async (req) => {
     if (prompt && input.prompt === undefined) input.prompt = prompt;
     for (const key of Object.keys(input)) if (input[key] == null) delete input[key];
 
-    // Data-driven price: per-second models multiply out the billable duration,
-    // with the rate picked by resolution/audio from model_pricing.rate_table.
-    const perSecondCents = perSecondCentsFor(pricing, input);
-    const coinsCost = perSecondCents > 0
-      ? Math.ceil(perSecondCents * billableSeconds(input) * COINS_PER_CENT)
-      : (pricing.coin_cost ?? 0);
+    // Data-driven price: flat tier tables (quality×resolution) win, then
+    // per-second models multiply out the billable duration with the rate
+    // picked by resolution/audio, then the static coin_cost.
+    const flatCents = flatCentsFor(pricing, input);
+    const perSecondCents = flatCents != null ? 0 : perSecondCentsFor(pricing, input);
+    const coinsCost = flatCents != null
+      ? Math.ceil(flatCents * COINS_PER_CENT)
+      : perSecondCents > 0
+        ? Math.ceil(perSecondCents * billableSeconds(input) * COINS_PER_CENT)
+        : (pricing.coin_cost ?? 0);
     console.log(`[${requestId}] coins: ${coinsCost}`);
 
     // Queue entry is created as the user, same as start-prediction-fal.

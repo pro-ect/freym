@@ -31,6 +31,7 @@ import { resumeJobs } from "../lib/runner";
 import { generatePrompts } from "../lib/promptgen";
 import { fetchModels } from "../lib/models";
 import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from "../lib/supabase";
+import { EDIT_PAIRS } from "../lib/modelPairs";
 import { patchNodeData } from "../types";
 import type { CloudModel, ModelNodeData, PromptGenNodeData, PromptNodeData } from "../types";
 
@@ -60,7 +61,8 @@ function modelToNode(m: CloudModel, position: { x: number; y: number }): Node {
       perSecondCents: m.price_per_second_cents != null ? Number(m.price_per_second_cents) : null,
       rateTable: m.rate_table ?? null,
       supportsPrompt: m.supports_prompt !== false,
-      maxRefImages: m.reference_images_max ?? 0,
+      // Dual-mode image models accept the edit variant's reference count.
+      maxRefImages: EDIT_PAIRS[m.slug]?.maxRefs ?? m.reference_images_max ?? 0,
       imageParamName: m.image_parameter_name,
       status: "idle",
       images: [],
@@ -255,6 +257,7 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
         patchNodeData(n.id, {
           category: m.category,
           paramSchema: m.param_schema ?? null,
+          maxRefImages: EDIT_PAIRS[d.slug]?.maxRefs ?? m.reference_images_max ?? 0,
           costCoins: m.coin_cost,
           perSecondCents: m.price_per_second_cents != null ? Number(m.price_per_second_cents) : null,
           rateTable: m.rate_table ?? null,

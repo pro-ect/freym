@@ -4,6 +4,7 @@ import { patchNodeData, type ModelNodeData, type PromptNodeData, type ImageNodeD
 import { startRun } from "../lib/runner";
 import { usd } from "../lib/balance";
 import { estimateCoins } from "../lib/pricing";
+import { EDIT_PAIRS } from "../lib/modelPairs";
 
 /** Collect prompt text + input image URLs from nodes wired into this model node. */
 export function collectInputs(
@@ -50,14 +51,19 @@ export async function runModelNode(
   // round-trip (auth + edge function + provider) finally answers. A node left
   // "running" with no jobId is reset to idle on project restore.
   patchNodeData(id, { status: "running", jobId: undefined, errorMessage: undefined });
+  // Universal image nodes: wired images route the run to the provider's edit
+  // endpoint; prompt-only runs use the base text-to-image endpoint.
+  const pair = EDIT_PAIRS[d.slug];
+  const asEdit = pair && imageUrls.length > 0;
+  const maxRefs = asEdit ? pair.maxRefs : Math.max(d.maxRefImages, imageUrls.length ? 1 : 0);
   try {
     await startRun({
       nodeId: id,
-      slug: d.slug,
+      slug: asEdit ? pair.editSlug : d.slug,
       provider: d.provider,
       prompt,
-      imageUrls: imageUrls.slice(0, Math.max(d.maxRefImages, imageUrls.length ? 1 : 0)),
-      imageParamName: d.imageParamName,
+      imageUrls: imageUrls.slice(0, maxRefs),
+      imageParamName: asEdit ? pair.imageParam : d.imageParamName,
       aspect: d.params?.aspect,
       numImages: d.params?.numImages,
       custom: d.params?.custom,

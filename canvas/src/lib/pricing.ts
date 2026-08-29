@@ -34,13 +34,29 @@ function perSecondCents(
   return Number(fallback) || 0;
 }
 
-/** Live coin cost for a model node given its current params — resolution,
- *  audio and duration all move the price. Falls back to the static coin_cost
- *  for flat-priced models (Omni, Pikaffects, all image models). */
+/** Flat tier price (quality×resolution models like GPT Image 2); mirrors the server. */
+function flatCents(
+  rateTable: RateTable | null | undefined,
+  params: Record<string, unknown>,
+): number | null {
+  const flat = rateTable?.flat;
+  if (!flat?.rates || !Object.keys(flat.rates).length) return null;
+  const key = (flat.key ?? ["quality", "resolution"]).map((k) => String(params[k] ?? "")).join(":");
+  const rate = Number(flat.rates[key]);
+  if (Number.isFinite(rate) && rate > 0) return rate;
+  const max = Math.max(...Object.values(flat.rates).map(Number).filter(Number.isFinite));
+  return Number.isFinite(max) && max > 0 ? max : null;
+}
+
+/** Live coin cost for a model node given its current params — quality tiers,
+ *  resolution, audio and duration all move the price. Falls back to the static
+ *  coin_cost for flat-priced models (Omni, Pikaffects, most image models). */
 export function estimateCoins(
   d: Pick<ModelNodeData, "costCoins" | "perSecondCents" | "rateTable" | "params">,
 ): number | null {
   const custom = (d.params?.custom ?? {}) as Record<string, unknown>;
+  const flat = flatCents(d.rateTable, custom);
+  if (flat != null) return Math.ceil(flat * COINS_PER_CENT);
   const cents = perSecondCents(d.rateTable, d.perSecondCents, custom);
   if (cents > 0) return Math.ceil(cents * billableSeconds(custom) * COINS_PER_CENT);
   return d.costCoins;

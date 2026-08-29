@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchModels, groupModels } from "../lib/models";
+import { isHiddenEditVariant } from "../lib/modelPairs";
 import type { CloudModel } from "../types";
 
 export default function ModelSidebar({ onAdd }: { onAdd: (m: CloudModel) => void }) {
@@ -13,9 +14,11 @@ export default function ModelSidebar({ onAdd }: { onAdd: (m: CloudModel) => void
       .catch((e) => setErr(String(e.message ?? e)));
   }, []);
 
+  // Edit variants ride inside their base card (the run routes by wired inputs).
+  const visible = models.filter((m) => !isHiddenEditVariant(m.slug));
   const filtered = q
-    ? models.filter((m) => (m.name + " " + m.slug).toLowerCase().includes(q.toLowerCase()))
-    : models;
+    ? visible.filter((m) => (m.name + " " + m.slug).toLowerCase().includes(q.toLowerCase()))
+    : visible;
   const { textToImage, imageToImage, textToVideo, imageToVideo } = groupModels(filtered);
 
   const section = (title: string, list: CloudModel[]) =>
