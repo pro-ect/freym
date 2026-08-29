@@ -46,6 +46,10 @@ export async function runModelNode(
     patchNodeData(id, { status: "error", errorMessage: "connect a prompt or image first" });
     return;
   }
+  // Instant feedback: the spinner starts at click time, not when the submit
+  // round-trip (auth + edge function + provider) finally answers. A node left
+  // "running" with no jobId is reset to idle on project restore.
+  patchNodeData(id, { status: "running", jobId: undefined, errorMessage: undefined });
   try {
     await startRun({
       nodeId: id,

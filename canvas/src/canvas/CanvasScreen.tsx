@@ -477,9 +477,11 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
 
   const runModels = useCallback(
     async (list: Node[]) => {
-      for (const n of list) {
-        await runModelNode(n.id, n.data as unknown as ModelNodeData, getEdges, getNode);
-      }
+      // Parallel submits: every selected node flips to its running state at
+      // click time instead of waiting for the previous submit's round trip.
+      await Promise.all(
+        list.map((n) => runModelNode(n.id, n.data as unknown as ModelNodeData, getEdges, getNode)),
+      );
     },
     [getEdges, getNode],
   );
