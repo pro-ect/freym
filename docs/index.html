@@ -211,15 +211,16 @@
   /* real imagery in the mock: the reference input and the model's own result */
   .node .refimg { width: 100%; max-height: 110px; object-fit: cover; border-radius: 6px; display: block; }
   .node .res { display: none; margin-top: 8px; }
-  .node .res img { width: 100%; max-height: 150px; object-fit: cover; border-radius: 6px; display: block; }
+  .node .res img, .node .res video { width: 100%; max-height: 150px; object-fit: cover; border-radius: 6px; display: block; }
   /* like the real canvas, the result lands inside the model node */
   .node.done .res { display: block; }
   .node.done .run, .node.done .bar { display: none; }
   .n1 { top: 20px;  left: 20px;  width: 172px; }
   .n2 { top: 250px; left: 20px;  width: 150px; }
   .n3 { top: 120px; left: 236px; width: 176px; }
-  .n4 { top: 20px;  right: 20px; width: 158px; }
+  .n4 { top: 20px;  right: 20px; width: 200px; }
   .n6 { top: 300px; right: 20px; width: 152px; }
+  .n7 { top: 20px;  left: 236px; width: 150px; }
   .node .meta { display: block; margin-top: 6px; color: #93907f; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .02em; }
   .node .run { display: flex; align-items: center; gap: 5px; margin-top: 8px; font-size: 10px; color: #d7d5cc; }
   .node .run i { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); font-style: normal; }
@@ -392,7 +393,8 @@
       <svg class="wire" viewBox="0 0 680 470" preserveAspectRatio="none">
         <path class="w1" pathLength="1" d="M192 75  C 214 75,  214 155, 236 155" />
         <path class="w2" pathLength="1" d="M170 292 C 200 292, 210 182, 236 182" />
-        <path class="w3" pathLength="1" d="M412 155 C 450 155, 470 70,  502 70" />
+        <path class="w3" pathLength="1" d="M412 155 C 440 155, 434 112, 460 112" />
+        <path class="w6" pathLength="1" d="M386 60  C 418 60,  428 78,  460 78" />
         <path class="w5" pathLength="1" d="M412 250 C 455 250, 465 336, 508 336" />
       </svg>
 
@@ -425,9 +427,23 @@
         </div>
       </div>
 
+      <div class="node n7">
+        <div class="head"><span class="d"></span> Prompt</div>
+        <div class="body">she turns to the camera, soft smile, handheld move
+          <span class="meta">text input</span>
+        </div>
+      </div>
+
       <div class="node n4">
         <div class="head"><span class="d"></span> Seedance 2.5</div>
-        <div class="body">5 s · 1080p<span class="meta">image to video</span></div>
+        <div class="body">5 s · 1080p
+          <span class="run"><i></i> running</span>
+          <span class="bar"><span></span></span>
+          <span class="res">
+            <video src="/assets/board-seedance.mp4" autoplay muted loop playsinline></video>
+            <span class="meta">image to video · 5 s</span>
+          </span>
+        </div>
       </div>
 
       <div class="node n6">
@@ -508,7 +524,7 @@
 
 <section class="band" id="payg">
   <div class="eyebrow">Pay as you go</div>
-  <h2 class="big">No subscription.<br>Credits you spend when you create.</h2>
+  <h2 class="big">No subscription. Pay as you go.<br>Your credits keep forever.</h2>
   <p class="lede">
     Top up once, generate whenever you want. Nothing monthly, nothing expires,
     and every failed generation refunds itself.
@@ -775,24 +791,35 @@ function drawHeroWires() {
   window.addEventListener("resize", setScale);
 
   const STEPS = [
-    [".n1", "on", 300], [".n2", "on", 900],
+    [".n1", "on", 300], [".n2", "on", 900], [".n7", "on", 1200],
     [".w1", "on", 1400], [".w2", "on", 1500],
     [".n3", "on", 2000], [".n3", "running", 2600],
     [".n3", "done", 4400],
-    [".w3", "on", 5300], [".n4", "on", 5500],
+    [".w3", "on", 5100], [".w6", "on", 5200], [".n4", "on", 5400],
+    [".n4", "running", 5900],
     [".w5", "on", 6100], [".n6", "on", 6300],
+    [".n4", "done", 7400],
   ];
+  // Reveal + (re)start a node's video — hidden videos don't reliably autoplay.
+  const applyStep = (sel, cls) => {
+    const el = board.querySelector(sel);
+    if (!el) return;
+    el.classList.add(cls);
+    if (cls === "done") {
+      const v = el.querySelector("video");
+      if (v) { v.currentTime = 0; v.play().catch(() => {}); }
+    }
+  };
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    STEPS.forEach(([sel, cls]) => board.querySelector(sel)?.classList.add(cls));
+    STEPS.forEach(([sel, cls]) => applyStep(sel, cls));
     return;
   }
   const cycle = () => {
     board.querySelectorAll(".on, .running, .done").forEach((el) => el.classList.remove("on", "running", "done"));
-    STEPS.forEach(([sel, cls, at]) =>
-      setTimeout(() => board.querySelector(sel)?.classList.add(cls), at + 400));
+    STEPS.forEach(([sel, cls, at]) => setTimeout(() => applyStep(sel, cls), at + 400));
   };
   cycle();
-  setInterval(cycle, 9600);
+  setInterval(cycle, 11200);
 })();
 
 // The feed powers the prompt strip above the news section. Progressive — the
