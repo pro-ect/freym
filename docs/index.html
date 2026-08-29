@@ -217,7 +217,7 @@
   .node.done .run, .node.done .bar { display: none; }
   .n1 { top: 20px;  left: 20px;  width: 172px; }
   .n2 { top: 250px; left: 20px;  width: 150px; }
-  .n3 { top: 120px; left: 236px; width: 176px; }
+  .n3 { top: 145px; left: 218px; width: 176px; }
   .n4 { top: 20px;  right: 20px; width: 200px; }
   .n6 { top: 300px; right: 20px; width: 152px; }
   .n7 { top: 14px;  left: 236px; width: 150px; }
@@ -329,6 +329,20 @@
         rgba(20,20,15,.78) 0%, rgba(20,20,15,.34) 62%, rgba(20,20,15,0) 100%);
     }
     .hero-latest { column-gap: 18px; font-size: 14px; }
+    /* the board mock reflows vertically: nodes stack in run order,
+       wires are replaced by short connector stubs */
+    .board-outer { height: auto; }
+    .board {
+      position: static; width: auto; height: auto; transform: none;
+      display: flex; flex-direction: column; gap: 26px; padding: 22px 18px;
+    }
+    .board .wire { display: none; }
+    .board .node { position: relative; width: auto; top: auto; left: auto; right: auto; bottom: auto; }
+    .board .node:not(:last-child)::after {
+      content: ""; position: absolute; left: 50%; bottom: -22px;
+      width: 2px; height: 18px; background: #6f6a5c; border-radius: 2px;
+    }
+    .node .res img, .node .res video { max-height: 240px; }
     .hero h1 { font-size: clamp(40px, 11vw, 60px); }
     .hero h1 br.db { display: none; } /* mobile: chip flows inline */
     .hero-credit { right: 16px; bottom: 12px; }
@@ -390,11 +404,11 @@
     <div class="board-outer" id="boardOuter">
     <div class="board" id="board">
       <svg class="wire" viewBox="0 0 680 470" preserveAspectRatio="none">
-        <path class="w1" pathLength="1" d="M192 75  C 214 75,  214 155, 236 155" />
-        <path class="w2" pathLength="1" d="M170 292 C 200 292, 210 182, 236 182" />
-        <path class="w3" pathLength="1" d="M412 155 C 440 155, 434 112, 460 112" />
+        <path class="w1" pathLength="1" d="M192 75  C 214 75,  196 180, 218 180" />
+        <path class="w2" pathLength="1" d="M170 292 C 196 292, 196 207, 218 207" />
+        <path class="w3" pathLength="1" d="M394 180 C 428 180, 432 112, 460 112" />
         <path class="w6" pathLength="1" d="M386 52  C 418 52,  428 78,  460 78" />
-        <path class="w5" pathLength="1" d="M412 250 C 455 250, 465 336, 508 336" />
+        <path class="w5" pathLength="1" d="M394 275 C 448 275, 465 336, 508 336" />
       </svg>
 
       <div class="node n1">
@@ -783,6 +797,12 @@ function drawHeroWires() {
   const outer = document.getElementById("boardOuter");
   if (!board || !outer) return;
   const setScale = () => {
+    // Mobile: the board reflows into a vertical stack (CSS) — no fixed scale.
+    if (window.innerWidth <= 720) {
+      outer.style.height = "";
+      outer.style.removeProperty("--bs");
+      return;
+    }
     const s = Math.min(1.2, outer.clientWidth / 680);
     outer.style.setProperty("--bs", String(s));
     outer.style.height = Math.round(470 * s + 40) + "px";
@@ -791,10 +811,10 @@ function drawHeroWires() {
   window.addEventListener("resize", setScale);
 
   const STEPS = [
-    [".n1", "on", 300], [".n2", "on", 900], [".n7", "on", 1200],
+    [".n1", "on", 300], [".n2", "on", 900],
     [".w1", "on", 1400], [".w2", "on", 1500],
     [".n3", "on", 2000], [".n3", "running", 2600],
-    [".n3", "done", 4400],
+    [".n3", "done", 4400], [".n7", "on", 4800],
     [".w3", "on", 5100], [".w6", "on", 5200], [".n4", "on", 5400],
     [".n4", "running", 5900],
     [".w5", "on", 6100], [".n6", "on", 6300],
