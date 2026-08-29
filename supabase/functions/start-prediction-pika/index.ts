@@ -60,6 +60,9 @@ type RateTable = {
   audio_off_rates?: Record<string, number>;
   /** Flat per-generation cents keyed by joined input values (e.g. quality:resolution). */
   flat?: { key?: string[]; rates: Record<string, number> };
+  /** Rate multiplier when the request carries reference VIDEO input — vendors
+   *  bill input video (Seedance ~+20%, MiniMax bills input seconds). */
+  video_in_multiplier?: number;
 };
 
 /**
@@ -92,17 +95,21 @@ function perSecondCentsFor(
   input: Record<string, unknown>,
 ): number {
   const table = pricing.rate_table as RateTable | null;
+  const videoIn = ["video_urls", "reference_video_urls"].some(
+    (k) => Array.isArray(input[k]) && (input[k] as unknown[]).length > 0,
+  );
+  const mult = videoIn ? Number(table?.video_in_multiplier) || 1 : 1;
   if (table?.rates && Object.keys(table.rates).length) {
     const res = String(input.resolution ?? "");
     const audioOff = input.generate_audio === false || input.audio === false;
     const rate = Number(
       (audioOff ? table.audio_off_rates?.[res] : undefined) ?? table.rates[res],
     );
-    if (Number.isFinite(rate) && rate > 0) return rate;
+    if (Number.isFinite(rate) && rate > 0) return rate * mult;
     const max = Math.max(...Object.values(table.rates).map(Number).filter(Number.isFinite));
-    if (Number.isFinite(max) && max > 0) return max;
+    if (Number.isFinite(max) && max > 0) return max * mult;
   }
-  return Number(pricing.price_per_second_cents) || 0;
+  return (Number(pricing.price_per_second_cents) || 0) * mult;
 }
 
 Deno.serve(async (req) => {

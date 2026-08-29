@@ -1,40 +1,77 @@
 /**
- * Universal image-model nodes: one card per model, the run routes itself.
- * Prompt only → the base text-to-image slug; reference images wired → the same
- * provider's edit slug. The sidebar hides the edit variants; pricing is
- * identical within a pair, so the shown price stays correct either way.
+ * Universal model nodes: ONE card per model, the run routes itself by what is
+ * wired in. For the user it is the same node; the backend endpoint changes:
+ *
+ *   image models  — prompt only → text-to-image; any images → the provider's
+ *                   edit endpoint.
+ *   video models  — prompt only → text-to-video; one image → image-to-video
+ *                   (start frame); two+ images, or any video/audio reference →
+ *                   reference-to-video / omni.
+ *
+ * Per-second pricing is identical across a family's ops (video references add
+ * a server-side surcharge where the vendor bills input video).
  */
-export type EditPair = { editSlug: string; imageParam: string; maxRefs: number };
+export type Route = { slug: string; param: string; max: number };
+export type MultiRoute = Route & {
+  videoParam?: string;
+  maxVideos?: number;
+  audioParam?: string;
+  maxAudios?: number;
+};
+export type ModelRoutes = { image?: Route; multi?: MultiRoute };
 
-export const EDIT_PAIRS: Record<string, EditPair> = {
-  "gpt-image-2-pika": { editSlug: "gpt-image-2-edit-pika", imageParam: "image_urls", maxRefs: 4 },
-  "nb2-pika": { editSlug: "nb2-edit-pika", imageParam: "image_urls", maxRefs: 10 },
-  "nb-pro-2k-pika": { editSlug: "nb-pro-2k-edit-pika", imageParam: "image_urls", maxRefs: 10 },
-  "seedream-5-pro-t2i-pika": { editSlug: "seedream-5-pro-edit-pika", imageParam: "image_urls", maxRefs: 10 },
+export const ROUTES: Record<string, ModelRoutes> = {
+  // image models
+  "gpt-image-2-pika": { image: { slug: "gpt-image-2-edit-pika", param: "image_urls", max: 4 } },
+  "nb2-pika": { image: { slug: "nb2-edit-pika", param: "image_urls", max: 10 } },
+  "nb-pro-2k-pika": { image: { slug: "nb-pro-2k-edit-pika", param: "image_urls", max: 10 } },
+  "seedream-5-pro-t2i-pika": { image: { slug: "seedream-5-pro-edit-pika", param: "image_urls", max: 10 } },
+  // video models
+  "wan-30-pika": {
+    image: { slug: "wan-30-i2v-pika", param: "first_frame_url", max: 1 },
+    multi: {
+      slug: "wan-30-omni-pika", param: "reference_image_urls", max: 10,
+      videoParam: "reference_video_urls", maxVideos: 5,
+      audioParam: "reference_audio_urls", maxAudios: 5,
+    },
+  },
+  "seedance-25-pika": {
+    image: { slug: "seedance-25-i2v-pika", param: "image_url", max: 1 },
+    multi: {
+      slug: "seedance-25-r2v-pika", param: "image_urls", max: 10,
+      videoParam: "video_urls", maxVideos: 3, audioParam: "audio_urls", maxAudios: 3,
+    },
+  },
+  "seedance-20-pika": {
+    image: { slug: "seedance-20-i2v-pika", param: "image_url", max: 1 },
+    multi: {
+      slug: "seedance-20-r2v-pika", param: "image_urls", max: 10,
+      videoParam: "video_urls", maxVideos: 3, audioParam: "audio_urls", maxAudios: 3,
+    },
+  },
+  "minimax-h3-pika": {
+    image: { slug: "minimax-h3-i2v-pika", param: "first_frame_image", max: 1 },
+    multi: {
+      // capped at 5 images — the vendor bills extra beyond five references
+      slug: "minimax-h3-r2v-pika", param: "image_urls", max: 5,
+      videoParam: "video_urls", maxVideos: 3, audioParam: "audio_urls", maxAudios: 3,
+    },
+  },
+  "omni-11-pika": { image: { slug: "omni-11-i2v-pika", param: "image_urls", max: 2 } },
+  "pika-25-t2v-pika": { image: { slug: "pika-25-i2v-pika", param: "image", max: 1 } },
 };
 
-/**
- * Video models with a multi-reference endpoint: one wired image keeps the
- * plain image-to-video (start frame); two or more route to the same vendor's
- * reference-to-video / omni endpoint, so every wired image reaches the model.
- * MiniMax caps at 5 — its vendor bills extra beyond five references.
- * Per-second pricing is identical to the base op in every pair.
- */
-export const VIDEO_REF_PAIRS: Record<string, EditPair> = {
-  "seedance-25-i2v-pika": { editSlug: "seedance-25-r2v-pika", imageParam: "image_urls", maxRefs: 10 },
-  "seedance-20-i2v-pika": { editSlug: "seedance-20-r2v-pika", imageParam: "image_urls", maxRefs: 10 },
-  "minimax-h3-i2v-pika": { editSlug: "minimax-h3-r2v-pika", imageParam: "image_urls", maxRefs: 5 },
-  "wan-30-i2v-pika": { editSlug: "wan-30-omni-pika", imageParam: "reference_image_urls", maxRefs: 10 },
-};
+const HIDDEN = new Set(
+  Object.values(ROUTES).flatMap((r) => [r.image?.slug, r.multi?.slug]).filter(Boolean) as string[],
+);
 
-/** How many reference images a node can actually take, counting its pair. */
-export function refCapacity(slug: string, fallback: number): number {
-  return EDIT_PAIRS[slug]?.maxRefs ?? VIDEO_REF_PAIRS[slug]?.maxRefs ?? fallback;
+/** Variants merged into their base card — keep them out of the sidebar. */
+export function isHiddenVariant(slug: string): boolean {
+  return HIDDEN.has(slug);
 }
 
-const EDIT_SLUGS = new Set(Object.values(EDIT_PAIRS).map((p) => p.editSlug));
-
-/** Edit variants merged into their base card — keep them out of the sidebar. */
-export function isHiddenEditVariant(slug: string): boolean {
-  return EDIT_SLUGS.has(slug);
+/** How many reference images a node can take, counting its routed variants. */
+export function refCapacity(slug: string, fallback: number): number {
+  const r = ROUTES[slug];
+  return r?.multi?.max ?? r?.image?.max ?? fallback;
 }

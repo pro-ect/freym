@@ -101,6 +101,8 @@ export async function startRun(opts: {
   aspect?: string;
   numImages?: number;
   custom?: Record<string, unknown>;
+  /** routed reference params (video_urls, audio_urls, …), sent as-is */
+  extra?: Record<string, unknown>;
 }): Promise<void> {
   const { data: sess } = await supabase.auth.getSession();
   const token = sess.session?.access_token;
@@ -109,7 +111,7 @@ export async function startRun(opts: {
   // The model's own param_schema values go first, keyed as the provider expects
   // them (aspect_ratio, quality, creativity…). The legacy aspect/num-images
   // controls only fill gaps they didn't already cover.
-  const parameters: Record<string, unknown> = { ...(opts.custom ?? {}) };
+  const parameters: Record<string, unknown> = { ...(opts.custom ?? {}), ...(opts.extra ?? {}) };
   if (opts.aspect && opts.aspect !== "default" && parameters.image_size === undefined)
     parameters.image_size = opts.aspect;
   if (opts.numImages && opts.numImages > 1 && parameters.num_images === undefined)

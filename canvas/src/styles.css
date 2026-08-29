@@ -214,6 +214,9 @@ html, body { overscroll-behavior: none; }
 .fc-handle-promptgen { background: #f59e0b; }
 .fc-handle-image { background: #ec4899; }
 .fc-handle-model { background: #8b5cf6; }
+.fc-handle-video { background: #38bdf8; }
+.fc-handle-audio { background: #a3e635; }
+.fc-audio-preview { width: 100%; padding: 12px; box-sizing: border-box; }
 .fc-handle-in { background: #55555e; }
 
 /* ---------- bottom toolbar ---------- */

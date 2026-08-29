@@ -21,6 +21,7 @@ import { v4 as uuid } from "uuid";
 import PromptNode from "./PromptNode";
 import PromptGenNode from "./PromptGenNode";
 import ImageNode from "./ImageNode";
+import { VideoNode, AudioNode } from "./MediaNode";
 import ModelNode, { runModelNode } from "./ModelNode";
 import BalancePill from "../BalancePill";
 import CurvedEdge from "./CurvedEdge";
@@ -35,7 +36,7 @@ import { refCapacity } from "../lib/modelPairs";
 import { patchNodeData } from "../types";
 import type { CloudModel, ModelNodeData, PromptGenNodeData, PromptNodeData } from "../types";
 
-const nodeTypes = { prompt: PromptNode, promptgen: PromptGenNode, image: ImageNode, model: ModelNode };
+const nodeTypes = { prompt: PromptNode, promptgen: PromptGenNode, image: ImageNode, video: VideoNode, audio: AudioNode, model: ModelNode };
 const edgeTypes = { default: CurvedEdge };
 
 /** Seed a new model node with the schema's own defaults so runs match the app. */
@@ -466,6 +467,16 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
       ...ns,
       { id: uuid(), type: "image", position: centerPos(), data: { url: null } },
     ]);
+  const addVideo = () =>
+    setNodes((ns) => [
+      ...ns,
+      { id: uuid(), type: "video", position: centerPos(), data: { url: null } },
+    ]);
+  const addAudio = () =>
+    setNodes((ns) => [
+      ...ns,
+      { id: uuid(), type: "audio", position: centerPos(), data: { url: null } },
+    ]);
   const addPromptGen = () =>
     setNodes((ns) => [
       ...ns,
@@ -580,8 +591,11 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
         }}
         onDrop={async (e) => {
           const slug = e.dataTransfer.getData("application/freym-model");
-          const files = Array.from(e.dataTransfer.files ?? []).filter((f) =>
-            f.type.startsWith("image/"),
+          const files = Array.from(e.dataTransfer.files ?? []).filter(
+            (f) =>
+              f.type.startsWith("image/") ||
+              f.type.startsWith("video/") ||
+              f.type.startsWith("audio/"),
           );
           if (!slug && !files.length) return;
           e.preventDefault();
@@ -592,20 +606,25 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
             if (m) addModel(m, pos);
             return;
           }
-          // Image files dropped from the OS: one Image node per file, uploading in place.
-          const { uploadInputImage } = await import("../lib/upload");
+          // Media files dropped from the OS: one node per file, uploading in place.
+          const { uploadInputImage, uploadInputMedia } = await import("../lib/upload");
           files.forEach((file, i) => {
             const nodeId = uuid();
+            const type = file.type.startsWith("video/")
+              ? "video"
+              : file.type.startsWith("audio/")
+                ? "audio"
+                : "image";
             setNodes((ns) => [
               ...ns,
               {
                 id: nodeId,
-                type: "image",
+                type,
                 position: { x: pos.x + i * 260, y: pos.y },
                 data: { url: null, uploading: true, fileName: file.name },
               },
             ]);
-            uploadInputImage(file)
+            (type === "image" ? uploadInputImage(file) : uploadInputMedia(file))
               .then((url) =>
                 window.dispatchEvent(
                   new CustomEvent("node-data-update", {
@@ -655,6 +674,8 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
           <button onClick={addPrompt}>+ Prompt</button>
           <button onClick={addPromptGen}>✦ Prompt generator</button>
           <button onClick={addImage}>+ Image</button>
+          <button onClick={addVideo}>+ Video</button>
+          <button onClick={addAudio}>+ Audio</button>
         </div>
       </div>
 

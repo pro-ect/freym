@@ -4,17 +4,23 @@ import { patchNodeData, type ModelNodeData, type PromptNodeData, type ImageNodeD
 import { startRun } from "../lib/runner";
 import { usd } from "../lib/balance";
 import { estimateCoins } from "../lib/pricing";
-import { EDIT_PAIRS, VIDEO_REF_PAIRS } from "../lib/modelPairs";
+import { fetchModels } from "../lib/models";
+import { ROUTES } from "../lib/modelPairs";
 
-/** Collect prompt text + input image URLs from nodes wired into this model node. */
+/** Collect prompt text + reference URLs (image/video/audio) wired into this
+ *  model node. Upstream model video results chain as video references only
+ *  when the target can take them (chainVideo). */
 export function collectInputs(
   nodeId: string,
   getEdges: () => { source: string; target: string; targetHandle?: string | null }[],
   getNode: (id: string) => Node | undefined,
+  opts?: { chainVideo?: boolean },
 ) {
   const incoming = getEdges().filter((e) => e.target === nodeId);
   const prompts: string[] = [];
   const imageUrls: string[] = [];
+  const videoUrls: string[] = [];
+  const audioUrls: string[] = [];
   for (const e of incoming) {
     const src = getNode(e.source);
     if (!src) continue;
@@ -24,15 +30,23 @@ export function collectInputs(
     } else if (src.type === "image") {
       const u = (src.data as ImageNodeData).url;
       if (u) imageUrls.push(u);
+    } else if (src.type === "video") {
+      const u = (src.data as ImageNodeData).url;
+      if (u) videoUrls.push(u);
+    } else if (src.type === "audio") {
+      const u = (src.data as ImageNodeData).url;
+      if (u) audioUrls.push(u);
     } else if (src.type === "model") {
-      // chaining: an upstream model's result feeds this model's image input.
-      // A video result is not a usable reference image, so skip it.
+      // chaining: an upstream model's result feeds this model's inputs. Video
+      // results become video references where supported, else they are skipped.
       const up = src.data as ModelNodeData;
       const first = up.images?.[0];
-      if (first && !isVideo(first, up.category)) imageUrls.push(first);
+      if (!first) continue;
+      if (!isVideo(first, up.category)) imageUrls.push(first);
+      else if (opts?.chainVideo) videoUrls.push(first);
     }
   }
-  return { prompt: prompts.join("\n\n"), imageUrls };
+  return { prompt: prompts.join("\n\n"), imageUrls, videoUrls, audioUrls };
 }
 
 /** Shared by the node's own Run button and the properties panel's "Run selected". */
@@ -42,8 +56,11 @@ export async function runModelNode(
   getEdges: () => { source: string; target: string; targetHandle?: string | null }[],
   getNode: (id: string) => Node | undefined,
 ) {
-  const { prompt, imageUrls } = collectInputs(id, getEdges, getNode);
-  if (d.supportsPrompt && !prompt && !imageUrls.length) {
+  const routes = ROUTES[d.slug];
+  const { prompt, imageUrls, videoUrls, audioUrls } = collectInputs(id, getEdges, getNode, {
+    chainVideo: !!routes?.multi?.videoParam,
+  });
+  if (d.supportsPrompt && !prompt && !imageUrls.length && !videoUrls.length) {
     patchNodeData(id, { status: "error", errorMessage: "connect a prompt or image first" });
     return;
   }
@@ -51,29 +68,53 @@ export async function runModelNode(
   // round-trip (auth + edge function + provider) finally answers. A node left
   // "running" with no jobId is reset to idle on project restore.
   patchNodeData(id, { status: "running", jobId: undefined, errorMessage: undefined });
-  // Universal nodes route by wired inputs: image models switch to the edit
-  // endpoint when any image is wired; video models switch to the vendor's
-  // reference-to-video endpoint when MORE than one image is wired (a single
-  // image stays the start frame of plain image-to-video).
-  const editPair = EDIT_PAIRS[d.slug];
-  const refPair = VIDEO_REF_PAIRS[d.slug];
-  const route = editPair && imageUrls.length > 0
-    ? editPair
-    : refPair && imageUrls.length > 1
-      ? refPair
-      : null;
-  const maxRefs = route ? route.maxRefs : Math.max(d.maxRefImages, imageUrls.length ? 1 : 0);
+
+  // One card, many endpoints: route by what is wired (see modelPairs.ts).
+  const hasAV = videoUrls.length > 0 || audioUrls.length > 0;
+  let slug = d.slug;
+  let imageParam = d.imageParamName;
+  let images: string[] = [];
+  const extra: Record<string, unknown> = {};
+  if (routes?.multi && (imageUrls.length > 1 || hasAV)) {
+    const m = routes.multi;
+    slug = m.slug;
+    imageParam = m.param;
+    images = imageUrls.slice(0, m.max);
+    if (videoUrls.length && m.videoParam) extra[m.videoParam] = videoUrls.slice(0, m.maxVideos ?? 3);
+    if (audioUrls.length && m.audioParam) extra[m.audioParam] = audioUrls.slice(0, m.maxAudios ?? 3);
+  } else if (routes?.image && imageUrls.length > 0) {
+    slug = routes.image.slug;
+    imageParam = routes.image.param;
+    images = imageUrls.slice(0, routes.image.max);
+  } else if (imageUrls.length > 0) {
+    // No route: pass images only when the endpoint itself takes them —
+    // a text-only endpoint must never receive an image parameter.
+    images = imageUrls.slice(0, d.maxRefImages > 0 ? d.maxRefImages : 0);
+  }
+
+  // When the run is re-routed, drop params the routed variant doesn't declare
+  // (e.g. Wan's t2v `ratio` doesn't exist on image-to-video).
+  let custom = d.params?.custom;
+  if (slug !== d.slug && custom) {
+    const routed = (await fetchModels().catch(() => []))?.find((x) => x.slug === slug);
+    if (routed?.param_schema) {
+      const keys = new Set(Object.keys(routed.param_schema));
+      custom = Object.fromEntries(Object.entries(custom).filter(([k]) => keys.has(k)));
+    }
+  }
+
   try {
     await startRun({
       nodeId: id,
-      slug: route ? route.editSlug : d.slug,
+      slug,
       provider: d.provider,
       prompt,
-      imageUrls: imageUrls.slice(0, maxRefs),
-      imageParamName: route ? route.imageParam : d.imageParamName,
+      imageUrls: images,
+      imageParamName: imageParam,
       aspect: d.params?.aspect,
       numImages: d.params?.numImages,
-      custom: d.params?.custom,
+      custom,
+      extra,
     });
   } catch (e) {
     patchNodeData(id, { status: "error", errorMessage: String((e as Error).message ?? e) });

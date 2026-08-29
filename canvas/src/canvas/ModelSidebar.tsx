@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchModels, groupModels } from "../lib/models";
-import { isHiddenEditVariant } from "../lib/modelPairs";
+import { isHiddenVariant } from "../lib/modelPairs";
 import type { CloudModel } from "../types";
 
 export default function ModelSidebar({ onAdd }: { onAdd: (m: CloudModel) => void }) {
@@ -15,7 +15,7 @@ export default function ModelSidebar({ onAdd }: { onAdd: (m: CloudModel) => void
   }, []);
 
   // Edit variants ride inside their base card (the run routes by wired inputs).
-  const visible = models.filter((m) => !isHiddenEditVariant(m.slug));
+  const visible = models.filter((m) => !isHiddenVariant(m.slug));
   const filtered = q
     ? visible.filter((m) => (m.name + " " + m.slug).toLowerCase().includes(q.toLowerCase()))
     : visible;
