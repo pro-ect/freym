@@ -110,6 +110,8 @@
   #heroWires .hwire.in { opacity: 1; }
   #heroWires path { fill: none; stroke: rgba(255,255,255,.16); stroke-width: 2; }
   #heroWires circle { fill: rgba(255,255,255,.38); }
+  /* the brand corner, used very sparingly: two cards get one */
+  #heroWires path.cmark { stroke: var(--accent); stroke-width: 3; stroke-linecap: round; }
   /* soft pool of dark behind the centered copy so it reads over anything */
   .hero-art::after {
     content: ""; position: absolute; inset: 0; pointer-events: none;
@@ -698,6 +700,21 @@ function drawHeroWires() {
     dot.setAttribute("cy", sy);
     dot.setAttribute("r", "3");
     g.append(path, dot);
+    // The brand corner mark, very rare: one card gets it top-left, one
+    // bottom-right. Lives in the card's wire group so it rides the parallax.
+    const CORNER = "M0 22h11a11 11 0 0 0 11-11V0"; // bottom-right corner, 22×22
+    if (slot === "hc3" || slot === "hc5") {
+      const c = document.createElementNS(NS, "path");
+      c.setAttribute("d", CORNER);
+      c.setAttribute("class", "cmark");
+      c.setAttribute(
+        "transform",
+        slot === "hc3"
+          ? `translate(${x - 16} ${y - 16}) rotate(180 11 11)`
+          : `translate(${x + w - 6} ${y + h - 6})`,
+      );
+      g.appendChild(c);
+    }
     svg.appendChild(g);
     requestAnimationFrame(() => g.classList.add("in"));
   });
