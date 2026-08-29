@@ -44,7 +44,7 @@ export async function fetchHistory(): Promise<{ recent: CoinTxn[]; spent30d: num
       .eq("transaction_status", "completed")
       .neq("amount", 0)
       .order("created_at", { ascending: false })
-      .limit(8),
+      .limit(12),
     supabase
       .from("coin_transactions")
       .select("amount")

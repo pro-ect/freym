@@ -83,48 +83,57 @@ export default function BalancePill() {
       {toast && <span className="fc-toast">{toast}</span>}
       {open && (
         <div className="fc-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}>
-          <div className="fc-modal">
-            <h2>Top up</h2>
-            <p className="fc-modal-sub">
-              $1 in equals $1 of generations — every model shows its price
-              before you run it. One-time payment, no subscription, credit
-              never expires. Checkout runs on Stripe.
-            </p>
-            <div className="fc-wallet">
-              <div className="fc-wallet-row">
-                <span>Balance</span>
-                <b>{balance == null ? "…" : usd(balance)}</b>
+          <div className="fc-modal fc-modal-wide">
+            <div className="fc-modal-cols">
+              <div className="fc-modal-col">
+                <h2>Top up</h2>
+                <ul className="fc-conditions">
+                  <li>Pay as you go — $1 in equals $1 of generations</li>
+                  <li>Credit never expires</li>
+                  <li>No subscription, no monthly fee</li>
+                  <li>Every model shows its price before you run it</li>
+                  <li>Checkout runs on Stripe</li>
+                </ul>
+                {PACKS.map(({ pack, label }) => (
+                  <button key={pack} className="fc-primary fc-pack" disabled={busy !== null} onClick={() => buy(pack)}>
+                    {busy === pack ? "Opening checkout…" : label}
+                  </button>
+                ))}
+                {err && <div className="fc-error">{err}</div>}
               </div>
-              <div className="fc-wallet-row">
-                <span>Spent · last 30 days</span>
-                <b>{wallet == null ? "…" : usd(wallet.spent30d)}</b>
-              </div>
-              {wallet != null && wallet.recent.length > 0 && (
-                <div className="fc-history">
-                  {wallet.recent.map((t) => (
-                    <div key={t.id} className="fc-txn">
-                      <span className="fc-txn-label">{txnLabel(t)}</span>
-                      <span className="fc-txn-date">
-                        {new Date(t.created_at).toLocaleDateString(undefined, {
-                          day: "numeric",
-                          month: "short",
-                        })}
-                      </span>
-                      <span className={`fc-txn-amt ${t.amount < 0 ? "neg" : "pos"}`}>
-                        {t.amount < 0 ? "−" : "+"}
-                        {usd(Math.abs(t.amount))}
-                      </span>
+              <div className="fc-modal-col">
+                <h2>History</h2>
+                <div className="fc-wallet">
+                  <div className="fc-wallet-row">
+                    <span>Balance</span>
+                    <b>{balance == null ? "…" : usd(balance)}</b>
+                  </div>
+                  <div className="fc-wallet-row">
+                    <span>Spent · last 30 days</span>
+                    <b>{wallet == null ? "…" : usd(wallet.spent30d)}</b>
+                  </div>
+                  {wallet != null && wallet.recent.length > 0 && (
+                    <div className="fc-history">
+                      {wallet.recent.map((t) => (
+                        <div key={t.id} className="fc-txn">
+                          <span className="fc-txn-label">{txnLabel(t)}</span>
+                          <span className="fc-txn-date">
+                            {new Date(t.created_at).toLocaleDateString(undefined, {
+                              day: "numeric",
+                              month: "short",
+                            })}
+                          </span>
+                          <span className={`fc-txn-amt ${t.amount < 0 ? "neg" : "pos"}`}>
+                            {t.amount < 0 ? "−" : "+"}
+                            {usd(Math.abs(t.amount))}
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
+              </div>
             </div>
-            {PACKS.map(({ pack, label }) => (
-              <button key={pack} className="fc-primary fc-pack" disabled={busy !== null} onClick={() => buy(pack)}>
-                {busy === pack ? "Opening checkout…" : label}
-              </button>
-            ))}
-            {err && <div className="fc-error">{err}</div>}
             <button className="fc-signout" onClick={() => setOpen(false)}>close</button>
           </div>
         </div>

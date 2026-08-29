@@ -315,6 +315,19 @@ input, textarea, select { font: inherit; }
 .fc-modal h2 { font-size: 17px; font-weight: 600; margin: 0; }
 .fc-modal-sub { font-size: 13px; line-height: 1.5; color: #9a9aa4; margin: 0 0 6px; }
 .fc-pack { width: 100%; }
+/* two-column wallet modal: top up on the left, transaction history on the right */
+.fc-modal-wide { max-width: 640px; width: min(640px, calc(100vw - 40px)); }
+.fc-modal-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+.fc-modal-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.fc-conditions {
+  list-style: none; display: flex; flex-direction: column; gap: 7px;
+  font-size: 13px; line-height: 1.45; color: #9a9aa4; margin: 0 0 4px;
+}
+.fc-conditions li { padding-left: 16px; position: relative; }
+.fc-conditions li::before { content: "·"; position: absolute; left: 2px; color: #6b6b75; }
+@media (max-width: 620px) {
+  .fc-modal-cols { grid-template-columns: 1fr; }
+}
 /* wallet block inside the top-up modal: balance, 30-day spend, ledger */
 .fc-wallet {
   border: 1px solid #2c2c33; border-radius: 10px;
@@ -328,7 +341,7 @@ input, textarea, select { font: inherit; }
 .fc-wallet-row b { color: #fff; font-weight: 600; }
 .fc-history {
   border-top: 1px solid #2c2c33; margin-top: 4px; padding-top: 8px;
-  max-height: 168px; overflow-y: auto;
+  max-height: 300px; overflow-y: auto;
   display: flex; flex-direction: column; gap: 6px;
 }
 .fc-txn {
