@@ -4,7 +4,7 @@ import { patchNodeData, type ModelNodeData, type PromptNodeData, type ImageNodeD
 import { startRun } from "../lib/runner";
 import { usd } from "../lib/balance";
 import { estimateCoins } from "../lib/pricing";
-import { EDIT_PAIRS } from "../lib/modelPairs";
+import { EDIT_PAIRS, VIDEO_REF_PAIRS } from "../lib/modelPairs";
 
 /** Collect prompt text + input image URLs from nodes wired into this model node. */
 export function collectInputs(
@@ -51,19 +51,26 @@ export async function runModelNode(
   // round-trip (auth + edge function + provider) finally answers. A node left
   // "running" with no jobId is reset to idle on project restore.
   patchNodeData(id, { status: "running", jobId: undefined, errorMessage: undefined });
-  // Universal image nodes: wired images route the run to the provider's edit
-  // endpoint; prompt-only runs use the base text-to-image endpoint.
-  const pair = EDIT_PAIRS[d.slug];
-  const asEdit = pair && imageUrls.length > 0;
-  const maxRefs = asEdit ? pair.maxRefs : Math.max(d.maxRefImages, imageUrls.length ? 1 : 0);
+  // Universal nodes route by wired inputs: image models switch to the edit
+  // endpoint when any image is wired; video models switch to the vendor's
+  // reference-to-video endpoint when MORE than one image is wired (a single
+  // image stays the start frame of plain image-to-video).
+  const editPair = EDIT_PAIRS[d.slug];
+  const refPair = VIDEO_REF_PAIRS[d.slug];
+  const route = editPair && imageUrls.length > 0
+    ? editPair
+    : refPair && imageUrls.length > 1
+      ? refPair
+      : null;
+  const maxRefs = route ? route.maxRefs : Math.max(d.maxRefImages, imageUrls.length ? 1 : 0);
   try {
     await startRun({
       nodeId: id,
-      slug: asEdit ? pair.editSlug : d.slug,
+      slug: route ? route.editSlug : d.slug,
       provider: d.provider,
       prompt,
       imageUrls: imageUrls.slice(0, maxRefs),
-      imageParamName: asEdit ? pair.imageParam : d.imageParamName,
+      imageParamName: route ? route.imageParam : d.imageParamName,
       aspect: d.params?.aspect,
       numImages: d.params?.numImages,
       custom: d.params?.custom,
