@@ -102,18 +102,16 @@
     text-align: center; padding: 0 24px; color: #fff; pointer-events: none;
   }
   .hero-copy a { pointer-events: auto; }
+  /* latest models, one quiet line: name + launch discount */
   .hero-latest {
-    margin-top: 24px; display: flex; align-items: center; justify-content: center;
-    flex-wrap: wrap; gap: 8px;
+    margin-top: 24px; display: flex; align-items: baseline; justify-content: center;
+    flex-wrap: wrap; column-gap: 26px; row-gap: 8px;
+    font-size: 15px; color: rgba(255,255,255,.92);
   }
-  .hero-latest b {
-    font-weight: 600; font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase;
-    color: rgba(255,255,255,.55); margin-right: 4px;
-  }
-  .hero-latest span {
-    font-size: 13px; color: rgba(255,255,255,.9);
-    border: 1px solid rgba(255,255,255,.24); border-radius: 999px; padding: 5px 13px;
-    background: rgba(20,20,15,.4);
+  .hero-latest span { white-space: nowrap; }
+  .hero-latest em {
+    font-style: normal; font-weight: 600; font-size: 13px;
+    color: var(--accent); margin-left: 6px;
   }
   .hero h1 {
     font-size: clamp(40px, 5.2vw, 76px); font-weight: 500;
@@ -316,7 +314,7 @@
       background: radial-gradient(75% 52% at 50% 48%,
         rgba(20,20,15,.78) 0%, rgba(20,20,15,.34) 62%, rgba(20,20,15,0) 100%);
     }
-    .hero-latest b { flex-basis: 100%; margin: 0 0 2px; }
+    .hero-latest { column-gap: 18px; font-size: 14px; }
     .hero h1 { font-size: clamp(40px, 11vw, 60px); }
     .hero h1 br.db { display: none; } /* mobile: chip flows inline */
     .hero-credit { right: 16px; bottom: 12px; }
@@ -353,11 +351,10 @@
   <div class="hero-copy">
     <h1>The latest AI models.<br class="db"> <em>Up to half the price.</em></h1>
     <div class="hero-latest">
-      <b>Latest additions</b>
-      <span>Seedance 2.5</span>
-      <span>MiniMax H3</span>
-      <span>Google Omni 1.1</span>
-      <span>Wan 3.0</span>
+      <span>Seedance 2.5 <em>−50%</em></span>
+      <span>MiniMax H3 <em>−50%</em></span>
+      <span>Google Omni 1.1 <em>−50%</em></span>
+      <span>Wan 3.0 <em>−50%</em></span>
     </div>
     <div class="cta"><a class="btn accent" href="/canvas/">Open canvas</a></div>
   </div>
