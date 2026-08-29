@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
-import { fetchBalance, startCoinCheckout, usd, type CoinPack } from "./lib/balance";
+import {
+  fetchBalance,
+  fetchHistory,
+  startCoinCheckout,
+  txnLabel,
+  usd,
+  type CoinPack,
+  type CoinTxn,
+} from "./lib/balance";
 
 const PACKS: { pack: CoinPack; label: string }[] = [
   { pack: "freym-2500", label: "Top up $5" },
@@ -19,8 +27,14 @@ export default function BalancePill() {
   const [busy, setBusy] = useState<CoinPack | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [history, setHistory] = useState<{ recent: CoinTxn[]; spent30d: number } | null>(null);
 
   const refresh = () => fetchBalance().then(setBalance);
+
+  // The ledger loads when the modal opens (and refreshes on reopen).
+  useEffect(() => {
+    if (open) fetchHistory().then(setHistory).catch(() => setHistory(null));
+  }, [open]);
 
   useEffect(() => {
     void refresh();
@@ -76,6 +90,35 @@ export default function BalancePill() {
               before you run it. One-time payment, no subscription, credit
               never expires. Checkout runs on Stripe.
             </p>
+            <div className="fc-wallet">
+              <div className="fc-wallet-row">
+                <span>Balance</span>
+                <b>{balance == null ? "…" : usd(balance)}</b>
+              </div>
+              <div className="fc-wallet-row">
+                <span>Spent · last 30 days</span>
+                <b>{history == null ? "…" : usd(history.spent30d)}</b>
+              </div>
+              {history != null && history.recent.length > 0 && (
+                <div className="fc-history">
+                  {history.recent.map((t) => (
+                    <div key={t.id} className="fc-txn">
+                      <span className="fc-txn-label">{txnLabel(t)}</span>
+                      <span className="fc-txn-date">
+                        {new Date(t.created_at).toLocaleDateString(undefined, {
+                          day: "numeric",
+                          month: "short",
+                        })}
+                      </span>
+                      <span className={`fc-txn-amt ${t.amount < 0 ? "neg" : "pos"}`}>
+                        {t.amount < 0 ? "−" : "+"}
+                        {usd(Math.abs(t.amount))}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             {PACKS.map(({ pack, label }) => (
               <button key={pack} className="fc-primary fc-pack" disabled={busy !== null} onClick={() => buy(pack)}>
                 {busy === pack ? "Opening checkout…" : label}

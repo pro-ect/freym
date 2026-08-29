@@ -315,3 +315,29 @@ input, textarea, select { font: inherit; }
 .fc-modal h2 { font-size: 17px; font-weight: 600; margin: 0; }
 .fc-modal-sub { font-size: 13px; line-height: 1.5; color: #9a9aa4; margin: 0 0 6px; }
 .fc-pack { width: 100%; }
+/* wallet block inside the top-up modal: balance, 30-day spend, ledger */
+.fc-wallet {
+  border: 1px solid #2c2c33; border-radius: 10px;
+  padding: 10px 12px; margin: 2px 0 6px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.fc-wallet-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 13px; color: #9a9aa4;
+}
+.fc-wallet-row b { color: #fff; font-weight: 600; }
+.fc-history {
+  border-top: 1px solid #2c2c33; margin-top: 4px; padding-top: 8px;
+  max-height: 168px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.fc-txn {
+  display: flex; align-items: baseline; gap: 8px; font-size: 12.5px;
+}
+.fc-txn-label {
+  color: #d6d6dc; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.fc-txn-date { color: #6b6b75; margin-left: auto; flex: none; }
+.fc-txn-amt { flex: none; min-width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
+.fc-txn-amt.neg { color: #9a9aa4; }
+.fc-txn-amt.pos { color: #4ade80; }
