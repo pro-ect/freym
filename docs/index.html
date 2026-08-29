@@ -259,6 +259,20 @@
   #payg { text-align: center; padding-top: 170px; padding-bottom: 170px; }
   #payg .big { font-size: clamp(46px, 7.4vw, 122px); }
   #payg .lede { margin-left: auto; margin-right: auto; }
+  /* video testimonial: phone-shaped card under the copy, tap for sound */
+  .payg-video { position: relative; margin: 46px auto 0; width: min(300px, 78vw); }
+  .payg-video video {
+    width: 100%; aspect-ratio: 9/16; object-fit: cover; display: block;
+    border-radius: 20px; box-shadow: 0 24px 60px rgba(17,17,16,.22);
+    background: #14140f;
+  }
+  .pv-sound {
+    position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
+    background: rgba(20,20,15,.62); color: #fff; border: none; cursor: pointer;
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: .04em;
+    border-radius: 999px; padding: 8px 16px; backdrop-filter: blur(6px);
+  }
+  .pv-sound:hover { background: rgba(20,20,15,.8); }
   @media (max-width: 980px) {
     #payg { padding-top: 110px; padding-bottom: 110px; }
   }
@@ -543,6 +557,10 @@
     Top up once, generate whenever you want. Nothing monthly, nothing expires,
     and every failed generation refunds itself.
   </p>
+  <div class="payg-video">
+    <video src="/assets/testimonial-1.mp4" autoplay muted loop playsinline id="pvVid"></video>
+    <button class="pv-sound" id="pvSound" type="button">unmute</button>
+  </div>
 </section>
 
 
@@ -867,6 +885,19 @@ function drawHeroWires() {
       strip.appendChild(a);
     });
   } catch (e) { /* strip stays empty */ }
+})();
+
+// Testimonial: muted autoplay; the button toggles sound (restarts from 0 when
+// unmuting so the line is heard from the top).
+(() => {
+  const v = document.getElementById("pvVid");
+  const b = document.getElementById("pvSound");
+  if (!v || !b) return;
+  b.addEventListener("click", () => {
+    v.muted = !v.muted;
+    if (!v.muted) { v.currentTime = 0; v.play().catch(() => {}); }
+    b.textContent = v.muted ? "unmute" : "mute";
+  });
 })();
 
 // Model news: the four newest items from the same feed /news/ uses.
