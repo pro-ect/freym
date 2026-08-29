@@ -233,21 +233,6 @@
   }
   .lede { margin-top: 18px; font-size: 17px; line-height: 1.55; color: var(--muted); max-width: 620px; }
 
-  /* ---------- scattered proof ---------- */
-  .scatter { position: relative; text-align: center; padding: 120px 40px; overflow: hidden; }
-  .scatter h2 { font-size: clamp(32px, 4.6vw, 60px); font-weight: 500; line-height: 1.02; max-width: 900px; margin: 0 auto; }
-  .scatter p { margin: 22px auto 0; font-size: 17px; color: var(--muted); max-width: 520px; }
-  .scatter .cta { margin-top: 30px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-  .sc-img {
-    position: absolute; width: 128px; height: 128px; border-radius: 18px; object-fit: cover;
-    border: 6px solid #fff; box-shadow: 0 12px 30px rgba(17,17,16,.14);
-  }
-  .sc-1 { top: 40px; left: 6%; transform: rotate(-6deg); }
-  .sc-2 { top: 92px; right: 8%; transform: rotate(5deg); }
-  .sc-3 { bottom: 70px; left: 12%; transform: rotate(4deg); }
-  .sc-4 { bottom: 40px; right: 13%; transform: rotate(-5deg); }
-  @media (max-width: 900px) { .sc-img { display: none; } }
-
   /* ---------- pricing table ---------- */
   .ptable { margin-top: 40px; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--card); }
   .prow {
@@ -538,22 +523,6 @@
   <p class="pfoot"><a href="/work/" style="text-decoration:underline;text-underline-offset:3px">Browse the full feed →</a></p>
 </section>
 
-<section class="scatter">
-  <img class="sc-img sc-1" alt="" referrerpolicy="no-referrer" />
-  <img class="sc-img sc-2" alt="" referrerpolicy="no-referrer" />
-  <img class="sc-img sc-3" alt="" referrerpolicy="no-referrer" />
-  <img class="sc-img sc-4" alt="" referrerpolicy="no-referrer" />
-  <h2>Built with real creators.</h2>
-  <p>freym is shaped in the open — working creators use the canvas daily, we ship
-    their feedback fast, and the interface stays honest: branch a prompt, send one
-    image into three models, compare side by side.</p>
-  <div class="cta">
-    <a class="btn accent" href="/canvas/">Open canvas</a>
-    <a class="btn ghost" href="/work/">Browse the feed</a>
-  </div>
-</section>
-
-
 <section class="band" id="news" style="padding-top:0">
   <div class="eyebrow">Gen-AI news</div>
   <h2 class="big">What the AI labs shipped.</h2>
@@ -807,8 +776,8 @@ function drawHeroWires() {
   setInterval(cycle, 9600);
 })();
 
-// The feed powers two decorations: the scattered thumbnails and the strip above the
-// footer. Both are progressive — the page reads fine if the fetch fails.
+// The feed powers the prompt strip above the news section. Progressive — the
+// page reads fine if the fetch fails.
 (async () => {
   try {
     const res = await fetch(FEED_URL, { headers: { Authorization: "Bearer " + ANON_KEY } });
@@ -821,14 +790,9 @@ function drawHeroWires() {
       .map((p) => p.sc_images.slice().sort((a, b) => a.position - b.position)[0].url);
     if (!posts.length) return;
 
-    document.querySelectorAll(".sc-img").forEach((el, i) => {
-      const u = posts[i];
-      if (u) el.src = u; else el.remove();
-    });
-
     const strip = document.getElementById("strip");
     strip.innerHTML = "";
-    posts.slice(4, 32).forEach((u) => {
+    posts.slice(0, 28).forEach((u) => {
       const a = document.createElement("a");
       a.href = "/work/";
       const img = document.createElement("img");
@@ -836,9 +800,7 @@ function drawHeroWires() {
       a.appendChild(img);
       strip.appendChild(a);
     });
-  } catch (e) {
-    document.querySelectorAll(".sc-img").forEach((el) => el.remove());
-  }
+  } catch (e) { /* strip stays empty */ }
 })();
 
 // Model news: the four newest items from the same feed /news/ uses.
