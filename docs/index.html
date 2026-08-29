@@ -81,27 +81,33 @@
     position: absolute; border-radius: 14px; overflow: hidden;
     background: #1e1e19; box-shadow: 0 18px 44px rgba(0,0,0,.45);
     opacity: 0; transition: opacity .8s ease;
-    /* --py is the scroll parallax offset, --rot the slot's resting tilt */
-    transform: translateY(var(--py, 0px)) rotate(var(--rot, 0deg));
+    /* --py is the scroll parallax offset */
+    transform: translateY(var(--py, 0px));
     will-change: transform;
   }
   .hcard.in { opacity: 1; }
   .hcard img, .hcard video { width: 100%; height: 100%; object-fit: cover; display: block; }
-  /* scattered slots, slightly tilted; the middle stays clear for the title.
+  /* scattered slots; the middle stays clear for the title.
      hc7–hc9 are the far layer: smaller, dimmer, slower parallax. */
-  .hc1 { top: 8%;     left: 3%;   width: clamp(150px, 15vw, 250px); aspect-ratio: 3/4;   --rot: -1.6deg; }
-  .hc2 { bottom: 6%;  left: 10%;  width: clamp(160px, 17vw, 290px); aspect-ratio: 4/3;   --rot: 1.2deg; }
-  .hc3 { top: 15%;    left: 36%;  width: clamp(130px, 13vw, 215px); aspect-ratio: 4/3;   --rot: 1.8deg; }
-  .hc4 { top: 6%;     right: 4%;  width: clamp(170px, 19vw, 330px); aspect-ratio: 16/10; --rot: -1.1deg; }
-  .hc5 { bottom: 13%; right: 3%;  width: clamp(150px, 15vw, 255px); aspect-ratio: 3/4;   --rot: 1.5deg; }
-  .hc6 { bottom: 4%;  left: 43%;  width: clamp(140px, 13vw, 225px); aspect-ratio: 1/1;   --rot: -2deg; }
-  .hc7 { top: 47%;    left: 17%;  width: clamp(90px, 8vw, 130px);   aspect-ratio: 3/4;   --rot: 2.2deg; }
-  .hc8 { top: 40%;    right: 19%; width: clamp(80px, 7vw, 120px);   aspect-ratio: 1/1;   --rot: -1.8deg; }
-  .hc9 { top: 5%;     left: 24%;  width: clamp(84px, 7.5vw, 124px); aspect-ratio: 4/3;   --rot: 1.4deg; }
+  .hc1 { top: 8%;     left: 3%;   width: clamp(150px, 15vw, 250px); aspect-ratio: 3/4;}
+  .hc2 { bottom: 6%;  left: 10%;  width: clamp(160px, 17vw, 290px); aspect-ratio: 4/3;}
+  .hc3 { top: 15%;    left: 36%;  width: clamp(130px, 13vw, 215px); aspect-ratio: 4/3;}
+  .hc4 { top: 6%;     right: 4%;  width: clamp(170px, 19vw, 330px); aspect-ratio: 16/10;}
+  .hc5 { bottom: 13%; right: 3%;  width: clamp(150px, 15vw, 255px); aspect-ratio: 3/4;}
+  .hc6 { bottom: 4%;  left: 43%;  width: clamp(140px, 13vw, 225px); aspect-ratio: 1/1;}
+  .hc7 { top: 47%;    left: 17%;  width: clamp(90px, 8vw, 130px);   aspect-ratio: 3/4;}
+  .hc8 { top: 40%;    right: 19%; width: clamp(80px, 7vw, 120px);   aspect-ratio: 1/1;}
+  .hc9 { top: 5%;     left: 24%;  width: clamp(84px, 7.5vw, 124px); aspect-ratio: 4/3;}
   .hc7, .hc8, .hc9 {
     border-radius: 10px; box-shadow: 0 10px 26px rgba(0,0,0,.4);
   }
   .hc7.in, .hc8.in, .hc9.in { opacity: .58; } /* farther away */
+  /* canvas-style wires from the cards toward nodes beyond the frame */
+  #heroWires { position: absolute; inset: 0; pointer-events: none; }
+  #heroWires .hwire { opacity: 0; transition: opacity .9s ease .35s; }
+  #heroWires .hwire.in { opacity: 1; }
+  #heroWires path { fill: none; stroke: rgba(255,255,255,.16); stroke-width: 2; }
+  #heroWires circle { fill: rgba(255,255,255,.38); }
   /* soft pool of dark behind the centered copy so it reads over anything */
   .hero-art::after {
     content: ""; position: absolute; inset: 0; pointer-events: none;
@@ -643,6 +649,7 @@ function renderHero(data) {
     credit.innerHTML = (shown.length === 1 ? "Work by " : "Works by ") + links;
     credit.hidden = false;
   }
+  drawHeroWires();
   return true;
 }
 
@@ -659,6 +666,69 @@ function renderHero(data) {
     if (!painted) renderHero(data);
   } catch (e) { /* keep whatever is showing */ }
 })();
+
+// Each card gets a canvas-style wire running out of the frame, as if wired to
+// nodes beyond the viewport. Drawn under the cards from their resting
+// positions; the parallax loop moves each wire with its card.
+function drawHeroWires() {
+  const art = document.querySelector(".hero-art");
+  const wrap = document.getElementById("heroCards");
+  if (!art || !wrap) return;
+  document.getElementById("heroWires")?.remove();
+  if (window.innerWidth <= 720) return;
+  const W = art.clientWidth, H = art.clientHeight;
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg");
+  svg.id = "heroWires";
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("width", W);
+  svg.setAttribute("height", H);
+
+  wrap.querySelectorAll(".hcard").forEach((el) => {
+    const slot = [...el.classList].find((c) => /^hc\d$/.test(c));
+    if (!slot) return;
+    const x = el.offsetLeft, y = el.offsetTop, w = el.offsetWidth, h = el.offsetHeight;
+    const cx = x + w / 2, cy = y + h / 2;
+    let sx, sy, ex, ey, d;
+    if (cx < W * 0.35) {
+      sx = x; sy = cy; ex = -60; ey = cy + (cy < H / 2 ? -80 : 80);
+      const dx = (sx - ex) / 2;
+      d = `M ${sx} ${sy} C ${sx - dx} ${sy}, ${ex + dx} ${ey}, ${ex} ${ey}`;
+    } else if (cx > W * 0.65) {
+      sx = x + w; sy = cy; ex = W + 60; ey = cy + (cy < H / 2 ? -80 : 80);
+      const dx = (ex - sx) / 2;
+      d = `M ${sx} ${sy} C ${sx + dx} ${sy}, ${ex - dx} ${ey}, ${ex} ${ey}`;
+    } else if (cy < H / 2) {
+      sx = cx; sy = y; ex = cx + (cx < W / 2 ? -110 : 110); ey = -60;
+      const dy = (sy - ey) / 2;
+      d = `M ${sx} ${sy} C ${sx} ${sy - dy}, ${ex} ${ey + dy}, ${ex} ${ey}`;
+    } else {
+      sx = cx; sy = y + h; ex = cx + (cx < W / 2 ? -110 : 110); ey = H + 60;
+      const dy = (ey - sy) / 2;
+      d = `M ${sx} ${sy} C ${sx} ${sy + dy}, ${ex} ${ey - dy}, ${ex} ${ey}`;
+    }
+    const g = document.createElementNS(NS, "g");
+    g.setAttribute("class", "hwire");
+    g.dataset.slot = slot;
+    const path = document.createElementNS(NS, "path");
+    path.setAttribute("d", d);
+    const dot = document.createElementNS(NS, "circle");
+    dot.setAttribute("cx", sx);
+    dot.setAttribute("cy", sy);
+    dot.setAttribute("r", "3");
+    g.append(path, dot);
+    svg.appendChild(g);
+    requestAnimationFrame(() => g.classList.add("in"));
+  });
+  wrap.prepend(svg); // first child → painted under every card
+}
+{
+  let wireTimer = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(wireTimer);
+    wireTimer = setTimeout(drawHeroWires, 150);
+  });
+}
 
 // Scroll parallax on the hero cards: each slot has a depth factor, the small
 // far-layer cards (hc7–hc9) barely move, near cards drift up faster. Offsets
@@ -677,6 +747,11 @@ function renderHero(data) {
     document.querySelectorAll(".hcard").forEach((el) => {
       const key = [...el.classList].find((c) => DEPTH[c] !== undefined);
       if (key) el.style.setProperty("--py", (-y * DEPTH[key]).toFixed(1) + "px");
+    });
+    // wires ride along with their cards
+    document.querySelectorAll("#heroWires .hwire").forEach((g) => {
+      const depth = DEPTH[g.dataset.slot];
+      if (depth !== undefined) g.style.transform = `translateY(${(-y * depth).toFixed(1)}px)`;
     });
   };
   window.addEventListener("scroll", () => {
