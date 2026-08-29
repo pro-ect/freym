@@ -17,7 +17,7 @@
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"freym","url":"https://freym.app/","description":"freym canvas is a node canvas for generative-AI image and video models, with a live model-news feed and a gallery of AI works with the prompts behind them."},{"@type":"Organization","name":"freym","url":"https://freym.app/"},{"@type":"SoftwareApplication","name":"freym canvas","applicationCategory":"DesignApplication","operatingSystem":"Web","url":"https://freym.app/canvas/","description":"Node canvas for AI image and video models: wire prompts into models, chain outputs, pay per generation."}]}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #f5f4ee;
@@ -27,6 +27,8 @@
     --card: #ffffff;
     --accent: #ff4d00;      /* used sparingly — small marks only */
     --accent-soft: #fff0e9;
+    /* second family: mono for small technical elements (credits, eyebrows, metas) */
+    --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -78,18 +80,28 @@
   .hcard {
     position: absolute; border-radius: 14px; overflow: hidden;
     background: #1e1e19; box-shadow: 0 18px 44px rgba(0,0,0,.45);
-    opacity: 0; transform: translateY(14px);
-    transition: opacity .6s ease, transform .6s ease;
+    opacity: 0; transition: opacity .8s ease;
+    /* --py is the scroll parallax offset, --rot the slot's resting tilt */
+    transform: translateY(var(--py, 0px)) rotate(var(--rot, 0deg));
+    will-change: transform;
   }
-  .hcard.in { opacity: 1; transform: none; }
+  .hcard.in { opacity: 1; }
   .hcard img, .hcard video { width: 100%; height: 100%; object-fit: cover; display: block; }
-  /* slots hug the edges and corners; the middle stays clear for the title */
-  .hc1 { top: 11%;   left: 4%;  width: clamp(150px, 15vw, 250px); aspect-ratio: 3/4; }
-  .hc2 { bottom: 8%; left: 9%;  width: clamp(160px, 17vw, 290px); aspect-ratio: 4/3; }
-  .hc3 { top: 12%;   left: 38%; width: clamp(130px, 13vw, 215px); aspect-ratio: 4/3; }
-  .hc4 { top: 9%;    right: 5%; width: clamp(170px, 19vw, 330px); aspect-ratio: 16/10; }
-  .hc5 { bottom: 11%; right: 4%; width: clamp(150px, 15vw, 255px); aspect-ratio: 3/4; }
-  .hc6 { bottom: 6%; left: 44%; width: clamp(140px, 13vw, 225px); aspect-ratio: 1/1; }
+  /* scattered slots, slightly tilted; the middle stays clear for the title.
+     hc7–hc9 are the far layer: smaller, dimmer, slower parallax. */
+  .hc1 { top: 8%;     left: 3%;   width: clamp(150px, 15vw, 250px); aspect-ratio: 3/4;   --rot: -1.6deg; }
+  .hc2 { bottom: 6%;  left: 10%;  width: clamp(160px, 17vw, 290px); aspect-ratio: 4/3;   --rot: 1.2deg; }
+  .hc3 { top: 15%;    left: 36%;  width: clamp(130px, 13vw, 215px); aspect-ratio: 4/3;   --rot: 1.8deg; }
+  .hc4 { top: 6%;     right: 4%;  width: clamp(170px, 19vw, 330px); aspect-ratio: 16/10; --rot: -1.1deg; }
+  .hc5 { bottom: 13%; right: 3%;  width: clamp(150px, 15vw, 255px); aspect-ratio: 3/4;   --rot: 1.5deg; }
+  .hc6 { bottom: 4%;  left: 43%;  width: clamp(140px, 13vw, 225px); aspect-ratio: 1/1;   --rot: -2deg; }
+  .hc7 { top: 47%;    left: 17%;  width: clamp(90px, 8vw, 130px);   aspect-ratio: 3/4;   --rot: 2.2deg; }
+  .hc8 { top: 40%;    right: 19%; width: clamp(80px, 7vw, 120px);   aspect-ratio: 1/1;   --rot: -1.8deg; }
+  .hc9 { top: 5%;     left: 24%;  width: clamp(84px, 7.5vw, 124px); aspect-ratio: 4/3;   --rot: 1.4deg; }
+  .hc7, .hc8, .hc9 {
+    border-radius: 10px; box-shadow: 0 10px 26px rgba(0,0,0,.4);
+  }
+  .hc7.in, .hc8.in, .hc9.in { opacity: .58; } /* farther away */
   /* soft pool of dark behind the centered copy so it reads over anything */
   .hero-art::after {
     content: ""; position: absolute; inset: 0; pointer-events: none;
@@ -111,22 +123,25 @@
   .hero-latest span { white-space: nowrap; }
   /* discount as a superscript, like an exponent on the model name */
   .hero-latest em {
-    font-style: normal; font-weight: 500; font-size: 10.5px;
+    font-style: normal; font-weight: 400; font-size: 10px;
+    font-family: var(--font-mono);
     color: rgba(255,255,255,.92); vertical-align: super;
-    margin-left: 2px; letter-spacing: .02em;
+    margin-left: 2px;
   }
   .hero h1 {
     font-size: clamp(40px, 5.2vw, 76px); font-weight: 500;
     line-height: 1.08; color: #fff;
+    letter-spacing: -0.025em; /* Eugene's explicit ask for the hero title only */
   }
   .hero h1 em { font-style: normal; }
   .hero .cta { margin-top: 26px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
   /* author credit rides in the corner of the artwork */
   .hero-credit {
     position: absolute; right: 22px; bottom: 14px; z-index: 2;
-    font-size: 12.5px; color: rgba(255,255,255,.72); margin: 0;
+    font-family: var(--font-mono); font-size: 11px;
+    color: rgba(255,255,255,.42); margin: 0;
   }
-  .hero-credit a { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+  .hero-credit a { color: rgba(255,255,255,.6); text-decoration: underline; text-underline-offset: 3px; }
   .hero .btn.accent { background: #fff; border-color: #fff; color: var(--ink); }
   .hero .btn.ghost { color: #fff; border-color: rgba(255,255,255,.5); }
   .hero .btn.ghost:hover { border-color: #fff; }
@@ -175,7 +190,8 @@
   .node .head {
     display: flex; align-items: center; gap: 6px;
     padding: 7px 9px; border-bottom: 1px solid #33322b;
-    font-weight: 600; font-size: 10.5px; letter-spacing: .03em; text-transform: uppercase; color: #a9a79d;
+    font-family: var(--font-mono);
+    font-weight: 500; font-size: 10px; letter-spacing: .03em; text-transform: uppercase; color: #a9a79d;
   }
   .node .head .d { width: 6px; height: 6px; border-radius: 50%; background: #7d786a; }
   .node .body { padding: 9px; line-height: 1.4; color: #d7d5cc; }
@@ -194,7 +210,7 @@
   .n3 { top: 120px; left: 236px; width: 176px; }
   .n4 { top: 20px;  right: 20px; width: 158px; }
   .n6 { top: 300px; right: 20px; width: 152px; }
-  .node .meta { display: block; margin-top: 6px; color: #93907f; font-size: 10px; letter-spacing: .02em; }
+  .node .meta { display: block; margin-top: 6px; color: #93907f; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .02em; }
   .node .run { display: flex; align-items: center; gap: 5px; margin-top: 8px; font-size: 10px; color: #d7d5cc; }
   .node .run i { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); font-style: normal; }
   .node .bar { display: block; margin-top: 6px; height: 3px; border-radius: 3px; background: #33322b; overflow: hidden; }
@@ -204,7 +220,7 @@
 
   /* ---------- section shell ---------- */
   section.band { max-width: 1280px; margin: 0 auto; padding: 96px 40px; }
-  .eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
   h2.big {
     font-size: clamp(32px, 4.4vw, 58px); font-weight: 500;
     line-height: 1.0; margin-top: 14px;
@@ -306,7 +322,7 @@
     .hero header nav.top { display: none; }
     .hero-art { min-height: 82vh; }
     /* corners only, bleeding off-screen; the center stays clear */
-    .hc3, .hc6 { display: none; }
+    .hc3, .hc6, .hc7, .hc8, .hc9 { display: none; }
     .hc1 { top: 5%;    left: -8%;  width: 34vw; }
     .hc2 { bottom: 4%; left: -6%;  width: 38vw; }
     .hc4 { top: 4%;    right: -9%; width: 40vw; }
@@ -560,16 +576,26 @@ const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 function renderHero(data) {
   const posts = (data.posts ?? []).filter((p) => (p.sc_images ?? []).length);
   if (!posts.length) return false;
-  const pool = posts.map((post) => {
+  // One work per post first (variety), then the posts' remaining photos fill
+  // the far-layer slots when there aren't enough starred posts for all nine.
+  const primary = [];
+  const extras = [];
+  for (const post of posts) {
     const imgs = post.sc_images.slice().sort((a, b) => a.position - b.position);
-    const im = imgs.find((i) => i.video_url) ?? imgs[0];
-    return { ...im, creator_id: post.creator_id };
-  });
-  for (let i = pool.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [pool[i], pool[j]] = [pool[j], pool[i]];
+    const lead = imgs.find((i) => i.video_url) ?? imgs[0];
+    primary.push({ ...lead, creator_id: post.creator_id });
+    for (const im of imgs) {
+      if (im !== lead) extras.push({ ...im, creator_id: post.creator_id });
+    }
   }
-  const picks = pool.slice(0, 6);
+  const shuffle = (arr) => {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
+  const picks = [...shuffle(primary), ...shuffle(extras)].slice(0, 9);
   if (!picks.length) return false;
 
   const wrap = document.getElementById("heroCards");
@@ -632,6 +658,33 @@ function renderHero(data) {
     try { localStorage.setItem("freym_hero_cache", JSON.stringify(data)); } catch (e) { /* full/blocked */ }
     if (!painted) renderHero(data);
   } catch (e) { /* keep whatever is showing */ }
+})();
+
+// Scroll parallax on the hero cards: each slot has a depth factor, the small
+// far-layer cards (hc7–hc9) barely move, near cards drift up faster. Offsets
+// go through --py so they compose with each slot's resting tilt.
+(() => {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const DEPTH = {
+    hc1: 0.16, hc2: 0.12, hc3: 0.2, hc4: 0.14, hc5: 0.11, hc6: 0.18,
+    hc7: 0.06, hc8: 0.05, hc9: 0.07,
+  };
+  let ticking = false;
+  const apply = () => {
+    ticking = false;
+    const y = window.scrollY;
+    if (y > window.innerHeight * 1.4) return; // hero is gone, stop touching styles
+    document.querySelectorAll(".hcard").forEach((el) => {
+      const key = [...el.classList].find((c) => DEPTH[c] !== undefined);
+      if (key) el.style.setProperty("--py", (-y * DEPTH[key]).toFixed(1) + "px");
+    });
+  };
+  window.addEventListener("scroll", () => {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(apply);
+    }
+  }, { passive: true });
 })();
 
 // The board mock plays the real flow on a loop: nodes appear, wires connect,
