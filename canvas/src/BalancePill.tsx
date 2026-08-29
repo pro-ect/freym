@@ -27,13 +27,13 @@ export default function BalancePill() {
   const [busy, setBusy] = useState<CoinPack | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const [history, setHistory] = useState<{ recent: CoinTxn[]; spent30d: number } | null>(null);
+  const [wallet, setWallet] = useState<{ recent: CoinTxn[]; spent30d: number } | null>(null);
 
   const refresh = () => fetchBalance().then(setBalance);
 
   // The ledger loads when the modal opens (and refreshes on reopen).
   useEffect(() => {
-    if (open) fetchHistory().then(setHistory).catch(() => setHistory(null));
+    if (open) fetchHistory().then(setWallet).catch(() => setWallet(null));
   }, [open]);
 
   useEffect(() => {
@@ -97,11 +97,11 @@ export default function BalancePill() {
               </div>
               <div className="fc-wallet-row">
                 <span>Spent · last 30 days</span>
-                <b>{history == null ? "…" : usd(history.spent30d)}</b>
+                <b>{wallet == null ? "…" : usd(wallet.spent30d)}</b>
               </div>
-              {history != null && history.recent.length > 0 && (
+              {wallet != null && wallet.recent.length > 0 && (
                 <div className="fc-history">
-                  {history.recent.map((t) => (
+                  {wallet.recent.map((t) => (
                     <div key={t.id} className="fc-txn">
                       <span className="fc-txn-label">{txnLabel(t)}</span>
                       <span className="fc-txn-date">
