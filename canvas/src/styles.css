@@ -9,6 +9,9 @@ body {
 }
 button { font: inherit; cursor: pointer; }
 input, textarea, select { font: inherit; }
+/* two-finger horizontal pan must pan the board, not trigger the browser's
+   back/forward swipe — kill overscroll navigation on both axes */
+html, body { overscroll-behavior: none; }
 
 /* ---------- layout ---------- */
 .fc-root { display: grid; grid-template-columns: 240px 1fr auto; grid-template-rows: 48px 1fr; height: 100vh; }
