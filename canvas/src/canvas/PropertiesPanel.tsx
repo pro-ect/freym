@@ -1,4 +1,5 @@
 import type { Node } from "@xyflow/react";
+import DurationControl from "./DurationControl";
 import { patchNodeData, type ModelNodeData, type ParamField, type ParamSchema } from "../types";
 import { usd } from "../lib/balance";
 import { estimateCoins } from "../lib/pricing";
@@ -72,6 +73,25 @@ export default function PropertiesPanel({
               <span>{labelFor(key, field)}</span>
               <em className="fc-field-desc">{field.description}</em>
             </div>
+          );
+        }
+
+        // Seconds feel better on a slider — with a number box for typing. Only
+        // the schema's allowed values are ever written (billing + API safety).
+        if (
+          field.type === "select" &&
+          /duration/i.test(key) &&
+          (field.options ?? []).every((o) => Number.isFinite(Number(o))) &&
+          (field.options ?? []).length > 1
+        ) {
+          return (
+            <DurationControl
+              key={key}
+              label={labelFor(key, field)}
+              options={(field.options ?? []).map(Number)}
+              value={Number(value ?? field.default ?? 0)}
+              onChange={(n) => setCustom(key, n)}
+            />
           );
         }
 

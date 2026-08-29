@@ -126,6 +126,28 @@ html, body { overscroll-behavior: none; }
   background: #8b8b96; border: 1px solid #0d0d0f;
 }
 .react-flow__resize-control.line { border-color: rgba(139,139,150,.4); }
+
+/* duration: slider over allowed values + a typed seconds box */
+.fc-duration { display: flex; align-items: center; gap: 10px; }
+.fc-duration input[type="range"] { flex: 1 1 auto; }
+.fc-duration-num { width: 58px; text-align: right; }
+
+/* topbar share button */
+.fc-share {
+  background: none; border: 1px solid #2e2e35; color: #a3a3ad;
+  border-radius: 8px; padding: 5px 12px; font-size: 12.5px;
+}
+.fc-share:hover { color: #fff; border-color: #4a4a52; }
+
+/* read-only shared board */
+.fc-shared { grid-template-columns: 1fr; }
+.fc-shared-flow { grid-column: 1; }
+.fc-shared .fc-node { pointer-events: none; }
+.fc-shared-title { pointer-events: none; }
+.fc-shared-cta {
+  margin-left: 10px; text-decoration: none; border-radius: 8px;
+  padding: 6px 12px; font-size: 12.5px;
+}
 .fc-prompt textarea:focus, .fc-promptgen textarea:focus { outline: none; }
 .fc-prompt textarea::placeholder, .fc-promptgen textarea::placeholder { color: #55555e; }
 

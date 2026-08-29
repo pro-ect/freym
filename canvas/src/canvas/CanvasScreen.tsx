@@ -26,7 +26,7 @@ import BalancePill from "../BalancePill";
 import CurvedEdge from "./CurvedEdge";
 import ModelSidebar from "./ModelSidebar";
 import PropertiesPanel from "./PropertiesPanel";
-import { loadProject, saveProject, renameProject } from "../lib/projects";
+import { loadProject, saveProject, renameProject, ensureShareToken } from "../lib/projects";
 import { resumeJobs } from "../lib/runner";
 import { generatePrompts } from "../lib/promptgen";
 import { fetchModels } from "../lib/models";
@@ -78,6 +78,7 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
   const [name, setName] = useState("…");
   const [loaded, setLoaded] = useState(false);
   const [saveState, setSaveState] = useState<"saved" | "saving" | "dirty">("saved");
+  const [shareState, setShareState] = useState<"idle" | "busy" | "copied">("idle");
   const { screenToFlowPosition, getEdges, getNode, getNodes } = useReactFlow();
   const clipboardRef = useRef<Node[]>([]);
   const saveTimer = useRef<number | null>(null);
@@ -543,6 +544,26 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
         <span className={`fc-save-state ${saveState}`}>
           {saveState === "saved" ? "saved" : saveState === "saving" ? "saving…" : "…"}
         </span>
+        <button
+          className="fc-share"
+          title="Copy a read-only link to this board"
+          disabled={shareState === "busy"}
+          onClick={async () => {
+            setShareState("busy");
+            try {
+              const token = await ensureShareToken(projectId);
+              await navigator.clipboard.writeText(
+                `${window.location.origin}${window.location.pathname}?share=${token}`,
+              );
+              setShareState("copied");
+              setTimeout(() => setShareState("idle"), 2200);
+            } catch {
+              setShareState("idle");
+            }
+          }}
+        >
+          {shareState === "copied" ? "link copied" : "share"}
+        </button>
         <BalancePill />
       </header>
 

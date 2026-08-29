@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import { getSession, onAuthChange, signInWithGoogle, signInWithPassphrase } from "./lib/auth";
 import ProjectsScreen from "./ProjectsScreen";
 import CanvasScreen from "./canvas/CanvasScreen";
+import SharedBoard from "./canvas/SharedBoard";
+
+// A share link renders the read-only board — no auth gate.
+const SHARE_TOKEN = new URLSearchParams(window.location.search).get("share");
 
 type Stage = "checking" | "gate" | "ready";
 
@@ -36,6 +40,8 @@ export default function App() {
     history.pushState({}, "", url);
     setProjectId(id);
   };
+
+  if (SHARE_TOKEN) return <SharedBoard token={SHARE_TOKEN} />;
 
   if (stage === "checking") return <div className="fc-gate fc-muted">…</div>;
 
