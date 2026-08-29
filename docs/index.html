@@ -66,55 +66,61 @@
   .hero { position: relative; }
   .hero-art {
     position: relative; overflow: hidden;
-    min-height: min(88vh, 820px);
-    background-color: #2b2a24;
-    /* starred photos fill the panel; the gradient is only the pre-load surface */
-    background-image:
-      radial-gradient(90% 70% at 50% 12%, #f0d9c6 0%, #e2b892 42%, #b8764a 72%, #6d4630 100%);
-    background-size: cover; background-position: center;
+    min-height: min(92vh, 860px);
+    /* same dotted surface as the board — the hero IS the canvas */
+    background: #14140f;
+    background-image: radial-gradient(rgba(255,255,255,.1) 1px, transparent 1px);
+    background-size: 18px 18px;
   }
-  .hero-video {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    object-fit: cover;
+  /* floating works from the feed — cards from MIXED admin-starred posts,
+     scattered around a centered title. Empty until the fetch fills it. */
+  .hero-cards { position: absolute; inset: 0; }
+  .hcard {
+    position: absolute; border-radius: 14px; overflow: hidden;
+    background: #1e1e19; box-shadow: 0 18px 44px rgba(0,0,0,.45);
+    opacity: 0; transform: translateY(14px);
+    transition: opacity .6s ease, transform .6s ease;
   }
-  @media (prefers-reduced-motion: reduce) { .hero-video { display: none; } }
-  /* admin-starred works from the feed; empty until the fetch fills it, so the
-     hero.jpg background below keeps rendering as the fallback */
-  .hero-strip {
-    position: absolute; inset: 0;
-    display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
-  }
-  .hero-strip img, .hero-strip video {
-    width: 100%; height: 100%; object-fit: cover; display: block;
-    opacity: 0; transition: opacity .45s ease;
-  }
-  .hero-strip img.in, .hero-strip video.in { opacity: 1; }
-  /* until the artwork is dropped in, the panel still reads as a designed surface */
+  .hcard.in { opacity: 1; transform: none; }
+  .hcard img, .hcard video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  /* slots hug the edges and corners; the middle stays clear for the title */
+  .hc1 { top: 11%;   left: 4%;  width: clamp(150px, 15vw, 250px); aspect-ratio: 3/4; }
+  .hc2 { bottom: 8%; left: 9%;  width: clamp(160px, 17vw, 290px); aspect-ratio: 4/3; }
+  .hc3 { top: 12%;   left: 38%; width: clamp(130px, 13vw, 215px); aspect-ratio: 4/3; }
+  .hc4 { top: 9%;    right: 5%; width: clamp(170px, 19vw, 330px); aspect-ratio: 16/10; }
+  .hc5 { bottom: 11%; right: 4%; width: clamp(150px, 15vw, 255px); aspect-ratio: 3/4; }
+  .hc6 { bottom: 6%; left: 44%; width: clamp(140px, 13vw, 225px); aspect-ratio: 1/1; }
+  /* soft pool of dark behind the centered copy so it reads over anything */
   .hero-art::after {
-    content: ""; position: absolute; inset: 0;
-    background:
-      linear-gradient(180deg, rgba(20,20,15,.46) 0%, rgba(20,20,15,0) 26%),
-      linear-gradient(180deg, rgba(20,20,15,0) 45%, rgba(20,20,15,.74) 100%);
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(48% 40% at 50% 52%,
+      rgba(20,20,15,.62) 0%, rgba(20,20,15,.26) 58%, rgba(20,20,15,0) 100%);
   }
   .hero-copy {
-    position: absolute; left: 0; right: 0; bottom: 52px;
-    display: grid; grid-template-columns: 1fr; align-items: end;
-    padding: 0 62px; color: #fff;
+    position: absolute; inset: 0; z-index: 2;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 0 24px; color: #fff; pointer-events: none;
+  }
+  .hero-copy a { pointer-events: auto; }
+  .hero-latest {
+    margin-top: 24px; display: flex; align-items: center; justify-content: center;
+    flex-wrap: wrap; gap: 8px;
+  }
+  .hero-latest b {
+    font-weight: 600; font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase;
+    color: rgba(255,255,255,.55); margin-right: 4px;
+  }
+  .hero-latest span {
+    font-size: 13px; color: rgba(255,255,255,.9);
+    border: 1px solid rgba(255,255,255,.24); border-radius: 999px; padding: 5px 13px;
+    background: rgba(20,20,15,.4);
   }
   .hero h1 {
     font-size: clamp(40px, 5.2vw, 76px); font-weight: 500;
     line-height: 1.08; color: #fff;
   }
-  /* white chip with knockout letters — the photos show through the text.
-     Inline + decoration-break so the background hugs each wrapped line of
-     text instead of boxing the whole run. */
-  .hero h1 em {
-    font-style: normal; display: inline;
-    background: rgba(255,255,255,.82); color: #000; mix-blend-mode: screen;
-    border-radius: .18em; padding: 0 .06em;
-    -webkit-box-decoration-break: clone; box-decoration-break: clone;
-  }
-  .hero .cta { margin-top: 26px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .hero h1 em { font-style: normal; }
+  .hero .cta { margin-top: 26px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
   /* author credit rides in the corner of the artwork */
   .hero-credit {
     position: absolute; right: 22px; bottom: 14px; z-index: 2;
@@ -292,13 +298,22 @@
   @media (max-width: 980px) {
     .hero { padding: 0; }
     .hero header nav.top { display: none; }
-    .hero-art { min-height: 78vh; }
-    /* bottom: 46px keeps the headline clear of the corner author credit */
-    .hero-copy { grid-template-columns: 1fr; gap: 20px; padding: 0 24px; bottom: 46px; }
-    .hero h1 { font-size: clamp(46px, 13vw, 68px); }
+    .hero-art { min-height: 82vh; }
+    /* corners only, bleeding off-screen; the center stays clear */
+    .hc3, .hc6 { display: none; }
+    .hc1 { top: 5%;    left: -8%;  width: 34vw; }
+    .hc2 { bottom: 4%; left: -6%;  width: 38vw; }
+    .hc4 { top: 4%;    right: -9%; width: 40vw; }
+    .hc5 { bottom: 5%; right: -7%; width: 34vw; }
+    /* the headline spans nearly the full width here, so pool more dark */
+    .hero-art::after {
+      background: radial-gradient(75% 52% at 50% 48%,
+        rgba(20,20,15,.78) 0%, rgba(20,20,15,.34) 62%, rgba(20,20,15,0) 100%);
+    }
+    .hero-latest b { flex-basis: 100%; margin: 0 0 2px; }
+    .hero h1 { font-size: clamp(40px, 11vw, 60px); }
     .hero h1 br.db { display: none; } /* mobile: chip flows inline */
     .hero-credit { right: 16px; bottom: 12px; }
-    .hero-strip img:nth-child(n+2), .hero-strip video:nth-child(n+2) { display: none; }
     .hero p.sub { font-size: 15.5px; }
     section.band { padding: 70px 24px; }
     .cards { grid-template-columns: 1fr; }
@@ -327,12 +342,18 @@
     <a class="btn sm" href="/canvas/">Open canvas</a>
   </header>
   <div class="hero-art" role="img" aria-label="Selected works from the freym feed">
-    <div class="hero-strip" id="heroStrip" aria-hidden="true"></div>
+    <div class="hero-cards" id="heroCards" aria-hidden="true"></div>
   </div>
   <div class="hero-copy">
-    <div class="hero-left">
-      <h1>The latest AI models.<br class="db"> <em>Up to half the price.</em></h1>
+    <h1>The latest AI models.<br class="db"> <em>Up to half the price.</em></h1>
+    <div class="hero-latest">
+      <b>Latest additions</b>
+      <span>Seedance 2.5</span>
+      <span>MiniMax H3</span>
+      <span>Google Omni 1.1</span>
+      <span>Wan 3.0</span>
     </div>
+    <div class="cta"><a class="btn accent" href="/canvas/">Open canvas</a></div>
   </div>
   <p class="hero-credit" id="heroCredit" hidden></p>
 </section>
@@ -523,27 +544,32 @@
 const FEED_URL = "https://lmuksetmkzssoewkzdlm.supabase.co/functions/v1/scraper-feed";
 const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxtdWtzZXRta3pzc29ld2t6ZGxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyNTUwNTMsImV4cCI6MjA3NzgzMTA1M30.mvX1o1RBSDgfX5OwRu3ArxsTxQzeZ5ah6J0aR2ZwNuk";
 
-// Hero: one RANDOM admin-starred post (starred on /work/ or /next/) fills the
-// artwork panel with up to 4 of its own photos, portrait first — never a mix
-// of different posts. No starred posts → the clay hero.jpg stays. The last
-// payload is cached locally so repeat visits paint photos immediately instead
-// of flashing the clay artwork first.
+// Hero: floating cards from MIXED admin-starred posts (starred on /work/ or
+// /next/) scattered around the centered title — one work per post, animated
+// covers preferred, shuffled into the six card slots. No starred posts → the
+// dotted panel stays. The last payload is cached locally so repeat visits
+// paint cards immediately.
 function renderHero(data) {
   const posts = (data.posts ?? []).filter((p) => (p.sc_images ?? []).length);
   if (!posts.length) return false;
-  const post = posts[Math.floor(Math.random() * posts.length)];
-  const imgs = post.sc_images
-    .slice().sort((a, b) => a.position - b.position)
-    .map((im) => ({ ...im, creator_id: post.creator_id }));
-  const picks = [
-    ...imgs.filter((im) => (im.height ?? 0) > (im.width ?? 0)),
-    ...imgs.filter((im) => !((im.height ?? 0) > (im.width ?? 0))),
-  ].slice(0, 4);
+  const pool = posts.map((post) => {
+    const imgs = post.sc_images.slice().sort((a, b) => a.position - b.position);
+    const im = imgs.find((i) => i.video_url) ?? imgs[0];
+    return { ...im, creator_id: post.creator_id };
+  });
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  const picks = pool.slice(0, 6);
   if (!picks.length) return false;
 
-  const strip = document.getElementById("heroStrip");
-  strip.innerHTML = "";
-  picks.forEach((im) => {
+  const wrap = document.getElementById("heroCards");
+  wrap.innerHTML = "";
+  picks.forEach((im, i) => {
+    const card = document.createElement("div");
+    card.className = "hcard hc" + (i + 1);
+    card.style.transitionDelay = (i * 90) + "ms";
     let el;
     if (im.video_url) {
       // animated cover (scraper-animate) — silent loop, photo semantics
@@ -551,18 +577,19 @@ function renderHero(data) {
       el.src = im.video_url;
       el.autoplay = true; el.muted = true; el.loop = true; el.playsInline = true;
       el.setAttribute("muted", ""); // Safari needs the attribute for autoplay
-      el.onloadeddata = () => el.classList.add("in");
+      el.onloadeddata = () => card.classList.add("in");
     } else {
       el = document.createElement("img");
       el.alt = "";
-      el.onload = () => el.classList.add("in");
+      el.onload = () => card.classList.add("in");
     }
     el.referrerPolicy = "no-referrer";
     if (!im.video_url) {
       el.src = im.url;
-      if (el.complete) el.classList.add("in");
+      if (el.complete) card.classList.add("in");
     }
-    strip.appendChild(el);
+    card.appendChild(el);
+    wrap.appendChild(card);
   });
 
   // Credit the authors of the photos on display, linking to their accounts.
