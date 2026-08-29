@@ -1,4 +1,4 @@
-import { Handle, Position, type NodeProps } from "@xyflow/react";
+import { Handle, NodeResizer, Position, type NodeProps } from "@xyflow/react";
 import { patchNodeData, type PromptGenNodeData } from "../types";
 
 const COUNTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -14,6 +14,7 @@ export default function PromptGenNode({ id, data, selected }: NodeProps) {
 
   return (
     <div className={`fc-node fc-promptgen ${selected ? "selected" : ""} status-${d.status}`}>
+      <NodeResizer isVisible={!!selected} minWidth={230} minHeight={230} />
       <div className="fc-node-header">
         <span className="fc-dot" style={{ background: "#f59e0b" }} />
         Prompt generator

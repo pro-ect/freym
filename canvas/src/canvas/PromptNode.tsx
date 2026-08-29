@@ -1,10 +1,11 @@
-import { Handle, Position, type NodeProps } from "@xyflow/react";
+import { Handle, NodeResizer, Position, type NodeProps } from "@xyflow/react";
 import { patchNodeData, type PromptNodeData } from "../types";
 
 export default function PromptNode({ id, data, selected }: NodeProps) {
   const d = data as PromptNodeData;
   return (
     <div className={`fc-node fc-prompt ${selected ? "selected" : ""}`}>
+      <NodeResizer isVisible={!!selected} minWidth={210} minHeight={140} />
       <div className="fc-node-header">
         <span className="fc-dot" style={{ background: "#10b981" }} />
         Prompt

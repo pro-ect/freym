@@ -416,6 +416,45 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
     [screenToFlowPosition],
   );
 
+  // ⌘V / Ctrl+V with an image on the clipboard drops it onto the canvas as an
+  // Image node, uploading in place — same flow as OS file drops.
+  useEffect(() => {
+    const onPaste = (e: ClipboardEvent) => {
+      const t = e.target;
+      if (t instanceof HTMLTextAreaElement || t instanceof HTMLInputElement) return;
+      const files = Array.from(e.clipboardData?.items ?? [])
+        .filter((it) => it.type.startsWith("image/"))
+        .map((it) => it.getAsFile())
+        .filter(Boolean) as File[];
+      if (!files.length) return;
+      e.preventDefault();
+      void (async () => {
+        const { uploadInputImage } = await import("../lib/upload");
+        const pos = centerPos();
+        files.forEach((file, i) => {
+          const nodeId = uuid();
+          setNodes((ns) => [
+            ...ns,
+            {
+              id: nodeId,
+              type: "image",
+              position: { x: pos.x + i * 260, y: pos.y },
+              data: { url: null, uploading: true, fileName: file.name || "pasted image" },
+            },
+          ]);
+          uploadInputImage(file)
+            .then((url) => patchNodeData(nodeId, { url, uploading: false }))
+            .catch((err) => {
+              console.error("canvas paste upload failed", err);
+              patchNodeData(nodeId, { uploading: false });
+            });
+        });
+      })();
+    };
+    window.addEventListener("paste", onPaste);
+    return () => window.removeEventListener("paste", onPaste);
+  }, [centerPos, setNodes]);
+
   const addPrompt = () =>
     setNodes((ns) => [
       ...ns,
