@@ -120,6 +120,7 @@ html, body { overscroll-behavior: none; }
 .fc-prompt textarea, .fc-promptgen textarea {
   background: transparent; border: none; color: #e5e5e5; resize: none;
   flex: 1 1 auto; min-height: 60px; padding: 10px 12px; border-radius: 0 0 12px 12px;
+  overflow-y: auto; /* nowheel on the element lets the wheel scroll it */
 }
 .react-flow__resize-control.handle {
   width: 8px; height: 8px; border-radius: 2px;

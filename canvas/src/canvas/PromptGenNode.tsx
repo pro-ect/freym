@@ -21,7 +21,7 @@ export default function PromptGenNode({ id, data, selected }: NodeProps) {
       </div>
 
       <textarea
-        className="nodrag"
+        className="nodrag nowheel"
         value={d.brief}
         placeholder="make me a prompt of 3d forms with film effects…"
         onChange={(e) => patchNodeData(id, { brief: e.target.value })}

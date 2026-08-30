@@ -78,7 +78,7 @@ export default function PromptNode({ id, data, selected }: NodeProps) {
       </div>
       <textarea
         ref={taRef}
-        className="nodrag"
+        className="nodrag nowheel"
         value={d.text}
         placeholder="Describe what to generate…"
         onChange={(e) => {
