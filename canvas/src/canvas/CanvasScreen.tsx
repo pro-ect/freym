@@ -171,7 +171,21 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
   useEffect(() => {
     const onPatch = (e: Event) => {
       const { id, data } = (e as CustomEvent).detail;
-      setNodes((ns) => ns.map((n) => (n.id === id ? { ...n, data: { ...n.data, ...data } } : n)));
+      setNodes((ns) =>
+        ns.map((n) => {
+          if (n.id !== id) return n;
+          // A finished run appends to the node's result history instead of
+          // overwriting it; the new run becomes the shown one.
+          if (data.__pushHistory) {
+            const d = n.data as unknown as ModelNodeData;
+            const prev = d.runs ?? (d.images?.length ? [d.images] : []);
+            const runs = [...prev, data.images as string[]];
+            const { __pushHistory: _flag, ...rest } = data;
+            return { ...n, data: { ...d, ...rest, runs, runIndex: runs.length - 1 } };
+          }
+          return { ...n, data: { ...n.data, ...data } };
+        }),
+      );
     };
     window.addEventListener("node-data-update", onPatch);
     return () => window.removeEventListener("node-data-update", onPatch);

@@ -79,7 +79,11 @@ export type ModelNodeData = {
   maxRefImages: number;
   imageParamName: string | null;
   status: RunStatus;
-  images: string[]; // result URLs
+  images: string[]; // result URLs of the SHOWN run (this is what chains onward)
+  /** Every run's results, oldest first — regenerating appends, never replaces. */
+  runs?: string[][];
+  /** Which run is shown; defaults to the newest. */
+  runIndex?: number;
   errorMessage?: string;
   jobId?: string;
   /**

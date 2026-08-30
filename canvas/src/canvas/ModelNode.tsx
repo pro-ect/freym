@@ -148,6 +148,31 @@ export default function ModelNode({ id, data, selected }: NodeProps) {
                 </a>
               ),
             )}
+            {(d.runs?.length ?? 0) > 1 && (
+              <div className="fc-runs-nav nodrag">
+                <button
+                  disabled={(d.runIndex ?? (d.runs!.length - 1)) === 0}
+                  onClick={() => {
+                    const i = (d.runIndex ?? d.runs!.length - 1) - 1;
+                    patchNodeData(id, { runIndex: i, images: d.runs![i] });
+                  }}
+                >
+                  ‹
+                </button>
+                <span>
+                  {(d.runIndex ?? d.runs!.length - 1) + 1}/{d.runs!.length}
+                </span>
+                <button
+                  disabled={(d.runIndex ?? (d.runs!.length - 1)) === d.runs!.length - 1}
+                  onClick={() => {
+                    const i = (d.runIndex ?? d.runs!.length - 1) + 1;
+                    patchNodeData(id, { runIndex: i, images: d.runs![i] });
+                  }}
+                >
+                  ›
+                </button>
+              </div>
+            )}
           </div>
         )}
         {d.status === "idle" && !d.images?.length && (

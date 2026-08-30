@@ -22,7 +22,8 @@ function settle(row: QueueRow) {
       Boolean,
     ) as string[];
     jobToNode.delete(row.id);
-    patchNodeData(nodeId, { status: "done", images, errorMessage: undefined });
+    // __pushHistory: the canvas appends this run to the node's history.
+    patchNodeData(nodeId, { status: "done", images, errorMessage: undefined, __pushHistory: true });
     window.dispatchEvent(new CustomEvent("fc-balance-refresh"));
   } else if (row.status === "failed") {
     jobToNode.delete(row.id);
