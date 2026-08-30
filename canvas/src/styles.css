@@ -277,6 +277,7 @@ html, body { overscroll-behavior: none; }
 .fc-toolbar button {
   background: none; border: none; color: #d4d4dc;
   padding: 7px 12px; border-radius: 8px; font-size: 13px;
+  white-space: nowrap; /* the bar grows, labels never wrap */
 }
 .fc-toolbar button:hover { background: #26262c; color: #fff; }
 

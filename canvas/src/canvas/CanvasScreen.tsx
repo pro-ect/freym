@@ -714,7 +714,7 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
 
         <div className="fc-toolbar">
           <button onClick={addPrompt}>+ Prompt</button>
-          <button onClick={addPromptGen}>✦ Prompt generator</button>
+          <button onClick={addPromptGen}>✦ Generator</button>
           <button onClick={addImage}>+ Image</button>
           <button onClick={addVideo}>+ Video</button>
           <button onClick={addAudio}>+ Audio</button>
