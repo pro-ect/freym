@@ -117,7 +117,14 @@ export async function startRun(opts: {
     parameters.image_size = opts.aspect;
   if (opts.numImages && opts.numImages > 1 && parameters.num_images === undefined)
     parameters.num_images = opts.numImages;
-  if (opts.imageUrls.length) parameters[opts.imageParamName || "image_urls"] = opts.imageUrls;
+  if (opts.imageUrls.length) {
+    // Singular params (image_url, image, first_frame_url…) take a STRING.
+    // Sending an array under a singular key makes fal reject the call with a
+    // 422 "Input should be a valid string" — plural keys keep the array.
+    const key = opts.imageParamName || "image_urls";
+    const plural = key.endsWith("_urls") || key === "images";
+    parameters[key] = plural ? opts.imageUrls : opts.imageUrls[0];
+  }
 
   const res = await fetch(`${SUPABASE_URL}/functions/v1/${endpointFor(opts.provider, opts.slug)}`, {
     method: "POST",
