@@ -17,6 +17,9 @@ export type MultiRoute = Route & {
   maxVideos?: number;
   audioParam?: string;
   maxAudios?: number;
+  /** Image count that flips to this route (default 2; Omni keeps 2 images as
+   *  start+end frames on image-to-video, so it flips at 3). */
+  minImages?: number;
 };
 export type ModelRoutes = {
   image?: Route;
@@ -80,7 +83,11 @@ export const ROUTES: Record<string, ModelRoutes> = {
   },
   "omni-11-pika": {
     image: { slug: "omni-11-i2v-pika", param: "image_urls", max: 2 },
-    refHint: "Two wired images: the first connected is the start frame (FIRST_FRAME), the second the end frame (LAST_FRAME).",
+    multi: {
+      slug: "omni-11-r2v-pika", param: "image_urls", max: 6, minImages: 3,
+      videoParam: "video_urls", maxVideos: 3, audioParam: "audio_urls", maxAudios: 3,
+    },
+    refHint: "1–2 wired images are the start/end frames (FIRST_FRAME, LAST_FRAME). 3+ images or video/audio refs switch to reference mode — address them as <IMAGE_REF_0>, <VIDEO_REF_0>… in connection order.",
   },
   "pika-25-t2v-pika": { image: { slug: "pika-25-i2v-pika", param: "image", max: 1 } },
 };
@@ -106,6 +113,10 @@ const AT_TAG_SLUGS = new Set(["seedance-25-pika", "seedance-20-pika", "minimax-h
 export function refTag(slug: string, kind: "image" | "video" | "audio", index: number): string {
   if (AT_TAG_SLUGS.has(slug)) {
     return kind === "image" ? `@Image${index}` : kind === "video" ? `@Video${index}` : `@Audio${index}`;
+  }
+  if (slug === "omni-11-pika") {
+    // Google's role tags are 0-based
+    return kind === "image" ? `<IMAGE_REF_${index - 1}>` : kind === "video" ? `<VIDEO_REF_${index - 1}>` : `<AUDIO_REF_${index - 1}>`;
   }
   return `${kind} ${index}`;
 }

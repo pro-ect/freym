@@ -62,7 +62,7 @@ export async function runModelNode(
   let imageParam = d.imageParamName;
   let images: string[] = [];
   const extra: Record<string, unknown> = {};
-  if (routes?.multi && (imageUrls.length > 1 || hasAV)) {
+  if (routes?.multi && (imageUrls.length >= (routes.multi.minImages ?? 2) || hasAV)) {
     const m = routes.multi;
     slug = m.slug;
     imageParam = m.param;
