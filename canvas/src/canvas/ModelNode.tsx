@@ -147,20 +147,14 @@ export default function ModelNode({ id, data, selected }: NodeProps) {
       </div>
 
       <div className="fc-model-body">
-        {d.status === "running" && (
+        {(d.status === "running" || d.status === "queued") && !d.images?.length && (
           <div className="fc-placeholder">
             <div className="fc-spinner" />
-            generating…
-          </div>
-        )}
-        {d.status === "queued" && (
-          <div className="fc-placeholder">
-            <div className="fc-spinner" />
-            waiting for inputs…
+            {d.status === "queued" ? "waiting for inputs…" : "generating…"}
           </div>
         )}
         {d.status === "error" && <div className="fc-error">{d.errorMessage}</div>}
-        {d.status !== "running" && d.images?.length > 0 && (
+        {d.images?.length > 0 && (
           <div className={`fc-results n${Math.min(d.images.length, 4)}`}>
             {d.images.map((u, i) =>
               isVideo(u, d.category) ? (
@@ -170,6 +164,12 @@ export default function ModelNode({ id, data, selected }: NodeProps) {
                   <img src={u} alt={`result ${i + 1}`} draggable={false} />
                 </a>
               ),
+            )}
+            {(d.status === "running" || d.status === "queued") && (
+              <div className="fc-busy-overlay">
+                <div className="fc-spinner" />
+                {d.status === "queued" ? "waiting for inputs…" : "generating…"}
+              </div>
             )}
             {(d.runs?.length ?? 0) > 1 && (
               <div className="fc-runs-nav nodrag">

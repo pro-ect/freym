@@ -232,6 +232,13 @@ export default function PropertiesPanel({
             ✕ Stop waiting
           </button>
         )}
+        {running && (
+          <div className="fc-hint">
+            Stopping frees the node but does not refund coins — the job keeps
+            running at the provider, and if it finishes the result lands in this
+            node's history.
+          </div>
+        )}
       </div>
     </aside>
   );
