@@ -236,8 +236,17 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
         ]);
       }
     };
+    // Leaving the window means the next copy happens elsewhere — drop the node
+    // clipboard so a returning ⌘V pastes the OS clipboard, not stale nodes.
+    const onBlur = () => {
+      clipboardRef.current = [];
+    };
     window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    window.addEventListener("blur", onBlur);
+    return () => {
+      window.removeEventListener("keydown", handler);
+      window.removeEventListener("blur", onBlur);
+    };
   }, [getNodes, setNodes]);
 
   // Refresh every model node's controls from the catalog when a project opens:
@@ -425,6 +434,9 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
     const onPaste = (e: ClipboardEvent) => {
       const t = e.target;
       if (t instanceof HTMLTextAreaElement || t instanceof HTMLInputElement) return;
+      // Copied canvas nodes win: ⌘V then pastes ONLY the nodes (the keydown
+      // handler), not also whatever image still sits in the OS clipboard.
+      if (clipboardRef.current.length > 0) return;
       const files = Array.from(e.clipboardData?.items ?? [])
         .filter((it) => it.type.startsWith("image/"))
         .map((it) => it.getAsFile())
