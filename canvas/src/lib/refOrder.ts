@@ -1,11 +1,12 @@
 import type { Node } from "@xyflow/react";
 
 /**
- * The single source of truth for reference ordering: wired references are
- * numbered TOP TO BOTTOM by source-node position (then left to right). The
- * same order feeds the run's reference arrays, the wire badges, and therefore
- * the prompt tags (@Image1, <IMAGE_REF_0>, …) — drag a node higher to make it
- * an earlier reference.
+ * The single source of truth for reference ordering: references are numbered
+ * in CONNECTION ORDER — the first wire you connect is reference 1 and stays
+ * reference 1; later wires append. (Callers pass edges in store order, which
+ * is creation order and survives save/load.) The same order feeds the run's
+ * reference arrays, the wire badges, and therefore the prompt tags
+ * (@Image1, image 2, …).
  */
 export type RefKind = "image" | "video" | "audio";
 export type RefEntry = { edgeId: string; url: string; kind: RefKind };
@@ -14,11 +15,8 @@ export function orderedRefs(
   incoming: { edgeId: string; src: Node }[],
   chainVideo: boolean,
 ): RefEntry[] {
-  const sorted = [...incoming].sort(
-    (a, b) => a.src.position.y - b.src.position.y || a.src.position.x - b.src.position.x,
-  );
   const out: RefEntry[] = [];
-  for (const { edgeId, src } of sorted) {
+  for (const { edgeId, src } of incoming) {
     const d = src.data as { url?: string | null; images?: string[]; category?: string };
     if (src.type === "image" && d.url) out.push({ edgeId, url: d.url, kind: "image" });
     else if (src.type === "video" && d.url) out.push({ edgeId, url: d.url, kind: "video" });

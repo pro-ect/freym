@@ -24,7 +24,6 @@ export function collectInputs(
 
   const prompts = incoming
     .filter((x) => x.src.type === "prompt")
-    .sort((a, b) => a.src.position.y - b.src.position.y || a.src.position.x - b.src.position.x)
     .map((x) => (x.src.data as PromptNodeData).text?.trim())
     .filter(Boolean) as string[];
 

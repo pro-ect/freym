@@ -30,7 +30,15 @@ export default function CurvedEdge(props: EdgeProps) {
 
   return (
     <>
-      <BaseEdge id={props.id} path={path} style={{ stroke: "#4a4a52", strokeWidth: 1.5 }} />
+      <BaseEdge
+        id={props.id}
+        path={path}
+        style={
+          props.selected
+            ? { stroke: "#8b5cf6", strokeWidth: 2 }
+            : { stroke: "#4a4a52", strokeWidth: 1.5 }
+        }
+      />
       {badge && (
         <EdgeLabelRenderer>
           <div

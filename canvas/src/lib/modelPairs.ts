@@ -29,19 +29,19 @@ export const ROUTES: Record<string, ModelRoutes> = {
   // image models
   "gpt-image-2-pika": {
     image: { slug: "gpt-image-2-edit-pika", param: "image_urls", max: 4 },
-    refHint: "Wired images are numbered top to bottom — say “the person from image 2” in the prompt.",
+    refHint: "Wired images are numbered in the order you connected them — say “the person from image 2” in the prompt.",
   },
   "nb2-pika": {
     image: { slug: "nb2-edit-pika", param: "image_urls", max: 10 },
-    refHint: "Wired images are numbered top to bottom — refer to them as image 1, image 2… in the prompt.",
+    refHint: "Wired images are numbered in the order you connected them — refer to them as image 1, image 2… in the prompt.",
   },
   "nb-pro-2k-pika": {
     image: { slug: "nb-pro-2k-edit-pika", param: "image_urls", max: 10 },
-    refHint: "Wired images are numbered top to bottom — refer to them as image 1, image 2… in the prompt.",
+    refHint: "Wired images are numbered in the order you connected them — refer to them as image 1, image 2… in the prompt.",
   },
   "seedream-5-pro-t2i-pika": {
     image: { slug: "seedream-5-pro-edit-pika", param: "image_urls", max: 10 },
-    refHint: "Wired images are numbered top to bottom — refer to them as image 1, image 2… in the prompt.",
+    refHint: "Wired images are numbered in the order you connected them — refer to them as image 1, image 2… in the prompt.",
   },
   // video models
   "wan-30-pika": {
@@ -51,7 +51,7 @@ export const ROUTES: Record<string, ModelRoutes> = {
       videoParam: "reference_video_urls", maxVideos: 5,
       audioParam: "reference_audio_urls", maxAudios: 5,
     },
-    refHint: "References are numbered top to bottom — mention them in the prompt as image 1, image 2, video 1…",
+    refHint: "References are numbered in the order you connected them — mention them in the prompt as image 1, image 2, video 1…",
   },
   "seedance-25-pika": {
     image: { slug: "seedance-25-i2v-pika", param: "image_url", max: 1 },
@@ -59,7 +59,7 @@ export const ROUTES: Record<string, ModelRoutes> = {
       slug: "seedance-25-r2v-pika", param: "image_urls", max: 10,
       videoParam: "video_urls", maxVideos: 3, audioParam: "audio_urls", maxAudios: 3,
     },
-    refHint: "References are numbered top to bottom — address them in the prompt as @Image1, @Image2… / @Video1 / @Audio1.",
+    refHint: "References are numbered in the order you connected them — address them in the prompt as @Image1, @Image2… / @Video1 / @Audio1.",
   },
   "seedance-20-pika": {
     image: { slug: "seedance-20-i2v-pika", param: "image_url", max: 1 },
@@ -67,7 +67,7 @@ export const ROUTES: Record<string, ModelRoutes> = {
       slug: "seedance-20-r2v-pika", param: "image_urls", max: 10,
       videoParam: "video_urls", maxVideos: 3, audioParam: "audio_urls", maxAudios: 3,
     },
-    refHint: "References are numbered top to bottom — address them in the prompt as @Image1, @Image2… / @Video1 / @Audio1.",
+    refHint: "References are numbered in the order you connected them — address them in the prompt as @Image1, @Image2… / @Video1 / @Audio1.",
   },
   "minimax-h3-pika": {
     image: { slug: "minimax-h3-i2v-pika", param: "first_frame_image", max: 1 },
@@ -76,11 +76,11 @@ export const ROUTES: Record<string, ModelRoutes> = {
       slug: "minimax-h3-r2v-pika", param: "image_urls", max: 5,
       videoParam: "video_urls", maxVideos: 3, audioParam: "audio_urls", maxAudios: 3,
     },
-    refHint: "References are numbered top to bottom — address them in the prompt as @Image1, @Image2… / @Video1 / @Audio1.",
+    refHint: "References are numbered in the order you connected them — address them in the prompt as @Image1, @Image2… / @Video1 / @Audio1.",
   },
   "omni-11-pika": {
     image: { slug: "omni-11-i2v-pika", param: "image_urls", max: 2 },
-    refHint: "Two wired images: the top one is the start frame (FIRST_FRAME), the lower one the end frame (LAST_FRAME).",
+    refHint: "Two wired images: the first connected is the start frame (FIRST_FRAME), the second the end frame (LAST_FRAME).",
   },
   "pika-25-t2v-pika": { image: { slug: "pika-25-i2v-pika", param: "image", max: 1 } },
 };
