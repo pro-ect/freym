@@ -224,6 +224,46 @@ html, body { overscroll-behavior: none; }
   font-family: ui-monospace, monospace; font-size: 10px; line-height: 1;
   padding: 3px 6px; border-radius: 999px;
 }
+
+/* prompt node: chips for the refs wired into the model this prompt feeds */
+.fc-ref-chips {
+  display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 10px;
+}
+.fc-ref-chip {
+  position: relative;
+  background: #26262c; color: #a3a3ad; border: 1px solid #3a3a42;
+  font-family: ui-monospace, monospace; font-size: 10.5px;
+  padding: 3px 8px; border-radius: 6px;
+}
+.fc-ref-chip:hover { color: #fff; border-color: #55555e; }
+.fc-ref-pop {
+  display: none; position: absolute; bottom: calc(100% + 8px); left: 0;
+  width: 130px; border-radius: 8px; overflow: hidden; z-index: 20;
+  background: #101013; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+  border: 1px solid #3a3a42;
+}
+.fc-ref-chip:hover .fc-ref-pop { display: block; }
+.fc-ref-pop img, .fc-ref-pop video { width: 100%; display: block; }
+.fc-at-note { display: block; padding: 14px; color: #a3a3ad; font-size: 12px; text-align: center; }
+
+/* the "@" autocomplete inside the prompt node */
+.fc-at-menu {
+  position: absolute; left: 10px; right: 10px; bottom: 44px; z-index: 30;
+  background: #1a1a1f; border: 1px solid #3a3a42; border-radius: 10px;
+  padding: 6px; display: flex; flex-direction: column; gap: 2px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+}
+.fc-at-menu button {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: none; color: #d4d4dc; text-align: left;
+  font-family: ui-monospace, monospace; font-size: 11.5px;
+  padding: 5px 7px; border-radius: 6px;
+}
+.fc-at-menu button:hover { background: #26262c; color: #fff; }
+.fc-at-menu img, .fc-at-menu video {
+  width: 30px; height: 30px; object-fit: cover; border-radius: 4px; flex: none;
+}
+.fc-at-menu .fc-at-note { padding: 0; width: 30px; }
 .fc-handle-in { background: #55555e; }
 
 /* ---------- bottom toolbar ---------- */

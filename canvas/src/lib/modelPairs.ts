@@ -99,3 +99,13 @@ export function refCapacity(slug: string, fallback: number): number {
   const r = ROUTES[slug];
   return r?.multi?.max ?? r?.image?.max ?? fallback;
 }
+
+/** The prompt tag a model understands for reference N (1-based, per kind).
+ *  Seedance/MiniMax document @-tags; everyone else reads natural language. */
+const AT_TAG_SLUGS = new Set(["seedance-25-pika", "seedance-20-pika", "minimax-h3-pika"]);
+export function refTag(slug: string, kind: "image" | "video" | "audio", index: number): string {
+  if (AT_TAG_SLUGS.has(slug)) {
+    return kind === "image" ? `@Image${index}` : kind === "video" ? `@Video${index}` : `@Audio${index}`;
+  }
+  return `${kind} ${index}`;
+}
