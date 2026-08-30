@@ -217,6 +217,13 @@ html, body { overscroll-behavior: none; }
 .fc-handle-video { background: #38bdf8; }
 .fc-handle-audio { background: #a3e635; }
 .fc-audio-preview { width: 100%; padding: 12px; box-sizing: border-box; }
+/* reference number riding on a wire — matches the prompt tag order */
+.fc-ref-badge {
+  position: absolute; pointer-events: none;
+  background: #26262c; color: #d4d4dc; border: 1px solid #3a3a42;
+  font-family: ui-monospace, monospace; font-size: 10px; line-height: 1;
+  padding: 3px 6px; border-radius: 999px;
+}
 .fc-handle-in { background: #55555e; }
 
 /* ---------- bottom toolbar ---------- */

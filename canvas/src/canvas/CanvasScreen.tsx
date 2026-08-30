@@ -32,7 +32,8 @@ import { resumeJobs } from "../lib/runner";
 import { generatePrompts } from "../lib/promptgen";
 import { fetchModels } from "../lib/models";
 import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from "../lib/supabase";
-import { refCapacity } from "../lib/modelPairs";
+import { ROUTES, refCapacity } from "../lib/modelPairs";
+import { orderedRefs } from "../lib/refOrder";
 import { patchNodeData } from "../types";
 import type { CloudModel, ModelNodeData, PromptGenNodeData, PromptNodeData } from "../types";
 
@@ -529,6 +530,35 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
 
   const selectedNodes = useMemo(() => nodes.filter((n) => n.selected), [nodes]);
 
+  // Reference badges: when a model node has 2+ wired references, each wire
+  // carries its number (1, 2… / V1 / A1) — the same order the prompt tags use
+  // (top to bottom by node position, see refOrder.ts).
+  const displayEdges = useMemo(() => {
+    const byId = new Map(nodes.map((n) => [n.id, n]));
+    const badges = new Map<string, string>();
+    for (const n of nodes) {
+      if (n.type !== "model") continue;
+      const d = n.data as unknown as ModelNodeData;
+      const incoming = edges
+        .filter((e) => e.target === n.id)
+        .map((e) => ({ edgeId: e.id, src: byId.get(e.source) }))
+        .filter((x): x is { edgeId: string; src: Node } => !!x.src);
+      const refs = orderedRefs(incoming, !!ROUTES[d.slug]?.multi?.videoParam);
+      if (refs.length < 2) continue;
+      let img = 0, vid = 0, aud = 0;
+      for (const r of refs) {
+        badges.set(
+          r.edgeId,
+          r.kind === "image" ? String(++img) : r.kind === "video" ? `V${++vid}` : `A${++aud}`,
+        );
+      }
+    }
+    if (!badges.size) return edges;
+    return edges.map((e) =>
+      badges.has(e.id) ? { ...e, data: { ...e.data, refBadge: badges.get(e.id) } } : e,
+    );
+  }, [nodes, edges]);
+
   const runModels = useCallback(
     async (list: Node[]) => {
       // Parallel submits: every selected node flips to its running state at
@@ -645,7 +675,7 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
       >
         <ReactFlow
           nodes={nodes}
-          edges={edges}
+          edges={displayEdges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}

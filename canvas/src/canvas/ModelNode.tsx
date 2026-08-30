@@ -6,54 +6,42 @@ import { usd } from "../lib/balance";
 import { estimateCoins } from "../lib/pricing";
 import { fetchModels } from "../lib/models";
 import { ROUTES } from "../lib/modelPairs";
+import { orderedRefs } from "../lib/refOrder";
 
 /** Collect prompt text + reference URLs (image/video/audio) wired into this
- *  model node. Upstream model video results chain as video references only
- *  when the target can take them (chainVideo). */
+ *  model node. References come back in orderedRefs order (top to bottom by
+ *  node position) so wire badges and prompt tags always match the arrays. */
 export function collectInputs(
   nodeId: string,
-  getEdges: () => { source: string; target: string; targetHandle?: string | null }[],
+  getEdges: () => { id: string; source: string; target: string; targetHandle?: string | null }[],
   getNode: (id: string) => Node | undefined,
   opts?: { chainVideo?: boolean },
 ) {
-  const incoming = getEdges().filter((e) => e.target === nodeId);
-  const prompts: string[] = [];
-  const imageUrls: string[] = [];
-  const videoUrls: string[] = [];
-  const audioUrls: string[] = [];
-  for (const e of incoming) {
-    const src = getNode(e.source);
-    if (!src) continue;
-    if (src.type === "prompt") {
-      const t = (src.data as PromptNodeData).text?.trim();
-      if (t) prompts.push(t);
-    } else if (src.type === "image") {
-      const u = (src.data as ImageNodeData).url;
-      if (u) imageUrls.push(u);
-    } else if (src.type === "video") {
-      const u = (src.data as ImageNodeData).url;
-      if (u) videoUrls.push(u);
-    } else if (src.type === "audio") {
-      const u = (src.data as ImageNodeData).url;
-      if (u) audioUrls.push(u);
-    } else if (src.type === "model") {
-      // chaining: an upstream model's result feeds this model's inputs. Video
-      // results become video references where supported, else they are skipped.
-      const up = src.data as ModelNodeData;
-      const first = up.images?.[0];
-      if (!first) continue;
-      if (!isVideo(first, up.category)) imageUrls.push(first);
-      else if (opts?.chainVideo) videoUrls.push(first);
-    }
-  }
-  return { prompt: prompts.join("\n\n"), imageUrls, videoUrls, audioUrls };
+  const incoming = getEdges()
+    .filter((e) => e.target === nodeId)
+    .map((e) => ({ edgeId: e.id, src: getNode(e.source) }))
+    .filter((x): x is { edgeId: string; src: Node } => !!x.src);
+
+  const prompts = incoming
+    .filter((x) => x.src.type === "prompt")
+    .sort((a, b) => a.src.position.y - b.src.position.y || a.src.position.x - b.src.position.x)
+    .map((x) => (x.src.data as PromptNodeData).text?.trim())
+    .filter(Boolean) as string[];
+
+  const refs = orderedRefs(incoming, opts?.chainVideo ?? false);
+  return {
+    prompt: prompts.join("\n\n"),
+    imageUrls: refs.filter((r) => r.kind === "image").map((r) => r.url),
+    videoUrls: refs.filter((r) => r.kind === "video").map((r) => r.url),
+    audioUrls: refs.filter((r) => r.kind === "audio").map((r) => r.url),
+  };
 }
 
 /** Shared by the node's own Run button and the properties panel's "Run selected". */
 export async function runModelNode(
   id: string,
   d: ModelNodeData,
-  getEdges: () => { source: string; target: string; targetHandle?: string | null }[],
+  getEdges: () => { id: string; source: string; target: string; targetHandle?: string | null }[],
   getNode: (id: string) => Node | undefined,
 ) {
   const routes = ROUTES[d.slug];
