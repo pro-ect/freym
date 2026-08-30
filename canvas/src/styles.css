@@ -96,6 +96,8 @@ html, body { overscroll-behavior: none; }
 }
 .fc-hint { font-size: 12px; color: #6b6b75; line-height: 1.5; }
 .fc-props-footer { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+/* the run button carries node margins — strip them inside the panel */
+.fc-props-footer .fc-run-btn { margin: 0; width: 100%; }
 .fc-stop-btn {
   width: 100%; padding: 7px;
   background: none; border: 1px solid #3a3a42; color: #a3a3ad;
