@@ -112,6 +112,7 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
       const restored = (p.nodes as Node[]).map((n) => {
         if (n.type !== "model") return n;
         const d = n.data as ModelNodeData;
+        if (d.status === "queued") return { ...n, data: { ...d, status: "idle" } };
         if (d.status !== "running") return n;
         if (d.jobId) {
           inFlight.push({ jobId: d.jobId, nodeId: n.id });
@@ -584,6 +585,40 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
       badges.has(e.id) ? { ...e, data: { ...e.data, refBadge: badges.get(e.id) } } : e,
     );
   }, [nodes, edges]);
+
+  // Queued nodes fire themselves when every upstream job settles: a queued
+  // model waits for running/queued upstream models and uploading media; an
+  // upstream error fails it instead of running with half the references.
+  const launchingRef = useRef(new Set<string>());
+  useEffect(() => {
+    const byId = new Map(nodes.map((n) => [n.id, n]));
+    for (const n of nodes) {
+      if (n.type !== "model") continue;
+      const d = n.data as unknown as ModelNodeData;
+      if (d.status !== "queued" || launchingRef.current.has(n.id)) continue;
+      const sources = edges.filter((e) => e.target === n.id).map((e) => byId.get(e.source));
+      let waiting = false;
+      let failed = false;
+      for (const s of sources) {
+        if (!s) continue;
+        const sd = s.data as { status?: string; uploading?: boolean };
+        if (s.type === "model") {
+          if (sd.status === "running" || sd.status === "queued") waiting = true;
+          if (sd.status === "error") failed = true;
+        } else if ((s.type === "image" || s.type === "video" || s.type === "audio") && sd.uploading) {
+          waiting = true;
+        }
+      }
+      if (failed) {
+        patchNodeData(n.id, { status: "error", errorMessage: "an upstream node failed" });
+      } else if (!waiting) {
+        launchingRef.current.add(n.id);
+        void runModelNode(n.id, d, getEdges, getNode).finally(() =>
+          launchingRef.current.delete(n.id),
+        );
+      }
+    }
+  }, [nodes, edges, getEdges, getNode]);
 
   const runModels = useCallback(
     async (list: Node[]) => {

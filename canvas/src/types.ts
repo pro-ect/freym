@@ -44,7 +44,7 @@ export type CloudModel = {
   param_schema?: ParamSchema | null;
 };
 
-export type RunStatus = "idle" | "running" | "done" | "error";
+export type RunStatus = "idle" | "queued" | "running" | "done" | "error";
 
 export type PromptNodeData = {
   text: string;

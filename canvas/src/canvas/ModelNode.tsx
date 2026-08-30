@@ -43,6 +43,23 @@ export async function runModelNode(
   getEdges: () => { id: string; source: string; target: string; targetHandle?: string | null }[],
   getNode: (id: string) => Node | undefined,
 ) {
+  // Inputs still cooking? Queue this node — the canvas fires it automatically
+  // once every upstream job (model runs, media uploads) has settled.
+  const upstreamPending = getEdges()
+    .filter((e) => e.target === id)
+    .some((e) => {
+      const s = getNode(e.source);
+      if (!s) return false;
+      const sd = s.data as { status?: string; uploading?: boolean };
+      if (s.type === "model") return sd.status === "running" || sd.status === "queued";
+      if (s.type === "image" || s.type === "video" || s.type === "audio") return !!sd.uploading;
+      return false;
+    });
+  if (upstreamPending) {
+    patchNodeData(id, { status: "queued", errorMessage: undefined });
+    return;
+  }
+
   const routes = ROUTES[d.slug];
   const { prompt, imageUrls, videoUrls, audioUrls } = collectInputs(id, getEdges, getNode, {
     chainVideo: !!routes?.multi?.videoParam,
@@ -136,6 +153,12 @@ export default function ModelNode({ id, data, selected }: NodeProps) {
             generating…
           </div>
         )}
+        {d.status === "queued" && (
+          <div className="fc-placeholder">
+            <div className="fc-spinner" />
+            waiting for inputs…
+          </div>
+        )}
         {d.status === "error" && <div className="fc-error">{d.errorMessage}</div>}
         {d.status !== "running" && d.images?.length > 0 && (
           <div className={`fc-results n${Math.min(d.images.length, 4)}`}>
@@ -180,8 +203,18 @@ export default function ModelNode({ id, data, selected }: NodeProps) {
         )}
       </div>
 
-      <button className="fc-run-btn nodrag" onClick={run} disabled={d.status === "running"}>
-        {d.status === "running" ? "Running…" : "→ Run model"}
+      <button
+        className="fc-run-btn nodrag"
+        onClick={
+          d.status === "queued" ? () => patchNodeData(id, { status: "idle" }) : run
+        }
+        disabled={d.status === "running"}
+      >
+        {d.status === "running"
+          ? "Running…"
+          : d.status === "queued"
+            ? "Queued — cancel"
+            : "→ Run model"}
       </button>
 
       <Handle type="target" position={Position.Left} id="in" className="fc-handle fc-handle-in" />
