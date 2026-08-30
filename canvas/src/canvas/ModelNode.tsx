@@ -5,7 +5,7 @@ import { startRun } from "../lib/runner";
 import { usd } from "../lib/balance";
 import { estimateCoins } from "../lib/pricing";
 import { fetchModels } from "../lib/models";
-import { ROUTES } from "../lib/modelPairs";
+import { ROUTES, VIDEO_INPUT } from "../lib/modelPairs";
 import { orderedRefs } from "../lib/refOrder";
 
 /** Collect prompt text + reference URLs (image/video/audio) wired into this
@@ -61,9 +61,14 @@ export async function runModelNode(
   }
 
   const routes = ROUTES[d.slug];
+  const videoInput = VIDEO_INPUT[d.slug];
   const { prompt, imageUrls, videoUrls, audioUrls } = collectInputs(id, getEdges, getNode, {
-    chainVideo: !!routes?.multi?.videoParam,
+    chainVideo: !!routes?.multi?.videoParam || !!videoInput,
   });
+  if (videoInput && !videoUrls.length) {
+    patchNodeData(id, { status: "error", errorMessage: "wire a video first (Video node or a video result)" });
+    return;
+  }
   if (d.supportsPrompt && !prompt && !imageUrls.length && !videoUrls.length) {
     patchNodeData(id, { status: "error", errorMessage: "connect a prompt or image first" });
     return;
@@ -94,6 +99,10 @@ export async function runModelNode(
     // No route: pass images only when the endpoint itself takes them —
     // a text-only endpoint must never receive an image parameter.
     images = imageUrls.slice(0, d.maxRefImages > 0 ? d.maxRefImages : 0);
+  }
+  if (videoInput && videoUrls.length) {
+    extra[videoInput.param] =
+      videoInput.max === 1 ? videoUrls[0] : videoUrls.slice(0, videoInput.max);
   }
 
   // When the run is re-routed, drop params the routed variant doesn't declare

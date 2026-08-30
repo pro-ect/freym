@@ -107,6 +107,13 @@ export function refCapacity(slug: string, fallback: number): number {
   return r?.multi?.max ?? r?.image?.max ?? fallback;
 }
 
+/** Models whose PRIMARY input is a video (extend, restyle): the wired video —
+ *  a Video node or an upstream video result — is sent under this parameter. */
+export const VIDEO_INPUT: Record<string, { param: string; max: number }> = {
+  "veo-31-extend-pika": { param: "video_url", max: 1 },
+  "omni-11-edit-pika": { param: "video_url", max: 1 },
+};
+
 /** The prompt tag a model understands for reference N (1-based, per kind).
  *  Seedance/MiniMax document @-tags; everyone else reads natural language. */
 const AT_TAG_SLUGS = new Set(["seedance-25-pika", "seedance-20-pika", "minimax-h3-pika"]);
