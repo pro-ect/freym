@@ -213,6 +213,25 @@ export default function PropertiesPanel({
         <button className="fc-run-btn" onClick={() => onRun(models)} disabled={running}>
           {running ? "Running…" : many ? `→ Run ${models.length} models` : "→ Run selected"}
         </button>
+        {running && (
+          <button
+            className="fc-stop-btn"
+            onClick={() =>
+              // Stop waiting: the node frees up at once. The submitted job keeps
+              // running server-side (no provider-side cancel exists) — if it
+              // finishes, its result still appends to the node's history.
+              models.forEach((n) => {
+                const d = dataOf(n);
+                if (d.status !== "running") return;
+                patchNodeData(n.id, {
+                  status: d.runs?.length || d.images?.length ? "done" : "idle",
+                });
+              })
+            }
+          >
+            ✕ Stop waiting
+          </button>
+        )}
       </div>
     </aside>
   );

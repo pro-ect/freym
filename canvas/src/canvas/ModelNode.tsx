@@ -205,9 +205,7 @@ export default function ModelNode({ id, data, selected }: NodeProps) {
 
       <button
         className="fc-run-btn nodrag"
-        onClick={
-          d.status === "queued" ? () => patchNodeData(id, { status: "idle" }) : run
-        }
+        onClick={d.status === "queued" ? () => patchNodeData(id, { status: "idle" }) : run}
         disabled={d.status === "running"}
       >
         {d.status === "running"
