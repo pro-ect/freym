@@ -19,7 +19,7 @@ export default function ModelSidebar({ onAdd }: { onAdd: (m: CloudModel) => void
   const filtered = q
     ? visible.filter((m) => (m.name + " " + m.slug).toLowerCase().includes(q.toLowerCase()))
     : visible;
-  const { textToImage, imageToImage, textToVideo, imageToVideo } = groupModels(filtered);
+  const { image, video, tools } = groupModels(filtered);
 
   const section = (title: string, list: CloudModel[]) =>
     list.length > 0 && (
@@ -56,10 +56,9 @@ export default function ModelSidebar({ onAdd }: { onAdd: (m: CloudModel) => void
         onChange={(e) => setQ(e.target.value)}
       />
       {err && <div className="fc-error">{err}</div>}
-      {section("Generate from text", textToImage)}
-      {section("Edit with images", imageToImage)}
-      {section("Video from text", textToVideo)}
-      {section("Video from images", imageToVideo)}
+      {section("Image models", image)}
+      {section("Video models", video)}
+      {section("Tools", tools)}
     </aside>
   );
 }

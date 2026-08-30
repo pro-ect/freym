@@ -47,12 +47,11 @@ export async function fetchModels(): Promise<CloudModel[]> {
 }
 
 export function groupModels(models: CloudModel[]) {
-  const image = models.filter((m) => m.category !== "video");
-  const video = models.filter((m) => m.category === "video");
+  // Universal cards handle any input, so the split is by output — plus tools.
+  const isTool = (m: CloudModel) => m.tags?.includes("tool") ?? false;
   return {
-    textToImage: image.filter((m) => (m.reference_images_max ?? 0) === 0),
-    imageToImage: image.filter((m) => (m.reference_images_max ?? 0) > 0),
-    textToVideo: video.filter((m) => (m.reference_images_max ?? 0) === 0),
-    imageToVideo: video.filter((m) => (m.reference_images_max ?? 0) > 0),
+    image: models.filter((m) => m.category !== "video" && !isTool(m)),
+    video: models.filter((m) => m.category === "video" && !isTool(m)),
+    tools: models.filter(isTool),
   };
 }
