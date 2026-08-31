@@ -82,6 +82,8 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
   const [loaded, setLoaded] = useState(false);
   const [saveState, setSaveState] = useState<"saved" | "saving" | "dirty">("saved");
   const [shareState, setShareState] = useState<"idle" | "busy" | "copied">("idle");
+  // Mobile: both panels are off-canvas drawers, toggled from the top bar.
+  const [openPanel, setOpenPanel] = useState<"models" | "props" | null>(null);
   const { screenToFlowPosition, getEdges, getNode, getNodes } = useReactFlow();
   const clipboardRef = useRef<Node[]>([]);
   const saveTimer = useRef<number | null>(null);
@@ -633,8 +635,16 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
   );
 
   return (
-    <div className="fc-root">
+    <div className={`fc-root${openPanel ? ` panel-${openPanel}` : ""}`}>
+      <div className="fc-panel-scrim" onClick={() => setOpenPanel(null)} />
       <header className="fc-topbar">
+        <button
+          className="fc-panel-toggle"
+          onClick={() => setOpenPanel((p) => (p === "models" ? null : "models"))}
+          aria-label="Models"
+        >
+          ☰
+        </button>
         <button className="fc-back" onClick={onBack}>
           ←
         </button>
@@ -667,11 +677,18 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
         >
           {shareState === "copied" ? "link copied" : "share"}
         </button>
+        <button
+          className={`fc-panel-toggle fc-panel-toggle-props${selectedNodes.some((n) => n.type === "model") ? " has-selection" : ""}`}
+          onClick={() => setOpenPanel((p) => (p === "props" ? null : "props"))}
+          aria-label="Settings"
+        >
+          ⚙
+        </button>
         <FounderMessage />
         <BalancePill />
       </header>
 
-      <ModelSidebar onAdd={(m) => addModel(m)} />
+      <ModelSidebar onAdd={(m) => addModel(m)} onClose={() => setOpenPanel(null)} />
 
       <div
         className="fc-flow"
@@ -772,7 +789,11 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
         </div>
       </div>
 
-      <PropertiesPanel nodes={selectedNodes} onRun={(list) => void runModels(list)} />
+      <PropertiesPanel
+        nodes={selectedNodes}
+        onRun={(list) => void runModels(list)}
+        onClose={() => setOpenPanel(null)}
+      />
     </div>
   );
 }

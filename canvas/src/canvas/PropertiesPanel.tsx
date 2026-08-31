@@ -13,9 +13,11 @@ const labelFor = (key: string, field: ParamField) =>
 export default function PropertiesPanel({
   nodes,
   onRun,
+  onClose,
 }: {
   nodes: Node[];
   onRun: (models: Node[]) => void;
+  onClose?: () => void;
 }) {
   const models = nodes.filter((n) => n.type === "model");
   if (!models.length) return null;
@@ -59,6 +61,11 @@ export default function PropertiesPanel({
         <span className="fc-dot" style={{ background: "#8b5cf6" }} />
         {many ? `${models.length} models` : first.modelName}
         {totalCoins > 0 && <span className="fc-cost">{usd(totalCoins)}</span>}
+        {onClose && (
+          <button className="fc-panel-close" onClick={onClose} aria-label="Close">
+            ✕
+          </button>
+        )}
       </div>
 
       {many && <div className="fc-hint">{names.join(" · ")}</div>}

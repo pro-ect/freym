@@ -3,7 +3,13 @@ import { fetchModels, groupModels } from "../lib/models";
 import { isHiddenVariant } from "../lib/modelPairs";
 import type { CloudModel } from "../types";
 
-export default function ModelSidebar({ onAdd }: { onAdd: (m: CloudModel) => void }) {
+export default function ModelSidebar({
+  onAdd,
+  onClose,
+}: {
+  onAdd: (m: CloudModel) => void;
+  onClose?: () => void;
+}) {
   const [models, setModels] = useState<CloudModel[]>([]);
   const [q, setQ] = useState("");
   const [err, setErr] = useState<string | null>(null);
@@ -48,7 +54,14 @@ export default function ModelSidebar({ onAdd }: { onAdd: (m: CloudModel) => void
 
   return (
     <aside className="fc-sidebar">
-      <div className="fc-side-title">Models</div>
+      <div className="fc-side-title">
+        Models
+        {onClose && (
+          <button className="fc-panel-close" onClick={onClose} aria-label="Close">
+            ✕
+          </button>
+        )}
+      </div>
       <input
         className="fc-search"
         placeholder="Search…"
