@@ -24,6 +24,7 @@ import ImageNode from "./ImageNode";
 import { VideoNode, AudioNode } from "./MediaNode";
 import ModelNode, { runModelNode } from "./ModelNode";
 import BalancePill from "../BalancePill";
+import FounderMessage from "../FounderMessage";
 import CurvedEdge from "./CurvedEdge";
 import ModelSidebar from "./ModelSidebar";
 import PropertiesPanel from "./PropertiesPanel";
@@ -666,6 +667,7 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
         >
           {shareState === "copied" ? "link copied" : "share"}
         </button>
+        <FounderMessage />
         <BalancePill />
       </header>
 

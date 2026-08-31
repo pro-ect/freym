@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { listProjects, createProject, deleteProject } from "./lib/projects";
 import { getSession, signOut } from "./lib/auth";
 import BalancePill from "./BalancePill";
+import FounderMessage from "./FounderMessage";
 import type { ProjectRow } from "./types";
 
 /** Guest accounts sign in through the access-key door; their synthetic
@@ -59,6 +60,7 @@ export default function ProjectsScreen({ onOpen }: { onOpen: (id: string) => voi
     <div className="fc-projects">
       <header className="fc-projects-head">
         <h1>freym canvas</h1>
+        <FounderMessage />
         <BalancePill />
         <div className="fc-account">
           <button

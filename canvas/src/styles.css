@@ -473,3 +473,13 @@ html, body { overscroll-behavior: none; }
 .fc-txn-amt { flex: none; min-width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
 .fc-txn-amt.neg { color: #9a9aa4; }
 .fc-txn-amt.pos { color: #4ade80; }
+
+/* message-the-founder modal */
+.fc-founder-input {
+  width: 100%; min-height: 130px; resize: vertical;
+  background: #1a1a1f; border: 1px solid #2e2e35; color: #e5e5e5;
+  border-radius: 10px; padding: 11px 12px; font-size: 14px; line-height: 1.5;
+  font-family: inherit;
+}
+.fc-founder-input:focus, .fc-founder-email:focus { outline: none; border-color: #4a4a52; }
+.fc-founder-email { width: 100%; }
