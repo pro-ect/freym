@@ -28,6 +28,7 @@ const DEFAULT_CREATORS: CreatorRef[] = [
   { platform: "threads", handle: "reginasalyaeva" },
   { platform: "threads", handle: "liza_bagts" },
   { platform: "threads", handle: "nastya__designer" },
+  { platform: "threads", handle: "lena.yesand" },
   { platform: "x", handle: "0xInk_" },
   { platform: "x", handle: "Dari_Designs" },
   { platform: "x", handle: "madpencil_" },

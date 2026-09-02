@@ -870,7 +870,7 @@ function drawHeroWires() {
     const res = await fetch(FEED_URL, { headers: { Authorization: "Bearer " + ANON_KEY } });
     const data = await res.json();
     // Some creators are for the /work feed only, not the homepage showcase.
-    const HIDE_HANDLES = new Set(["lina_gengpt"]);
+    const HIDE_HANDLES = new Set(["lina_gengpt", "lena.yesand"]);
     const hiddenIds = new Set((data.creators ?? []).filter((c) => HIDE_HANDLES.has(c.handle)).map((c) => c.id));
     const posts = (data.posts ?? [])
       .filter((p) => (p.sc_images ?? []).length && !hiddenIds.has(p.creator_id))
