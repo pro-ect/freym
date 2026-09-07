@@ -72,7 +72,11 @@ export const ROUTES: Record<string, ModelRoutes> = {
     refHint: "References are numbered in the order you connected them — address them in the prompt as @Image1, @Image2… / @Video1 / @Audio1.",
   },
   "seedance-20-pika": {
-    image: { slug: "seedance-20-i2v-pika", param: "image_url", max: 1, endParam: "end_image_url" },
+    // Pika's schema lists end_image_url, but the vendor rejects it as of
+    // 2026-09-07 ("Invalid prompt format, it must contain 'dynamic_caption'
+    // field"). Seedance 2.5 / Wan / MiniMax take an end frame fine. Re-add
+    // `endParam: "end_image_url"` once Pika fixes the 2.0 mapping.
+    image: { slug: "seedance-20-i2v-pika", param: "image_url", max: 1 },
     multi: {
       // Pika caps: 9 images, 3 videos, 3 audio
       slug: "seedance-20-r2v-pika", param: "image_urls", max: 9,
