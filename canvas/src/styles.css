@@ -349,8 +349,19 @@ html, body { overscroll-behavior: none; }
 
 /* react-flow chrome */
 .react-flow__controls { box-shadow: none; }
-.fc-history-icon { font-size: 16px; line-height: 1; }
-.react-flow__controls-button:disabled { opacity: 0.35; cursor: default; }
+/* undo/redo: its own horizontal bar to the right of the zoom stack */
+.fc-undo-bar {
+  position: absolute; bottom: 15px; left: 52px;
+  display: flex; gap: 2px;
+  background: #17171b; border: 1px solid #2e2e35; border-radius: 10px;
+  padding: 3px; z-index: 10;
+}
+.fc-undo-bar button {
+  background: none; border: none; color: #d4d4dc;
+  width: 30px; height: 26px; border-radius: 7px; font-size: 16px; line-height: 1;
+}
+.fc-undo-bar button:hover:not(:disabled) { background: #26262c; color: #fff; }
+.fc-undo-bar button:disabled { color: #45454d; cursor: default; }
 .react-flow__controls button {
   background: #17171b; border-bottom: 1px solid #2e2e35; fill: #a3a3ad;
 }

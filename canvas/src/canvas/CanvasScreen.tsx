@@ -5,7 +5,6 @@ import {
   Background,
   BackgroundVariant,
   Controls,
-  ControlButton,
   PanOnScrollMode,
   addEdge,
   useNodesState,
@@ -799,15 +798,13 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
           deleteKeyCode={["Backspace", "Delete"]}
         >
           <Background variant={BackgroundVariant.Dots} gap={22} size={1} color="#26262c" />
-          <Controls showInteractive={false}>
-            <ControlButton title="Undo (⌘Z)" aria-label="Undo" disabled={!canUndo} onClick={undo}>
-              <span className="fc-history-icon">↶</span>
-            </ControlButton>
-            <ControlButton title="Redo (⌘⇧Z)" aria-label="Redo" disabled={!canRedo} onClick={redo}>
-              <span className="fc-history-icon">↷</span>
-            </ControlButton>
-          </Controls>
+          <Controls showInteractive={false} />
         </ReactFlow>
+
+        <div className="fc-undo-bar">
+          <button title="Undo (⌘Z)" aria-label="Undo" disabled={!canUndo} onClick={undo}>↶</button>
+          <button title="Redo (⌘⇧Z)" aria-label="Redo" disabled={!canRedo} onClick={redo}>↷</button>
+        </div>
 
         <div className="fc-toolbar">
           <button onClick={addPrompt}>+ Prompt</button>
