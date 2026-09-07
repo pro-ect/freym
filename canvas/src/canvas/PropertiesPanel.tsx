@@ -3,7 +3,7 @@ import DurationControl from "./DurationControl";
 import { patchNodeData, type ModelNodeData, type ParamField, type ParamSchema } from "../types";
 import { usd } from "../lib/balance";
 import { estimateCoins } from "../lib/pricing";
-import { ROUTES } from "../lib/modelPairs";
+import { resolveInputs, describeCaps } from "../lib/inputMode";
 
 const ASPECTS = ["default", "1:1", "9:16", "16:9", "4:5", "3:4", "3:2"];
 
@@ -208,12 +208,11 @@ export default function PropertiesPanel({
 
       {!many && first.maxRefImages > 0 && (
         <div className="fc-hint">
-          Accepts up to {first.maxRefImages} reference image{first.maxRefImages > 1 ? "s" : ""} —
-          wire Image or Model nodes into the left handle.
+          Wire Image, Video, Audio or Model nodes into the left handle.
+          {describeCaps(resolveInputs(first, [])).map((line) => (
+            <div key={line} className="fc-hint-line">{line}</div>
+          ))}
         </div>
-      )}
-      {!many && first.maxRefImages > 1 && ROUTES[first.slug]?.refHint && (
-        <div className="fc-hint">{ROUTES[first.slug].refHint}</div>
       )}
 
       <div className="fc-props-footer">

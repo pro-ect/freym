@@ -294,6 +294,38 @@ html, body { overscroll-behavior: none; }
   padding: 3px 6px; border-radius: 999px;
 }
 
+.fc-ref-badge.swappable { pointer-events: auto; cursor: pointer; color: #fff; border-color: #8b5cf6; background: #2a2340; }
+.fc-ref-badge.swappable:hover { background: #8b5cf6; }
+.fc-ref-badge.unused { color: #6b6b75; border-style: dashed; }
+
+/* model node: how the wired media is used + the mode switch */
+.fc-inputs {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 6px 12px; border-bottom: 1px solid #26262c; font-size: 11px;
+}
+.fc-inputs-state { color: #8b8b96; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fc-inputs-state.mode-frames { color: #f59e0b; }
+.fc-inputs-state.mode-refs { color: #10b981; }
+.fc-mode-switch { display: inline-flex; flex: none; background: #121215; border: 1px solid #2e2e35; border-radius: 7px; padding: 2px; gap: 1px; }
+.fc-mode-switch button {
+  background: none; border: none; color: #8b8b96; font-size: 10.5px; line-height: 1;
+  padding: 4px 7px; border-radius: 5px;
+}
+.fc-mode-switch button:hover { color: #fff; }
+.fc-mode-switch button.on { background: #2e2e35; color: #fff; }
+
+/* download the shown result(s) — appears on hover like the run nav */
+.fc-dl-btn {
+  position: absolute; top: 8px; right: 8px;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(13, 13, 15, 0.78); border: 1px solid #3a3a42; color: #d4d4dc;
+  font-size: 14px; line-height: 1;
+  opacity: 0; transition: opacity 0.15s ease; pointer-events: none;
+}
+.fc-results:hover .fc-dl-btn { opacity: 1; pointer-events: auto; }
+.fc-dl-btn:hover { color: #fff; border-color: #8b8b96; }
+.fc-hint-line { margin-top: 6px; }
+
 /* prompt node: chips for the refs wired into the model this prompt feeds */
 .fc-ref-chips {
   display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 10px;

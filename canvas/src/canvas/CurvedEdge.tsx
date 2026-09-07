@@ -1,4 +1,5 @@
-import { BaseEdge, EdgeLabelRenderer, type EdgeProps } from "@xyflow/react";
+import { BaseEdge, EdgeLabelRenderer, useReactFlow, type EdgeProps } from "@xyflow/react";
+import { patchNodeData } from "../types";
 
 /** Same control-point rule React Flow uses for a 0.5-curvature bezier. */
 function controlOffset(d: number): number {
@@ -19,6 +20,14 @@ export default function CurvedEdge(props: EdgeProps) {
   const path = `M ${sx},${sy} C ${c1x},${sy} ${c2x},${ty} ${tx},${ty}`;
 
   const badge = (props.data as { refBadge?: string } | undefined)?.refBadge;
+  const { getNode } = useReactFlow();
+  // start/end badges swap the two frames on click (a node-level flag).
+  const swappable = badge === "start" || badge === "end";
+  const swap = () => {
+    const n = getNode(props.target);
+    if (!n) return;
+    patchNodeData(props.target, { frameSwap: !(n.data as { frameSwap?: boolean }).frameSwap });
+  };
   let bx = 0;
   let by = 0;
   if (badge) {
@@ -42,8 +51,10 @@ export default function CurvedEdge(props: EdgeProps) {
       {badge && (
         <EdgeLabelRenderer>
           <div
-            className="fc-ref-badge"
+            className={`fc-ref-badge${swappable ? " swappable nodrag nopan" : ""}${badge === "not used" ? " unused" : ""}`}
             style={{ transform: `translate(-50%, -50%) translate(${bx}px, ${by}px)` }}
+            title={swappable ? "Click to swap start and end" : badge === "not used" ? "Beyond what this model accepts in this mode" : undefined}
+            onClick={swappable ? swap : undefined}
           >
             {badge}
           </div>

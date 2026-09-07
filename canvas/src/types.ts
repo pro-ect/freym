@@ -91,6 +91,10 @@ export type ModelNodeData = {
   supportsPrompt: boolean;
   maxRefImages: number;
   imageParamName: string | null;
+  /** How wired media is used: auto (from what is wired), frames, or refs. */
+  inputMode?: "auto" | "frames" | "refs";
+  /** Frames mode: swap which wired image is the start and which the end. */
+  frameSwap?: boolean;
   status: RunStatus;
   images: string[]; // result URLs of the SHOWN run (this is what chains onward)
   /** Every run's results, oldest first — regenerating appends, never replaces. */

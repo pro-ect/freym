@@ -11,7 +11,13 @@
  * Per-second pricing is identical across a family's ops (video references add
  * a server-side surcharge where the vendor bills input video).
  */
-export type Route = { slug: string; param: string; max: number };
+export type Route = {
+  slug: string;
+  param: string;
+  max: number;
+  /** Frames route: the field that takes the END frame (second wired image). */
+  endParam?: string;
+};
 export type MultiRoute = Route & {
   videoParam?: string;
   maxVideos?: number;
@@ -48,7 +54,7 @@ export const ROUTES: Record<string, ModelRoutes> = {
   },
   // video models
   "wan-30-pika": {
-    image: { slug: "wan-30-i2v-pika", param: "first_frame_url", max: 1 },
+    image: { slug: "wan-30-i2v-pika", param: "first_frame_url", max: 1, endParam: "last_frame_url" },
     multi: {
       slug: "wan-30-omni-pika", param: "reference_image_urls", max: 10,
       videoParam: "reference_video_urls", maxVideos: 5,
@@ -57,23 +63,25 @@ export const ROUTES: Record<string, ModelRoutes> = {
     refHint: "References are numbered in the order you connected them — mention them in the prompt as image 1, image 2, video 1…",
   },
   "seedance-25-pika": {
-    image: { slug: "seedance-25-i2v-pika", param: "image_url", max: 1 },
+    image: { slug: "seedance-25-i2v-pika", param: "image_url", max: 1, endParam: "end_image_url" },
     multi: {
-      slug: "seedance-25-r2v-pika", param: "image_urls", max: 10,
-      videoParam: "video_urls", maxVideos: 3, audioParam: "audio_urls", maxAudios: 3,
+      // Pika caps: 30 images, 10 videos, 10 audio
+      slug: "seedance-25-r2v-pika", param: "image_urls", max: 30,
+      videoParam: "video_urls", maxVideos: 10, audioParam: "audio_urls", maxAudios: 10,
     },
     refHint: "References are numbered in the order you connected them — address them in the prompt as @Image1, @Image2… / @Video1 / @Audio1.",
   },
   "seedance-20-pika": {
-    image: { slug: "seedance-20-i2v-pika", param: "image_url", max: 1 },
+    image: { slug: "seedance-20-i2v-pika", param: "image_url", max: 1, endParam: "end_image_url" },
     multi: {
-      slug: "seedance-20-r2v-pika", param: "image_urls", max: 10,
+      // Pika caps: 9 images, 3 videos, 3 audio
+      slug: "seedance-20-r2v-pika", param: "image_urls", max: 9,
       videoParam: "video_urls", maxVideos: 3, audioParam: "audio_urls", maxAudios: 3,
     },
     refHint: "References are numbered in the order you connected them — address them in the prompt as @Image1, @Image2… / @Video1 / @Audio1.",
   },
   "minimax-h3-pika": {
-    image: { slug: "minimax-h3-i2v-pika", param: "first_frame_image", max: 1 },
+    image: { slug: "minimax-h3-i2v-pika", param: "first_frame_image", max: 1, endParam: "last_frame_image" },
     multi: {
       // capped at 5 images — the vendor bills extra beyond five references
       slug: "minimax-h3-r2v-pika", param: "image_urls", max: 5,
@@ -83,13 +91,13 @@ export const ROUTES: Record<string, ModelRoutes> = {
   },
   "omni-11-pika": {
     image: { slug: "omni-11-i2v-pika", param: "image_urls", max: 2 },
-    multi: {
-      slug: "omni-11-r2v-pika", param: "image_urls", max: 6, minImages: 3,
-      videoParam: "video_urls", maxVideos: 3, audioParam: "audio_urls", maxAudios: 3,
-    },
+    // Pika's Omni reference-to-video takes IMAGES ONLY (1-6): no video/audio refs.
+    multi: { slug: "omni-11-r2v-pika", param: "image_urls", max: 6, minImages: 3 },
     refHint: "1–2 wired images are the start/end frames (FIRST_FRAME, LAST_FRAME). 3+ images or video/audio refs switch to reference mode — address them as <IMAGE_REF_0>, <VIDEO_REF_0>… in connection order.",
   },
   "pika-25-t2v-pika": { image: { slug: "pika-25-i2v-pika", param: "image", max: 1 } },
+  // 2-5 ordered keyframes; consecutive pairs become transitions.
+  "pikaframes-pika": { image: { slug: "pikaframes-pika", param: "images", max: 5 } },
 };
 
 const HIDDEN = new Set(

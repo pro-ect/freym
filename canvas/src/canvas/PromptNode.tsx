@@ -8,8 +8,8 @@ import {
   type ReactFlowState,
 } from "@xyflow/react";
 import { patchNodeData, type ModelNodeData, type PromptNodeData } from "../types";
-import { ROUTES, refTag } from "../lib/modelPairs";
-import { orderedRefs } from "../lib/refOrder";
+import { resolveInputs, refChips } from "../lib/inputMode";
+import { refsFor } from "./ModelNode";
 
 type Chip = { tag: string; kind: "image" | "video" | "audio"; url: string };
 
@@ -33,23 +33,8 @@ export default function PromptNode({ id, data, selected }: NodeProps) {
       .find((n) => n?.type === "model");
     if (!model) return [];
     const md = model.data as unknown as ModelNodeData;
-    const incoming = edges
-      .filter((e) => e.target === model.id && e.source !== id)
-      .map((e) => ({ edgeId: e.id, src: byId.get(e.source)! }))
-      .filter((x) => x.src && x.src.type !== "prompt" && x.src.type !== "promptgen");
-    const refs = orderedRefs(incoming, !!ROUTES[md.slug]?.multi?.videoParam);
-    let img = 0;
-    let vid = 0;
-    let aud = 0;
-    return refs.map((r) => ({
-      tag: refTag(
-        md.slug,
-        r.kind,
-        r.kind === "image" ? ++img : r.kind === "video" ? ++vid : ++aud,
-      ),
-      kind: r.kind,
-      url: r.url,
-    }));
+    const res = resolveInputs(md, refsFor(model.id, md.slug, edges, nodes));
+    return refChips(md.slug, res);
   }, [edges, nodes, id]);
 
   /** Insert a tag at the caret; replaceAt swallows the "@" that opened the menu. */

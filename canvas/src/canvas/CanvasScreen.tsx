@@ -23,7 +23,8 @@ import TextNode from "./TextNode";
 import PromptGenNode from "./PromptGenNode";
 import ImageNode from "./ImageNode";
 import { VideoNode, AudioNode } from "./MediaNode";
-import ModelNode, { runModelNode } from "./ModelNode";
+import ModelNode, { runModelNode, refsFor } from "./ModelNode";
+import { resolveInputs } from "../lib/inputMode";
 import BalancePill from "../BalancePill";
 import FounderMessage from "../FounderMessage";
 import CurvedEdge from "./CurvedEdge";
@@ -35,8 +36,7 @@ import { resumeJobs } from "../lib/runner";
 import { generatePrompts } from "../lib/promptgen";
 import { fetchModels } from "../lib/models";
 import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from "../lib/supabase";
-import { ROUTES, refCapacity } from "../lib/modelPairs";
-import { orderedRefs } from "../lib/refOrder";
+import { refCapacity } from "../lib/modelPairs";
 import { patchNodeData } from "../types";
 import type { CloudModel, ModelNodeData, PromptGenNodeData, PromptNodeData } from "../types";
 
@@ -601,24 +601,12 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
   // carries its number (1, 2… / V1 / A1) — the same order the prompt tags use
   // (top to bottom by node position, see refOrder.ts).
   const displayEdges = useMemo(() => {
-    const byId = new Map(nodes.map((n) => [n.id, n]));
     const badges = new Map<string, string>();
     for (const n of nodes) {
       if (n.type !== "model") continue;
       const d = n.data as unknown as ModelNodeData;
-      const incoming = edges
-        .filter((e) => e.target === n.id)
-        .map((e) => ({ edgeId: e.id, src: byId.get(e.source) }))
-        .filter((x): x is { edgeId: string; src: Node } => !!x.src);
-      const refs = orderedRefs(incoming, !!ROUTES[d.slug]?.multi?.videoParam);
-      if (refs.length < 2) continue;
-      let img = 0, vid = 0, aud = 0;
-      for (const r of refs) {
-        badges.set(
-          r.edgeId,
-          r.kind === "image" ? String(++img) : r.kind === "video" ? `V${++vid}` : `A${++aud}`,
-        );
-      }
+      const res = resolveInputs(d, refsFor(n.id, d.slug, edges, nodes));
+      res.labels.forEach((label, edgeId) => badges.set(edgeId, label));
     }
     if (!badges.size) return edges;
     return edges.map((e) =>
