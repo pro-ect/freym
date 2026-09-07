@@ -144,8 +144,8 @@ Deno.serve(async (req) => {
           { role: "system", content: SYSTEM },
           { role: "user", content: userText },
         ],
-        max_tokens: 4000,
-        temperature: 0.9,
+        // No max_tokens / temperature: GPT-5.x rejects max_tokens (wants
+        // max_completion_tokens) and pins temperature; the reply is small anyway.
       }),
     });
     const payload = await res.json().catch(() => ({}));

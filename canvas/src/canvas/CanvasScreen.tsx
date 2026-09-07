@@ -546,6 +546,8 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
             id: uuid(),
             type: "promptgen",
             position: position ?? centerPos(),
+            width: 300,
+            height: 280,
             selected: true,
             data: {
               slug: m.slug,

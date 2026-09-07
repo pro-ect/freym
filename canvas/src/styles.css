@@ -201,7 +201,9 @@ html, body { overscroll-behavior: none; }
   background: #1a1a1f; border: 1px solid #2e2e35; color: #e5e5e5;
   border-radius: 7px; padding: 4px 7px; font-size: 12px;
 }
-.fc-pg-error { padding: 0 12px 8px; }
+/* width:0 + min-width:100% keeps a long error line from widening the node —
+   it wraps inside whatever width the node already has */
+.fc-pg-error { padding: 0 12px 8px; width: 0; min-width: 100%; box-sizing: border-box; overflow-wrap: anywhere; }
 .fc-promptgen.status-running { border-color: #f59e0b; }
 
 .fc-image-preview { width: 100%; border-radius: 0 0 12px 12px; display: block; }
