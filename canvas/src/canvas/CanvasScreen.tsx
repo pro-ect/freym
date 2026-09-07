@@ -28,6 +28,7 @@ import FounderMessage from "../FounderMessage";
 import CurvedEdge from "./CurvedEdge";
 import ModelSidebar from "./ModelSidebar";
 import PropertiesPanel from "./PropertiesPanel";
+import { useHistory } from "./useHistory";
 import { loadProject, saveProject, renameProject, ensureShareToken } from "../lib/projects";
 import { resumeJobs } from "../lib/runner";
 import { generatePrompts } from "../lib/promptgen";
@@ -95,6 +96,7 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
     dirty: false,
     token: "",
   });
+  const { undo, redo, canUndo, canRedo } = useHistory(nodes, edges, loaded, setNodes, setEdges);
   const vpKey = `freym_canvas_vp_${projectId}`;
   const savedVp = useMemo(() => {
     try {
@@ -229,6 +231,19 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
         e.target instanceof HTMLSelectElement;
       if (!isCtrl || isTextField) return;
 
+      // ⌘Z undo, ⌘⇧Z / ⌘Y redo.
+      if (e.key === "z" || e.key === "Z") {
+        e.preventDefault();
+        if (e.shiftKey) redo();
+        else undo();
+        return;
+      }
+      if (e.key === "y") {
+        e.preventDefault();
+        redo();
+        return;
+      }
+
       if (e.key === "c") {
         clipboardRef.current = getNodes().filter((n) => n.selected);
       }
@@ -265,7 +280,7 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
       window.removeEventListener("keydown", handler);
       window.removeEventListener("blur", onBlur);
     };
-  }, [getNodes, setNodes]);
+  }, [getNodes, setNodes, undo, redo]);
 
   // Refresh every model node's controls from the catalog when a project opens:
   // nodes saved before param_schema support have none at all, and older ones
@@ -648,6 +663,14 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
         <button className="fc-back" onClick={onBack}>
           ←
         </button>
+        <div className="fc-history">
+          <button title="Undo (⌘Z)" aria-label="Undo" disabled={!canUndo} onClick={undo}>
+            ↶
+          </button>
+          <button title="Redo (⌘⇧Z)" aria-label="Redo" disabled={!canRedo} onClick={redo}>
+            ↷
+          </button>
+        </div>
         <input
           className="fc-title"
           value={name}
