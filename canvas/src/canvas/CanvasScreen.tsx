@@ -341,7 +341,7 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
 
       patchNodeData(id, { status: "running", errorMessage: undefined });
       try {
-        const prompts = await generatePrompts({ brief, count, context });
+        const prompts = await generatePrompts({ brief, count, context, model: d.slug });
 
         const owned = (d.generatedIds ?? []).filter((gid) => getNode(gid));
         const reused = owned.slice(0, prompts.length);
@@ -529,16 +529,6 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
       ...ns,
       { id: uuid(), type: "audio", position: centerPos(), data: { url: null } },
     ]);
-  const addPromptGen = () =>
-    setNodes((ns) => [
-      ...ns,
-      {
-        id: uuid(),
-        type: "promptgen",
-        position: centerPos(),
-        data: { brief: "", count: 1, status: "idle", generatedIds: [] },
-      },
-    ]);
 
   /**
    * Adding a model with prompt/image nodes selected gives each selected node
@@ -548,6 +538,30 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
   const addModel = useCallback(
     (m: CloudModel, position?: { x: number; y: number }) => {
       modelsRef.current.set(m.slug, m);
+      // Text models are prompt writers: one generator node, no wiring.
+      if (m.category === "text") {
+        setNodes((ns) => [
+          ...ns.map((n) => ({ ...n, selected: false })),
+          {
+            id: uuid(),
+            type: "promptgen",
+            position: position ?? centerPos(),
+            selected: true,
+            data: {
+              slug: m.slug,
+              modelName: m.name,
+              provider: m.provider,
+              iconUrl: m.icon_url ?? null,
+              costCoins: m.coin_cost ?? null,
+              brief: "",
+              count: 1,
+              status: "idle",
+              generatedIds: [],
+            } satisfies PromptGenNodeData,
+          },
+        ]);
+        return;
+      }
       const targets = position
         ? []
         : getNodes().filter((n) => n.selected && (n.type === "prompt" || n.type === "image"));
@@ -809,7 +823,6 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
         <div className="fc-toolbar">
           <button onClick={addPrompt}>+ Prompt</button>
           <button onClick={addText}>+ Text</button>
-          <button onClick={addPromptGen}>✦ Generator</button>
           <button onClick={addImage}>+ Image</button>
           <button onClick={addVideo}>+ Video</button>
           <button onClick={addAudio}>+ Audio</button>

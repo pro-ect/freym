@@ -1,5 +1,6 @@
 import { Handle, NodeResizer, Position, type NodeProps } from "@xyflow/react";
 import { patchNodeData, type PromptGenNodeData } from "../types";
+import { usd } from "../lib/balance";
 
 const COUNTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
@@ -16,8 +17,13 @@ export default function PromptGenNode({ id, data, selected }: NodeProps) {
     <div className={`fc-node fc-promptgen ${selected ? "selected" : ""} status-${d.status}`}>
       <NodeResizer isVisible={!!selected} minWidth={230} minHeight={230} />
       <div className="fc-node-header">
-        <span className="fc-dot" style={{ background: "#f59e0b" }} />
-        Prompt generator
+        {d.iconUrl ? (
+          <img className="fc-node-icon" src={d.iconUrl} alt="" />
+        ) : (
+          <span className="fc-dot" style={{ background: "#f59e0b" }} />
+        )}
+        <span className="fc-model-name">{d.modelName ?? "Prompt writer"}</span>
+        {d.costCoins != null && d.costCoins > 0 && <span className="fc-cost">{usd(d.costCoins)}</span>}
       </div>
 
       <textarea

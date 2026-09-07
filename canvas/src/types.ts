@@ -28,7 +28,7 @@ export type CloudModel = {
   slug: string;
   name: string;
   description: string | null;
-  category: "image" | "video";
+  category: "image" | "video" | "text";
   tags: string[] | null;
   icon_url: string | null;
   coin_cost: number | null;
@@ -57,6 +57,13 @@ export type TextNodeData = {
 };
 
 export type PromptGenNodeData = {
+  /** The text model (canvas_models `text` row) that writes the prompts.
+   *  Legacy nodes without one run on the server default. */
+  slug?: string;
+  modelName?: string;
+  provider?: string;
+  iconUrl?: string | null;
+  costCoins?: number | null;
   brief: string;
   count: number; // 1-10 prompts per run
   status: RunStatus;
@@ -75,7 +82,7 @@ export type ModelNodeData = {
   slug: string;
   modelName: string;
   /** "video" nodes play their result instead of showing it as an image. */
-  category?: "image" | "video";
+  category?: "image" | "video" | "text";
   provider: "fal" | "magnific" | "replicate" | "cloudflare" | "pika";
   costCoins: number | null;
   /** Pricing inputs for the live cost estimate; absent on nodes saved earlier. */

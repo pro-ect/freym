@@ -49,8 +49,10 @@ export async function fetchModels(): Promise<CloudModel[]> {
 export function groupModels(models: CloudModel[]) {
   // Universal cards handle any input, so the split is by output — plus tools.
   const isTool = (m: CloudModel) => m.tags?.includes("tool") ?? false;
+  const isText = (m: CloudModel) => m.category === "text";
   return {
-    image: models.filter((m) => m.category !== "video" && !isTool(m)),
+    text: models.filter(isText),
+    image: models.filter((m) => m.category !== "video" && !isText(m) && !isTool(m)),
     video: models.filter((m) => m.category === "video" && !isTool(m)),
     tools: models.filter(isTool),
   };

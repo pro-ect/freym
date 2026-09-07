@@ -5,6 +5,8 @@ export async function generatePrompts(opts: {
   brief: string;
   count: number;
   context?: string[];
+  /** canvas_models `text` slug; omitted → the server's default writer. */
+  model?: string;
 }): Promise<string[]> {
   const { data: sess } = await supabase.auth.getSession();
   const token = sess.session?.access_token;
@@ -16,7 +18,14 @@ export async function generatePrompts(opts: {
     body: JSON.stringify(opts),
   });
   const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(json?.error ?? `request failed (${res.status})`);
+  if (!res.ok) {
+    if (res.status === 402 || json?.code === "COINS_INSUFFICIENT_BALANCE") {
+      window.dispatchEvent(new CustomEvent("fc-buy-coins"));
+    }
+    throw new Error(json?.error ?? `request failed (${res.status})`);
+  }
+  // A run is paid — refresh the wallet pill.
+  window.dispatchEvent(new CustomEvent("fc-balance-refresh"));
 
   const prompts = (json?.prompts ?? []) as string[];
   if (!prompts.length) throw new Error("no prompts returned");

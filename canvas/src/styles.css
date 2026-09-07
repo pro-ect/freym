@@ -119,6 +119,7 @@ html, body { overscroll-behavior: none; }
   border-bottom: 1px solid #26262c;
 }
 .fc-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+.fc-node-icon { width: 16px; height: 16px; border-radius: 4px; object-fit: cover; flex: none; }
 .fc-model-name { color: #e5e5e5; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fc-cost { margin-left: auto; font-size: 11px; color: #8b5cf6; flex: none; }
 
