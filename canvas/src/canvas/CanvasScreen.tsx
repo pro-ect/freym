@@ -19,6 +19,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import { v4 as uuid } from "uuid";
 import PromptNode from "./PromptNode";
+import TextNode from "./TextNode";
 import PromptGenNode from "./PromptGenNode";
 import ImageNode from "./ImageNode";
 import { VideoNode, AudioNode } from "./MediaNode";
@@ -39,7 +40,7 @@ import { orderedRefs } from "../lib/refOrder";
 import { patchNodeData } from "../types";
 import type { CloudModel, ModelNodeData, PromptGenNodeData, PromptNodeData } from "../types";
 
-const nodeTypes = { prompt: PromptNode, promptgen: PromptGenNode, image: ImageNode, video: VideoNode, audio: AudioNode, model: ModelNode };
+const nodeTypes = { prompt: PromptNode, text: TextNode, promptgen: PromptGenNode, image: ImageNode, video: VideoNode, audio: AudioNode, model: ModelNode };
 const edgeTypes = { default: CurvedEdge };
 
 /** Seed a new model node with the schema's own defaults so runs match the app. */
@@ -508,6 +509,11 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
       ...ns,
       { id: uuid(), type: "prompt", position: centerPos(), data: { text: "" } },
     ]);
+  const addText = () =>
+    setNodes((ns) => [
+      ...ns.map((n) => ({ ...n, selected: false })),
+      { id: uuid(), type: "text", position: centerPos(), selected: true, data: { text: "", fontSize: 24 } },
+    ]);
   const addImage = () =>
     setNodes((ns) => [
       ...ns,
@@ -805,6 +811,7 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
 
         <div className="fc-toolbar">
           <button onClick={addPrompt}>+ Prompt</button>
+          <button onClick={addText}>+ Text</button>
           <button onClick={addPromptGen}>✦ Generator</button>
           <button onClick={addImage}>+ Image</button>
           <button onClick={addVideo}>+ Video</button>

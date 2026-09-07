@@ -50,6 +50,12 @@ export type PromptNodeData = {
   text: string;
 };
 
+/** Free text block on the board — a label, no wires. */
+export type TextNodeData = {
+  text: string;
+  fontSize?: number;
+};
+
 export type PromptGenNodeData = {
   brief: string;
   count: number; // 1-10 prompts per run

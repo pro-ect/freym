@@ -11,6 +11,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import PromptNode from "./PromptNode";
+import TextNode from "./TextNode";
 import PromptGenNode from "./PromptGenNode";
 import ImageNode from "./ImageNode";
 import { VideoNode, AudioNode } from "./MediaNode";
@@ -18,7 +19,7 @@ import ModelNode from "./ModelNode";
 import CurvedEdge from "./CurvedEdge";
 import { loadSharedProject } from "../lib/projects";
 
-const nodeTypes = { prompt: PromptNode, promptgen: PromptGenNode, image: ImageNode, video: VideoNode, audio: AudioNode, model: ModelNode };
+const nodeTypes = { prompt: PromptNode, text: TextNode, promptgen: PromptGenNode, image: ImageNode, video: VideoNode, audio: AudioNode, model: ModelNode };
 const edgeTypes = { default: CurvedEdge };
 
 /**
