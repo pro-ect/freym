@@ -27,13 +27,6 @@ html, body { overscroll-behavior: none; }
   border-radius: 8px; width: 30px; height: 30px;
 }
 .fc-back:hover { color: #fff; border-color: #4a4a52; }
-.fc-history { display: flex; gap: 4px; }
-.fc-history button {
-  background: none; border: 1px solid #2e2e35; color: #a3a3ad;
-  border-radius: 8px; width: 30px; height: 30px; font-size: 15px; line-height: 1;
-}
-.fc-history button:hover:not(:disabled) { color: #fff; border-color: #4a4a52; }
-.fc-history button:disabled { color: #45454d; border-color: #232329; cursor: default; }
 .fc-title {
   background: transparent; border: 1px solid transparent; color: #e5e5e5;
   padding: 5px 9px; border-radius: 8px; min-width: 180px;
@@ -356,6 +349,8 @@ html, body { overscroll-behavior: none; }
 
 /* react-flow chrome */
 .react-flow__controls { box-shadow: none; }
+.fc-history-icon { font-size: 16px; line-height: 1; }
+.react-flow__controls-button:disabled { opacity: 0.35; cursor: default; }
 .react-flow__controls button {
   background: #17171b; border-bottom: 1px solid #2e2e35; fill: #a3a3ad;
 }
