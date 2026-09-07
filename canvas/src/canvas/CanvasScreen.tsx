@@ -330,7 +330,7 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
         patchNodeData(id, { status: "error", errorMessage: "describe what you want first" });
         return;
       }
-      const count = Math.min(10, Math.max(1, d.count ?? 4));
+      const count = Math.min(10, Math.max(1, d.count ?? 1));
 
       // Prompt nodes wired into the generator act as style reference.
       const context = getEdges()
@@ -537,7 +537,7 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
         id: uuid(),
         type: "promptgen",
         position: centerPos(),
-        data: { brief: "", count: 4, status: "idle", generatedIds: [] },
+        data: { brief: "", count: 1, status: "idle", generatedIds: [] },
       },
     ]);
 

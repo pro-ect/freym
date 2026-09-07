@@ -30,7 +30,7 @@ export default function PromptGenNode({ id, data, selected }: NodeProps) {
       <label className="fc-pg-count nodrag">
         <span>Number of prompts</span>
         <select
-          value={d.count ?? 4}
+          value={d.count ?? 1}
           onChange={(e) => patchNodeData(id, { count: Number(e.target.value) })}
         >
           {COUNTS.map((n) => (
