@@ -28,7 +28,7 @@ export type CloudModel = {
   slug: string;
   name: string;
   description: string | null;
-  category: "image" | "video" | "text";
+  category: "image" | "video" | "text" | "audio";
   tags: string[] | null;
   icon_url: string | null;
   coin_cost: number | null;
@@ -82,7 +82,7 @@ export type ModelNodeData = {
   slug: string;
   modelName: string;
   /** "video" nodes play their result instead of showing it as an image. */
-  category?: "image" | "video" | "text";
+  category?: "image" | "video" | "text" | "audio";
   provider: "fal" | "magnific" | "replicate" | "cloudflare" | "pika";
   costCoins: number | null;
   /** Pricing inputs for the live cost estimate; absent on nodes saved earlier. */

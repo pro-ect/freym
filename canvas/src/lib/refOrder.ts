@@ -24,8 +24,10 @@ export function orderedRefs(
     else if (src.type === "model") {
       const first = d.images?.[0];
       if (!first) continue;
+      const isAud = d.category === "audio" || /\.(mp3|wav|ogg|m4a)(\?|$)/i.test(first);
       const isVid = d.category === "video" || /\.(mp4|webm|mov)(\?|$)/i.test(first);
-      if (!isVid) out.push({ edgeId, url: first, kind: "image" });
+      if (isAud) out.push({ edgeId, url: first, kind: "audio" });
+      else if (!isVid) out.push({ edgeId, url: first, kind: "image" });
       else if (chainVideo) out.push({ edgeId, url: first, kind: "video" });
     }
   }

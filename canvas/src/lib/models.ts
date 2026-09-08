@@ -50,9 +50,11 @@ export function groupModels(models: CloudModel[]) {
   // Universal cards handle any input, so the split is by output — plus tools.
   const isTool = (m: CloudModel) => m.tags?.includes("tool") ?? false;
   const isText = (m: CloudModel) => m.category === "text";
+  const isAudio = (m: CloudModel) => m.category === "audio";
   return {
     text: models.filter(isText),
-    image: models.filter((m) => m.category !== "video" && !isText(m) && !isTool(m)),
+    audio: models.filter(isAudio),
+    image: models.filter((m) => m.category !== "video" && !isText(m) && !isAudio(m) && !isTool(m)),
     video: models.filter((m) => m.category === "video" && !isTool(m)),
     tools: models.filter(isTool),
   };

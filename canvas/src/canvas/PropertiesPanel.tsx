@@ -123,6 +123,21 @@ export default function PropertiesPanel({
           );
         }
 
+        if (field.type === "text") {
+          return (
+            <label key={key} className="fc-field">
+              <span>{labelFor(key, field)}</span>
+              {field.description && <em className="fc-field-desc">{field.description}</em>}
+              <textarea
+                className="fc-field-text"
+                rows={5}
+                value={String(value ?? "")}
+                placeholder={field.label ? `${field.label}…` : undefined}
+                onChange={(e) => setCustom(key, e.target.value || undefined)}
+              />
+            </label>
+          );
+        }
         if (field.type === "boolean") {
           return (
             <label key={key} className="fc-field fc-field-row">

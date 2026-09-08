@@ -55,6 +55,11 @@ const EXT_BY_TYPE: [string, string][] = [
   ["image/jpeg", "jpg"],
   ["image/webp", "webp"],
   ["image/png", "png"],
+  ["audio/mpeg", "mp3"],
+  ["audio/mp3", "mp3"],
+  ["audio/wav", "wav"],
+  ["audio/x-wav", "wav"],
+  ["audio/ogg", "ogg"],
 ];
 
 /**

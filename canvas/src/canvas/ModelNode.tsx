@@ -155,6 +155,9 @@ export async function runModelNode(
 function isVideo(url: string, category?: string): boolean {
   return category === "video" || /\.(mp4|webm|mov)(\?|$)/i.test(url);
 }
+function isAudio(url: string, category?: string): boolean {
+  return category === "audio" || /\.(mp3|wav|ogg|m4a)(\?|$)/i.test(url);
+}
 
 const MODES: { key: InputMode; label: string; title: string }[] = [
   { key: "auto", label: "Auto", title: "Pick the role from what is wired: 1–2 images → frames, more images or any video/audio → references" },
@@ -229,7 +232,12 @@ export default function ModelNode({ id, data, selected }: NodeProps) {
         {d.images?.length > 0 && (
           <div className={`fc-results n${Math.min(d.images.length, 4)}`}>
             {d.images.map((u, i) =>
-              isVideo(u, d.category) ? (
+              isAudio(u, d.category) ? (
+                <div key={i} className="fc-audio-result nodrag">
+                  <span className="fc-audio-glyph">♪</span>
+                  <audio src={u} controls preload="metadata" />
+                </div>
+              ) : isVideo(u, d.category) ? (
                 <video key={i} className="nodrag" src={u} controls loop playsInline preload="metadata" />
               ) : (
                 <a key={i} href={u} target="_blank" rel="noreferrer">

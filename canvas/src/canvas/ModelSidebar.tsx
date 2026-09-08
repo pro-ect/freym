@@ -25,7 +25,7 @@ export default function ModelSidebar({
   const filtered = q
     ? visible.filter((m) => (m.name + " " + m.slug).toLowerCase().includes(q.toLowerCase()))
     : visible;
-  const { text, image, video, tools } = groupModels(filtered);
+  const { text, audio, image, video, tools } = groupModels(filtered);
 
   const section = (title: string, list: CloudModel[]) =>
     list.length > 0 && (
@@ -72,6 +72,7 @@ export default function ModelSidebar({
       {section("Prompt writers", text)}
       {section("Image models", image)}
       {section("Video models", video)}
+      {section("Music", audio)}
       {section("Tools", tools)}
     </aside>
   );

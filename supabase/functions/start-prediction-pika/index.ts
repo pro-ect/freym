@@ -235,6 +235,15 @@ Deno.serve(async (req) => {
       }
     };
 
+    // Eleven Music takes its length in milliseconds; the canvas exposes a
+    // plain `duration` (seconds) so per-second pricing and the panel stay
+    // uniform. Mapped after pricing, which already read `duration`.
+    if (String(config.replicate_version).startsWith("elevenlabs/eleven-music") && input.duration != null) {
+      const secs = Number(input.duration);
+      if (Number.isFinite(secs) && secs > 0) input.music_length_ms = Math.round(secs * 1000);
+      delete input.duration;
+    }
+
     // Submit to Pika. model_configs.replicate_version holds the operation path
     // (e.g. "pika/pika-2.5/image-to-video"), same convention fal uses.
     let job: { id?: string; status?: string; error?: { code?: string; message?: string }; message?: string };
