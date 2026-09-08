@@ -10,6 +10,26 @@ const ASPECTS = ["default", "1:1", "9:16", "16:9", "4:5", "3:4", "3:2"];
 const labelFor = (key: string, field: ParamField) =>
   field.label ?? key.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
 
+/** Where each aspect ratio is used — shown next to the value so picking the
+ *  format for a platform needs no guesswork. */
+const RATIO_HINTS: Record<string, string> = {
+  "9:16": "TikTok · Reels · Shorts",
+  "16:9": "YouTube · landscape",
+  "1:1": "square feed post",
+  "4:5": "Instagram feed",
+  "4:3": "classic TV",
+  "3:4": "portrait",
+  "21:9": "cinematic wide",
+  adaptive: "follow the image",
+  auto: "let the model choose",
+};
+function optionLabel(key: string, o: string | number): string {
+  const v = String(o);
+  if (key !== "ratio" && key !== "aspect_ratio") return v;
+  const hint = RATIO_HINTS[v];
+  return hint ? `${v} — ${hint}` : v;
+}
+
 export default function PropertiesPanel({
   nodes,
   onRun,
@@ -153,7 +173,7 @@ export default function PropertiesPanel({
                 {field.default === undefined && <option value="">auto</option>}
                 {(field.options ?? []).map((o) => (
                   <option key={String(o)} value={String(o)}>
-                    {String(o)}
+                    {optionLabel(key, o)}
                   </option>
                 ))}
               </select>
