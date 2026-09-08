@@ -32,8 +32,10 @@ export async function fetchModels(): Promise<CloudModel[]> {
   const bySlug = new Map((schemas ?? []).map((s) => [s.slug, s.param_schema]));
 
   cache = (data ?? []).map((row) => {
-    const m = row as CloudModel;
-    const fromCatalog = (bySlug.get(m.slug) ?? {}) as ParamSchema;
+    const m = row as CloudModel & { param_schema?: ParamSchema | null };
+    // The view carries param_schema too — `models` RLS hides the inactive
+    // text/audio rows, so the view is the only source for their controls.
+    const fromCatalog = (m.param_schema ?? bySlug.get(m.slug) ?? {}) as ParamSchema;
     const dead = DEAD_PARAMS[m.slug] ?? [];
     const curated = Object.fromEntries(
       Object.entries(fromCatalog).filter(([key]) => !dead.includes(key)),

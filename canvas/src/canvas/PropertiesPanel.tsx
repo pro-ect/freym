@@ -208,8 +208,8 @@ export default function PropertiesPanel({
         );
       })}
 
-      {/* Models with no schema of their own still get the generic controls. */}
-      {!schemaKeys.length && (
+      {/* Image models with no schema of their own still get the generic controls. */}
+      {!schemaKeys.length && (first.category ?? "image") === "image" && (
         <>
           <label className="fc-field">
             <span>Aspect ratio</span>
