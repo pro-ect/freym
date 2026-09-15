@@ -14,8 +14,9 @@ export default function ImageNode({ id, data, selected }: NodeProps) {
       const url = await uploadInputImage(file);
       patchNodeData(id, { url, uploading: false });
     } catch (e) {
-      console.error("upload failed", e);
-      patchNodeData(id, { uploading: false });
+      const msg = (e as { message?: string })?.message ?? String(e);
+      console.error("upload failed", msg, e);
+      patchNodeData(id, { uploading: false, fileName: `upload failed: ${msg}` });
     }
   };
 

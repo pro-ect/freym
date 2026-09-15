@@ -15,7 +15,15 @@ export function isImageFile(file: File): boolean {
 
 /** HEIC → JPEG in the browser (libheif via wasm, loaded on first use). */
 async function heicToJpeg(file: File): Promise<Blob> {
-  const { default: heic2any } = await import("heic2any");
+  // heic2any ships as CommonJS; depending on the bundler's interop the
+  // callable lands on the module, on .default, or on .default.default.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mod: any = await import("heic2any");
+  const heic2any =
+    typeof mod === "function" ? mod
+    : typeof mod.default === "function" ? mod.default
+    : mod.default?.default;
+  if (typeof heic2any !== "function") throw new Error("HEIC converter failed to load");
   const out = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.92 });
   return Array.isArray(out) ? out[0] : out;
 }
