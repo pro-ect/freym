@@ -11,7 +11,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.93.3",
     "@xyflow/react": "^12.10.2",
-    "heic2any": "^0.0.4",
+    "libheif-js": "^1.23.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "uuid": "^10.0.0"

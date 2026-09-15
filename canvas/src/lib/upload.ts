@@ -13,19 +13,33 @@ export function isImageFile(file: File): boolean {
   return file.type.startsWith("image/") || isHeic(file);
 }
 
-/** HEIC → JPEG in the browser (libheif via wasm, loaded on first use). */
+/** HEIC → JPEG in the browser. libheif (wasm, lazy-loaded on the first
+ *  HEIC) decodes the primary image to RGBA; a canvas re-encodes it. Handles
+ *  current iPhone files (HEVC Main Still, 10-bit, Display P3) that the older
+ *  heic2any build rejected with "format not supported". */
 async function heicToJpeg(file: File): Promise<Blob> {
-  // heic2any ships as CommonJS; depending on the bundler's interop the
-  // callable lands on the module, on .default, or on .default.default.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mod: any = await import("heic2any");
-  const heic2any =
-    typeof mod === "function" ? mod
-    : typeof mod.default === "function" ? mod.default
-    : mod.default?.default;
-  if (typeof heic2any !== "function") throw new Error("HEIC converter failed to load");
-  const out = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.92 });
-  return Array.isArray(out) ? out[0] : out;
+  const mod: any = await import("libheif-js/wasm-bundle");
+  const libheif = mod.default ?? mod;
+  const decoder = new libheif.HeifDecoder();
+  const images = decoder.decode(await file.arrayBuffer());
+  if (!images?.length) throw new Error("HEIC has no image");
+  const img = images[0];
+  const width: number = img.get_width();
+  const height: number = img.get_height();
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d")!;
+  const imageData = ctx.createImageData(width, height);
+  await new Promise<void>((resolve, reject) => {
+    img.display(imageData, (out: ImageData | null) => (out ? resolve() : reject(new Error("HEIC decode failed"))));
+  });
+  ctx.putImageData(imageData, 0, 0);
+  images.forEach((i: { free?: () => void }) => i.free?.());
+  return await new Promise((resolve, reject) =>
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("JPEG encode failed"))), "image/jpeg", 0.92),
+  );
 }
 
 async function downscale(file: File): Promise<Blob> {
