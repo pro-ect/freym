@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { patchNodeData, type ImageNodeData } from "../types";
-import { uploadInputImage } from "../lib/upload";
+import { uploadInputImage, isImageFile } from "../lib/upload";
 
 export default function ImageNode({ id, data, selected }: NodeProps) {
   const d = data as ImageNodeData;
@@ -31,7 +31,7 @@ export default function ImageNode({ id, data, selected }: NodeProps) {
         e.preventDefault();
         setDragOver(false);
         const file = e.dataTransfer.files?.[0];
-        if (file?.type.startsWith("image/")) void handleFile(file);
+        if (file && isImageFile(file)) void handleFile(file);
       }}
     >
       <div className="fc-node-header">
@@ -53,7 +53,7 @@ export default function ImageNode({ id, data, selected }: NodeProps) {
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,.heic,.heif"
         style={{ display: "none" }}
         onChange={(e) => {
           const file = e.target.files?.[0];

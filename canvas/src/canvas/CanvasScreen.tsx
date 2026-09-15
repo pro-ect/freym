@@ -38,6 +38,7 @@ import { fetchModels } from "../lib/models";
 import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from "../lib/supabase";
 import { refCapacity } from "../lib/modelPairs";
 import { patchNodeData } from "../types";
+import { isImageFile } from "../lib/upload";
 import type { CloudModel, ModelNodeData, PromptGenNodeData, PromptNodeData } from "../types";
 
 const nodeTypes = { prompt: PromptNode, text: TextNode, promptgen: PromptGenNode, image: ImageNode, video: VideoNode, audio: AudioNode, model: ModelNode };
@@ -728,7 +729,7 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
           const slug = e.dataTransfer.getData("application/freym-model");
           const files = Array.from(e.dataTransfer.files ?? []).filter(
             (f) =>
-              f.type.startsWith("image/") ||
+              isImageFile(f) ||
               f.type.startsWith("video/") ||
               f.type.startsWith("audio/"),
           );

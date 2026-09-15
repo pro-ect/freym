@@ -2,10 +2,29 @@ import { supabase } from "./supabase";
 
 const MAX_DIM = 2048;
 
+/** iPhone photos arrive as HEIC/HEIF, which browsers (other than Safari) cannot
+ *  decode. Detect by MIME or extension — Chrome often reports an empty type. */
+export function isHeic(file: File): boolean {
+  return /image\/hei[cf]/i.test(file.type) || /\.hei[cf]$/i.test(file.name);
+}
+
+/** Anything we can turn into a JPEG for the canvas: real image MIME or HEIC. */
+export function isImageFile(file: File): boolean {
+  return file.type.startsWith("image/") || isHeic(file);
+}
+
+/** HEIC → JPEG in the browser (libheif via wasm, loaded on first use). */
+async function heicToJpeg(file: File): Promise<Blob> {
+  const { default: heic2any } = await import("heic2any");
+  const out = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.92 });
+  return Array.isArray(out) ? out[0] : out;
+}
+
 async function downscale(file: File): Promise<Blob> {
-  const bitmap = await createImageBitmap(file);
+  const source: Blob = isHeic(file) ? await heicToJpeg(file) : file;
+  const bitmap = await createImageBitmap(source);
   const scale = Math.min(1, MAX_DIM / Math.max(bitmap.width, bitmap.height));
-  if (scale === 1 && file.type === "image/jpeg") return file;
+  if (scale === 1 && source.type === "image/jpeg") return source;
   const canvas = document.createElement("canvas");
   canvas.width = Math.round(bitmap.width * scale);
   canvas.height = Math.round(bitmap.height * scale);

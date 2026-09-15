@@ -40,6 +40,10 @@ export const ROUTES: Record<string, ModelRoutes> = {
     image: { slug: "gpt-image-2-edit-pika", param: "image_urls", max: 4 },
     refHint: "Wired images are numbered in the order you connected them — say “the person from image 2” in the prompt.",
   },
+  "nb2-lite-pika": {
+    image: { slug: "nb2-lite-edit-pika", param: "image_urls", max: 10 },
+    refHint: "Wired images are numbered in the order you connected them — refer to them as image 1, image 2… in the prompt.",
+  },
   "nb2-pika": {
     image: { slug: "nb2-edit-pika", param: "image_urls", max: 10 },
     refHint: "Wired images are numbered in the order you connected them — refer to them as image 1, image 2… in the prompt.",
