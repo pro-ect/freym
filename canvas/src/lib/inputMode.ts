@@ -39,12 +39,17 @@ export type Resolved = {
   hasEnd: boolean;
   framesCap: number;
   refCaps: { images: number; videos: number; audios: number } | null;
+  /** Image model: wired images are numbered edit references, never frames. */
+  imageEdit: boolean;
 };
 
 export function resolveInputs(
-  d: Pick<ModelNodeData, "slug" | "imageParamName" | "maxRefImages" | "inputMode" | "frameSwap">,
+  d: Pick<ModelNodeData, "slug" | "imageParamName" | "maxRefImages" | "inputMode" | "frameSwap"> & { category?: string },
   refs: RefEntry[],
 ): Resolved {
+  // Image models have no frames: their "image" route is the edit endpoint,
+  // and every wired image is a numbered reference.
+  const isImageModel = d.category === "image";
   const r = ROUTES[d.slug];
   const frames = r?.image;
   const multi = r?.multi;
@@ -89,6 +94,7 @@ export function resolveInputs(
     hasEnd,
     framesCap,
     refCaps,
+    imageEdit: isImageModel,
   };
 
   // Edit/extend cards: the wired video is the source, images are ignored.
@@ -114,17 +120,22 @@ export function resolveInputs(
     const take = ordered.slice(0, framesCap);
     const dropped = [...ordered.slice(framesCap), ...vids, ...auds];
     dropped.forEach((x) => labels.set(x.edgeId, "not used"));
-    const keyframes = framesCap > 2; // Pikaframes
+    const keyframes = framesCap > 2 && !isImageModel; // Pikaframes
     if (take.length >= 2 || dropped.length) {
       take.forEach((x, i) =>
-        labels.set(x.edgeId, keyframes ? `key ${i + 1}` : i === 0 ? "start" : "end"),
+        labels.set(
+          x.edgeId,
+          isImageModel ? String(i + 1) : keyframes ? `key ${i + 1}` : i === 0 ? "start" : "end",
+        ),
       );
     }
-    const summary = keyframes
-      ? `Keyframes · ${take.length}`
-      : take.length >= 2
-        ? "Frames · start → end"
-        : "Frames · start";
+    const summary = isImageModel
+      ? `Edit · ${take.length} image${take.length === 1 ? "" : "s"}`
+      : keyframes
+        ? `Keyframes · ${take.length}`
+        : take.length >= 2
+          ? "Frames · start → end"
+          : "Frames · start";
     const note = dropped.length ? ` · ${dropped.length} not used` : "";
     if (frames?.endParam) {
       return {
@@ -183,7 +194,8 @@ export function resolveInputs(
 
 /** Prompt chips for a refs-mode run: tag + url per reference, in order. */
 export function refChips(slug: string, res: Resolved): { tag: string; kind: "image" | "video" | "audio"; url: string }[] {
-  if (res.mode !== "refs" || VIDEO_INPUT[slug]) return [];
+  if (VIDEO_INPUT[slug]) return [];
+  if (res.mode !== "refs" && !(res.mode === "frames" && res.imageEdit)) return [];
   return [
     ...res.images.map((url, i) => ({ tag: refTag(slug, "image", i + 1), kind: "image" as const, url })),
     ...res.videos.map((url, i) => ({ tag: refTag(slug, "video", i + 1), kind: "video" as const, url })),
@@ -194,6 +206,12 @@ export function refChips(slug: string, res: Resolved): { tag: string; kind: "ima
 /** Plain-words capability line for the properties panel. */
 export function describeCaps(res: Resolved): string[] {
   const out: string[] = [];
+  if (res.imageEdit) {
+    if (res.framesCap > 0) {
+      out.push(`Edit: up to ${res.framesCap} wired image${res.framesCap === 1 ? "" : "s"}, numbered in the order you connected them — say "image 1", "image 2" in the prompt.`);
+    }
+    return out;
+  }
   if (res.canFrames) {
     out.push(
       res.framesCap > 2
