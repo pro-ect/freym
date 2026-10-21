@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Handle,
   Position,
@@ -172,13 +172,26 @@ export default function ModelNode({ id, data, selected }: NodeProps) {
   const nodes = useStore(selectNodes);
 
   const run = useCallback(() => runModelNode(id, d, getEdges, getNode), [id, d, getEdges, getNode]);
-  const coins = estimateCoins(d);
 
   // Live read of the wired media → role summary + which modes make sense.
   const res = useMemo(
     () => resolveInputs(d, refsFor(id, d.slug, edges, nodes)),
     [id, d.slug, d.inputMode, d.frameSwap, d.imageParamName, d.maxRefImages, edges, nodes],
   );
+
+  // A run routed to the edit variant can carry its own flat price (Krea 3
+  // Edit bills the references too) — show that one, not the base card's.
+  const [routedCoins, setRoutedCoins] = useState<number | null>(null);
+  useEffect(() => {
+    if (res.slug === d.slug) return setRoutedCoins(null);
+    let live = true;
+    fetchModels()
+      .then((ms) => live && setRoutedCoins(ms.find((m) => m.slug === res.slug)?.coin_cost ?? null))
+      .catch(() => {});
+    return () => { live = false; };
+  }, [res.slug, d.slug]);
+  const flatOnly = !d.rateTable && !d.perSecondCents;
+  const coins = flatOnly && routedCoins != null ? routedCoins : estimateCoins(d);
   const showModes = d.category === "video" && res.canFrames && res.canRefs;
   const mode: InputMode = d.inputMode ?? "auto";
 

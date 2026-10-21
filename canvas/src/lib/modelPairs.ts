@@ -60,7 +60,23 @@ export const ROUTES: Record<string, ModelRoutes> = {
     image: { slug: "seedream-5-pro-edit-pika", param: "image_urls", max: 10 },
     refHint: "Wired images are numbered in the order you connected them — refer to them as image 1, image 2… in the prompt.",
   },
+  // fal — Pika does not carry Krea 3 or FLUX 3 Image / Max.
+  "krea-3-fal": {
+    image: { slug: "krea-3-edit-fal", param: "image_urls", max: 4 },
+    refHint: "Wired images are numbered in the order you connected them — refer to them as image 1, image 2… in the prompt.",
+  },
+  "flux-3-fal": {
+    image: { slug: "flux-3-edit-fal", param: "image_urls", max: 10 },
+    refHint: "Wired images are numbered in the order you connected them — refer to them as image 1, image 2… in the prompt.",
+  },
+  "flux-3-klein-fal": {
+    image: { slug: "flux-3-klein-edit-fal", param: "image_urls", max: 10 },
+    refHint: "Wired images are numbered in the order you connected them — refer to them as image 1, image 2… in the prompt.",
+  },
   // video models
+  "flux-3-max-fal": {
+    image: { slug: "flux-3-max-i2v-fal", param: "image_url", max: 1, endParam: "end_image_url" },
+  },
   "wan-30-pika": {
     image: { slug: "wan-30-i2v-pika", param: "first_frame_url", max: 1, endParam: "last_frame_url" },
     multi: {
