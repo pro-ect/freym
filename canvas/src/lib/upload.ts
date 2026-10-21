@@ -88,3 +88,51 @@ export async function uploadInputImage(file: File): Promise<string> {
   if (error) throw error;
   return supabase.storage.from("generation-inputs").getPublicUrl(path).data.publicUrl;
 }
+
+/** Providers refuse big inputs (Pika: "input media too large" on a 22 MB 4K
+ *  PNG). Wired images above this size are re-encoded before a run. */
+const INPUT_MAX_BYTES = 8 * 1024 * 1024;
+const RESULT_MAX_DIM = 4096;
+const shrunk = new Map<string, Promise<string>>();
+
+async function byteSize(url: string): Promise<number> {
+  const r = await fetch(url, { method: "HEAD" }).catch(() => null);
+  return Number(r?.headers.get("content-length")) || 0;
+}
+
+async function shrinkOne(url: string): Promise<string> {
+  if ((await byteSize(url)) <= INPUT_MAX_BYTES) return url;
+  const { data: sess } = await supabase.auth.getSession();
+  const userId = sess.session?.user.id;
+  if (!userId) throw new Error("not signed in");
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`input image fetch failed (${res.status})`);
+  const bitmap = await createImageBitmap(await res.blob());
+  // Keep the resolution (a 4K result stays 4K); only the encoding changes.
+  const scale = Math.min(1, RESULT_MAX_DIM / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  const blob: Blob = await new Promise((resolve, reject) =>
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("JPEG encode failed"))), "image/jpeg", 0.92),
+  );
+  const path = `${userId}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.jpg`;
+  const { error } = await supabase.storage
+    .from("generation-inputs")
+    .upload(path, blob, { contentType: "image/jpeg", upsert: false });
+  if (error) throw error;
+  return supabase.storage.from("generation-inputs").getPublicUrl(path).data.publicUrl;
+}
+
+/** Same URL in, same URL out, unless the file is too big for a provider —
+ *  then a JPEG copy in generation-inputs. Cached per URL for re-runs. */
+export function shrinkForInput(url: string): Promise<string> {
+  let p = shrunk.get(url);
+  if (!p) {
+    p = shrinkOne(url).catch((e) => { shrunk.delete(url); throw e; });
+    shrunk.set(url, p);
+  }
+  return p;
+}

@@ -17,6 +17,7 @@ import { ROUTES, VIDEO_INPUT } from "../lib/modelPairs";
 import { orderedRefs, type RefEntry } from "../lib/refOrder";
 import { resolveInputs, type InputMode } from "../lib/inputMode";
 import { downloadFile } from "../lib/download";
+import { shrinkForInput } from "../lib/upload";
 
 const selectEdges = (s: ReactFlowState) => s.edges;
 const selectNodes = (s: ReactFlowState) => s.nodes;
@@ -133,12 +134,14 @@ export async function runModelNode(
   }
 
   try {
+    const sendImages = await Promise.all(images.map(shrinkForInput));
+    if (res.endParam && res.end) extra[res.endParam] = await shrinkForInput(res.end);
     await startRun({
       nodeId: id,
       slug,
       provider: d.provider,
       prompt,
-      imageUrls: images,
+      imageUrls: sendImages,
       imageParamName: imageParam,
       aspect: d.params?.aspect,
       numImages: d.params?.numImages,
