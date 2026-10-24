@@ -30,6 +30,8 @@ import FounderMessage from "../FounderMessage";
 import CurvedEdge from "./CurvedEdge";
 import ModelSidebar from "./ModelSidebar";
 import PropertiesPanel from "./PropertiesPanel";
+import AgentPanel from "./AgentPanel";
+import { chipForNode, clearDraft } from "../lib/agentPlan";
 import { useHistory } from "./useHistory";
 import { loadProject, saveProject, renameProject, ensureShareToken } from "../lib/projects";
 import { resumeJobs } from "../lib/runner";
@@ -230,7 +232,8 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
       const isTextField =
         e.target instanceof HTMLTextAreaElement ||
         e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLSelectElement;
+        e.target instanceof HTMLSelectElement ||
+        (e.target instanceof HTMLElement && e.target.isContentEditable);
       if (!isCtrl || isTextField) return;
 
       // ⌘Z undo, ⌘⇧Z / ⌘Y redo.
@@ -469,6 +472,7 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
     const onPaste = (e: ClipboardEvent) => {
       const t = e.target;
       if (t instanceof HTMLTextAreaElement || t instanceof HTMLInputElement) return;
+      if (t instanceof HTMLElement && t.isContentEditable) return;
       // Copied canvas nodes win: ⌘V then pastes ONLY the nodes (the keydown
       // handler), not also whatever image still sits in the OS clipboard.
       if (clipboardRef.current.length > 0) return;
@@ -660,6 +664,45 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
     [getEdges, getNode],
   );
 
+  // Agent drafts: Run all clears the draft look, then starts the models in
+  // dependency order — roots first, so a chained model sees its upstream
+  // already running and queues itself instead of running without input.
+  const runDraft = useCallback(
+    (ids: string[]) => {
+      const set = new Set(ids);
+      setNodes((ns) => clearDraft(ns, set));
+      const models = getNodes().filter((n) => set.has(n.id) && n.type === "model");
+      const modelIds = new Set(models.map((m) => m.id));
+      const es = getEdges();
+      const roots = models.filter((m) => !es.some((e) => e.target === m.id && modelIds.has(e.source)));
+      const rest = models.filter((m) => !roots.includes(m));
+      void runModels(roots);
+      if (rest.length) setTimeout(() => void runModels(rest), 120);
+    },
+    [getNodes, getEdges, setNodes, runModels],
+  );
+  const commitPlan = useCallback(
+    (r: { nodes: Node[]; edges: Edge[] }) => {
+      setNodes(r.nodes);
+      setEdges(r.edges);
+    },
+    [setNodes, setEdges],
+  );
+
+  // Dragging board nodes onto the agent box mentions them; the nodes snap
+  // back to where the drag started.
+  const dragStart = useRef<Map<string, { x: number; y: number }>>(new Map());
+  const overAgent = (e: { clientX: number; clientY: number }) => {
+    const r = document.querySelector(".fc-agent-box")?.getBoundingClientRect();
+    return !!r && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+  };
+  const agentHover = useRef(false);
+  const setAgentHover = (on: boolean) => {
+    if (agentHover.current === on) return;
+    agentHover.current = on;
+    window.dispatchEvent(new CustomEvent("fc-agent-drop-hover", { detail: on }));
+  };
+
   return (
     <div className={`fc-root${openPanel ? ` panel-${openPanel}` : ""}`}>
       <div className="fc-panel-scrim" onClick={() => setOpenPanel(null)} />
@@ -787,6 +830,22 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
           onConnect={onConnect}
           onConnectStart={onConnectStart}
           onConnectEnd={onConnectEnd}
+          onNodeDragStart={(_e, _n, dragged) => {
+            dragStart.current = new Map(dragged.map((n) => [n.id, { ...n.position }]));
+          }}
+          onNodeDrag={(e) => setAgentHover(overAgent(e as unknown as MouseEvent))}
+          onNodeDragStop={(e, _n, dragged) => {
+            const hit = overAgent(e as unknown as MouseEvent);
+            setAgentHover(false);
+            if (!hit) return;
+            const start = dragStart.current;
+            setNodes((ns) => ns.map((n) => (start.has(n.id) ? { ...n, position: start.get(n.id)! } : n)));
+            window.dispatchEvent(
+              new CustomEvent("fc-agent-mention", {
+                detail: { chips: dragged.filter((n) => n.type !== "text").map(chipForNode) },
+              }),
+            );
+          }}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           fitView={!savedVp}
@@ -811,12 +870,25 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
           <button title="Redo (⌘⇧Z)" aria-label="Redo" disabled={!canRedo} onClick={redo}>↷</button>
         </div>
 
-        <div className="fc-toolbar">
-          <button onClick={addPrompt}>+ Prompt</button>
-          <button onClick={addText}>+ Text</button>
-          <button onClick={addImage}>+ Image</button>
-          <button onClick={addVideo}>+ Video</button>
-          <button onClick={addAudio}>+ Audio</button>
+        <div className="fc-dock">
+          {loaded && (
+            <AgentPanel
+              projectId={projectId}
+              nodes={nodes}
+              edges={edges}
+              makeModelNode={modelToNode}
+              commit={commitPlan}
+              runDraft={runDraft}
+              centerPos={centerPos}
+            />
+          )}
+          <div className="fc-toolbar">
+            <button onClick={addPrompt}>+ Prompt</button>
+            <button onClick={addText}>+ Text</button>
+            <button onClick={addImage}>+ Image</button>
+            <button onClick={addVideo}>+ Video</button>
+            <button onClick={addAudio}>+ Audio</button>
+          </div>
         </div>
       </div>
 
