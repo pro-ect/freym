@@ -296,7 +296,7 @@ export default function AgentPanel({
         catalog: catalogForAgent(catalogModels, favs),
         history,
       });
-      console.info("[agent] plan", plan);
+      console.info("[agent] plan", JSON.stringify(plan));
       let result: ApplyResult | null = null;
       if (plan.ops?.length) {
         result = applyPlan(plan, {
