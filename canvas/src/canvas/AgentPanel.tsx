@@ -119,7 +119,7 @@ export default function AgentPanel({
   runDraft: (ids: string[]) => void;
   centerPos: () => { x: number; y: number };
 }) {
-  const { setCenter, getNode } = useReactFlow();
+  const { setCenter, getNode, fitView } = useReactFlow();
   const editorRef = useRef<HTMLDivElement>(null);
   const threadRef = useRef<HTMLDivElement>(null);
   const savedRange = useRef<Range | null>(null);
@@ -308,6 +308,9 @@ export default function AgentPanel({
           fallbackPos: centerPos(),
         });
         commit(result);
+        // Bring the new draft into view once React Flow has measured it.
+        const ids = result.created;
+        if (ids.length) setTimeout(() => void fitView({ nodes: ids.map((id) => ({ id })), padding: 0.25, duration: 500, maxZoom: 1 }), 120);
       }
       const prevDraft = thread.flatMap((m) => (m.settled ? [] : m.draftIds ?? []));
       const draftIds = result

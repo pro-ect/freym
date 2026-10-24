@@ -171,8 +171,9 @@ function cleanParams(schema: ParamSchema | null | undefined, params: Record<stri
 const COL = 400;
 const PROMPT_W = 300;
 const PROMPT_H = 200;
-const PROMPT_GAP = 230;
-const MODEL_GAP = 440;
+const PROMPT_GAP = 250;
+const MODEL_W = 330;
+const MODEL_ROW = 460;
 
 type Box = { x: number; y: number; w: number; h: number };
 const boxOf = (n: Node): Box => ({
@@ -363,21 +364,34 @@ export function applyPlan(
       depth.set(n.id, d);
       return d;
     };
+    // One row per new prompt: the prompt, then the models it feeds side by
+    // side (chained models after their upstream). Models no new prompt feeds
+    // share one last row.
     const prompts = placed.filter((n) => n.type === "prompt");
     const models = placed.filter((n) => n.type === "model");
-    const hasPrompts = prompts.length > 0;
     const pos = new Map<string, { x: number; y: number }>();
-    prompts.forEach((n, i) => pos.set(n.id, { x: anchorX, y: anchorY + i * PROMPT_GAP }));
-    const cols = new Map<number, Node[]>();
-    for (const m of models) {
-      const d = depthOf(m);
-      cols.set(d, [...(cols.get(d) ?? []), m]);
+    const rowModels = (ids: Set<string>) =>
+      models.filter((m) => ids.has(m.id) && !pos.has(m.id)).sort((a, b) => depthOf(a) - depthOf(b));
+    let y = anchorY;
+    for (const p of prompts) {
+      const fed = new Set(linkEdges.filter((e) => e.source === p.id).map((e) => e.target));
+      // Downstream models of this row's models belong to the row too.
+      for (let grew = true; grew; ) {
+        grew = false;
+        for (const e of linkEdges) {
+          if (fed.has(e.source) && !fed.has(e.target) && models.some((m) => m.id === e.target)) {
+            fed.add(e.target);
+            grew = true;
+          }
+        }
+      }
+      const row = rowModels(fed);
+      pos.set(p.id, { x: anchorX, y });
+      row.forEach((m, j) => pos.set(m.id, { x: anchorX + COL + j * MODEL_W, y }));
+      y += row.length ? MODEL_ROW : PROMPT_GAP;
     }
-    for (const [d, list] of cols) {
-      list.forEach((n, i) =>
-        pos.set(n.id, { x: anchorX + (hasPrompts ? COL : 0) + (d - 1) * COL, y: anchorY + i * MODEL_GAP }),
-      );
-    }
+    const rest = rowModels(new Set(models.map((m) => m.id)));
+    rest.forEach((m, j) => pos.set(m.id, { x: anchorX + (prompts.length ? COL : 0) + j * MODEL_W, y }));
 
     // Slide the whole block down until it clears every existing node.
     const block = (dy: number) =>
