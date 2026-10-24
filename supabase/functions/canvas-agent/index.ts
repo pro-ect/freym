@@ -52,6 +52,14 @@ Prompts:
   outfit from image 1") — follow the user's intent: variations, new poses, restyle, turnaround sheet, etc.
 - Video prompts describe motion and camera movement over time.
 
+Op shapes (use exactly these op names):
+  {"op":"add_prompt","key":"p1","text":"..."}
+  {"op":"add_model","key":"m1","slug":"<catalog slug>","params":{...optional}}
+  {"op":"connect","from":"n5","to":"m1"}            (from/to: an existing handle or a new key)
+  {"op":"set_prompt","id":"p1","text":"..."}
+  {"op":"set_params","id":"m1","params":{...}}
+  {"op":"remove","id":"m2"}
+
 Layout is automatic — never think about positions.
 For follow-ups ("swap X for Y", "add 2 more", "make it 9:16"), edit the draft: remove (only draft nodes), add, set_params,
 set_prompt. Keep what the user did not ask to change.

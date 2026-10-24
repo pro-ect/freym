@@ -229,7 +229,14 @@ export function applyPlan(
   const ops: PlanOp[] = (plan.ops ?? []).map((raw) => {
     const o = raw as Record<string, unknown>;
     const key = String(o.key ?? o.id ?? o.name ?? "");
-    const op = String(o.op ?? o.type ?? "");
+    let op = String(o.op ?? "");
+    // "add_node" / "add" / "create" with a type → the specific add op.
+    if (/^(add|create|new)(_node)?$/.test(op) || op === "add_node") {
+      const t = String(o.type ?? o.node_type ?? (o.slug ? "model" : "prompt"));
+      op = t === "model" ? "add_model" : "add_prompt";
+    }
+    if (op === "add_image_model" || op === "add_video_model") op = "add_model";
+    if (op === "wire" || op === "link" || op === "add_edge") op = "connect";
     if (op === "add_prompt" || op === "add_model") return { ...o, op, key } as PlanOp;
     if (op === "connect") return { op, from: String(o.from ?? o.source ?? ""), to: String(o.to ?? o.target ?? "") };
     return { ...o, op, id: String(o.id ?? o.key ?? o.node ?? "") } as PlanOp;
