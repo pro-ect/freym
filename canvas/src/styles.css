@@ -653,9 +653,10 @@ html, body { overscroll-behavior: none; }
 .fc-agent-msg.thinking .fc-agent-text { color: #8b8b96; animation: fc-pulse 1.4s ease-in-out infinite; }
 .fc-agent-msg.error .fc-agent-text { color: #f87171; }
 @keyframes fc-pulse { 50% { opacity: 0.45; } }
-.fc-agent-questions, .fc-agent-warnings { margin: 0; padding-left: 18px; font-size: 13px; }
-.fc-agent-questions { color: #e5e5e5; }
-.fc-agent-warnings { color: #a3a3ad; font-size: 12px; }
+.fc-agent-questions { margin: 0; padding-left: 18px; font-size: 13px; color: #e5e5e5; }
+.fc-agent-warnings { color: #8b8b96; font-size: 12px; }
+.fc-agent-warnings summary { cursor: pointer; }
+.fc-agent-warnings ul { margin: 4px 0 0; padding-left: 18px; }
 
 .fc-agent-draft {
   border: 1px solid #3b2f63; background: #17151f; border-radius: 12px;
@@ -712,7 +713,7 @@ html, body { overscroll-behavior: none; }
 }
 .fc-agent-send:disabled { background: #2e2e35; color: #6b6b75; }
 .fc-agent-toggle {
-  position: absolute; top: -11px; right: 14px;
+  position: absolute; top: -11px; left: 50%; transform: translateX(-50%);
   width: 26px; height: 20px; border-radius: 6px;
   background: #1f1f24; border: 1px solid #2e2e35; color: #a3a3ad; font-size: 11px;
 }

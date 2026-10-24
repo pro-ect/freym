@@ -38,7 +38,8 @@ export function nodeLabel(n: Node): string {
   switch (n.type) {
     case "image": {
       const f = (d as ImageNodeData).fileName;
-      return f && !f.startsWith("upload failed") ? f.replace(/\.[a-z0-9]+$/i, "") : "Image";
+      const base = f && !f.startsWith("upload failed") ? f.replace(/\.[a-z0-9]+$/i, "") : "";
+      return base && !/^\d{10,}_[a-z0-9]+$/i.test(base) && !/^(image|img|photo)$/i.test(base) ? base : "Image";
     }
     case "prompt": {
       const t = ((d as PromptNodeData).text ?? "").trim();
@@ -223,8 +224,19 @@ export function applyPlan(
     return nodes.find((n) => n.id === id) ?? [...newNodes.values()].find((n) => n.id === id);
   };
 
+  // Models are loose with field names: accept id/name as the new key and
+  // source/target for wires.
+  const ops: PlanOp[] = (plan.ops ?? []).map((raw) => {
+    const o = raw as Record<string, unknown>;
+    const key = String(o.key ?? o.id ?? o.name ?? "");
+    const op = String(o.op ?? o.type ?? "");
+    if (op === "add_prompt" || op === "add_model") return { ...o, op, key } as PlanOp;
+    if (op === "connect") return { op, from: String(o.from ?? o.source ?? ""), to: String(o.to ?? o.target ?? "") };
+    return { ...o, op, id: String(o.id ?? o.key ?? o.node ?? "") } as PlanOp;
+  });
+
   // 1) Create nodes (positions are set by the layout pass below).
-  for (const op of plan.ops ?? []) {
+  for (const op of ops) {
     if (op.op === "add_prompt") {
       if (!op.key || newNodes.has(op.key)) { warn(`skipped a prompt with a missing or repeated key`); continue; }
       newNodes.set(op.key, {
@@ -251,7 +263,7 @@ export function applyPlan(
   }
 
   // 2) Edits to existing nodes — only drafts and nodes the board already has.
-  for (const op of plan.ops ?? []) {
+  for (const op of ops) {
     if (op.op === "set_prompt") {
       const t = resolve(op.id);
       if (!t || t.type !== "prompt") { warn(`could not edit prompt ${op.id}`); continue; }
@@ -285,11 +297,11 @@ export function applyPlan(
   // 3) Wires, checked against what each model can take.
   const all = () => [...nodes, ...newNodes.values()];
   const newEdges: Edge[] = [];
-  for (const op of plan.ops ?? []) {
+  for (const op of ops) {
     if (op.op !== "connect") continue;
     const src = resolve(op.from);
     const dst = resolve(op.to);
-    if (!src || !dst) { warn(`could not wire ${op.from} → ${op.to}`); continue; }
+    if (!src || !dst) { warn(`could not wire ${op.from} → ${op.to} (${!src ? op.from : op.to} not found)`); continue; }
     if (dst.type !== "model") { warn(`wires must end on a model (${op.to})`); continue; }
     if (src.id === dst.id) continue;
     const exists = [...edges, ...newEdges].some((e) => e.source === src.id && e.target === dst.id);

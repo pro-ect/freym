@@ -296,6 +296,7 @@ export default function AgentPanel({
         catalog: catalogForAgent(catalogModels, favs),
         history,
       });
+      console.info("[agent] plan", plan);
       let result: ApplyResult | null = null;
       if (plan.ops?.length) {
         result = applyPlan(plan, {
@@ -391,7 +392,10 @@ export default function AgentPanel({
                 <ul className="fc-agent-questions">{m.questions.map((q, i) => <li key={i}>{q}</li>)}</ul>
               ) : null}
               {m.warnings?.length ? (
-                <ul className="fc-agent-warnings">{m.warnings.map((w, i) => <li key={i}>{w}</li>)}</ul>
+                <details className="fc-agent-warnings">
+                  <summary>{m.warnings.length} step{m.warnings.length === 1 ? "" : "s"} skipped</summary>
+                  <ul>{m.warnings.map((w, i) => <li key={i}>{w}</li>)}</ul>
+                </details>
               ) : null}
               {m.draftIds && (
                 <DraftCard
