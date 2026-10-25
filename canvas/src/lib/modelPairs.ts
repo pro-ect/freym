@@ -60,6 +60,10 @@ export const ROUTES: Record<string, ModelRoutes> = {
     image: { slug: "seedream-5-pro-edit-pika", param: "image_urls", max: 10 },
     refHint: "Wired images are numbered in the order you connected them — refer to them as image 1, image 2… in the prompt.",
   },
+  "ideogram-45-pika": {
+    image: { slug: "ideogram-45-edit-pika", param: "image_urls", max: 5 },
+    refHint: "Image 1 is the one edited; the other wired images are references.",
+  },
   // fal — Pika does not carry Krea 3 or FLUX 3 Image / Max.
   "krea-3-fal": {
     image: { slug: "krea-3-edit-fal", param: "image_urls", max: 4 },
@@ -77,9 +81,11 @@ export const ROUTES: Record<string, ModelRoutes> = {
   "flux-3-max-fal": {
     image: { slug: "flux-3-max-i2v-fal", param: "image_url", max: 1, endParam: "end_image_url" },
   },
-  // fal v3 image-to-video takes start_image_url / end_image_url (not image_url).
-  "kling-3-fal": {
-    image: { slug: "kling-3-i2v-fal", param: "start_image_url", max: 1, endParam: "end_image_url" },
+  "kling-40-pika": {
+    image: { slug: "kling-40-i2v-pika", param: "image_url", max: 1, endParam: "last_frame_url" },
+  },
+  "kling-30-pika": {
+    image: { slug: "kling-30-i2v-pika", param: "image_url", max: 1, endParam: "last_frame_url" },
   },
   "wan-30-pika": {
     image: { slug: "wan-30-i2v-pika", param: "first_frame_url", max: 1, endParam: "last_frame_url" },

@@ -101,7 +101,8 @@ function perSecondCentsFor(
   const mult = videoIn ? Number(table?.video_in_multiplier) || 1 : 1;
   if (table?.rates && Object.keys(table.rates).length) {
     const res = String(input.resolution ?? "");
-    const audioOff = input.generate_audio === false || input.audio === false;
+    // Kling takes audio "native" | "off".
+    const audioOff = input.generate_audio === false || input.audio === false || input.audio === "off";
     const rate = Number(
       (audioOff ? table.audio_off_rates?.[res] : undefined) ?? table.rates[res],
     );

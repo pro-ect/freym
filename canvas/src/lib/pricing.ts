@@ -23,7 +23,7 @@ function perSecondCents(
 ): number {
   if (rateTable?.rates && Object.keys(rateTable.rates).length) {
     const res = String(params.resolution ?? "");
-    const audioOff = params.generate_audio === false || params.audio === false;
+    const audioOff = params.generate_audio === false || params.audio === false || params.audio === "off";
     const rate = Number(
       (audioOff ? rateTable.audio_off_rates?.[res] : undefined) ?? rateTable.rates[res],
     );
