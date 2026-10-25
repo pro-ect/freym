@@ -77,6 +77,10 @@ export const ROUTES: Record<string, ModelRoutes> = {
   "flux-3-max-fal": {
     image: { slug: "flux-3-max-i2v-fal", param: "image_url", max: 1, endParam: "end_image_url" },
   },
+  // fal v3 image-to-video takes start_image_url / end_image_url (not image_url).
+  "kling-3-fal": {
+    image: { slug: "kling-3-i2v-fal", param: "start_image_url", max: 1, endParam: "end_image_url" },
+  },
   "wan-30-pika": {
     image: { slug: "wan-30-i2v-pika", param: "first_frame_url", max: 1, endParam: "last_frame_url" },
     multi: {
