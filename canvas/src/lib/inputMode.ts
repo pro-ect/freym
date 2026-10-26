@@ -77,7 +77,9 @@ export function resolveInputs(
   else if (imgs.length === 1) mode = canFrames ? "frames" : "refs";
   else if (imgs.length === 2) mode = framesCap >= 2 ? "frames" : canRefs ? "refs" : "frames";
   else mode = canRefs ? "refs" : "frames";
-  if (!canFrames && !canRefs && !videoInput) mode = imgs.length ? "frames" : "text";
+  // Text-only models (e.g. Recraft 4.1): every wired medium is dropped.
+  const textOnly = !canFrames && !canRefs && !videoInput;
+  if (textOnly) mode = "text";
 
   const labels = new Map<string, string>();
   const base: Resolved = {
@@ -112,6 +114,10 @@ export function resolveInputs(
     };
   }
 
+  if (textOnly && refs.length) {
+    refs.forEach((x) => labels.set(x.edgeId, "not used"));
+    return { ...base, summary: "Text only · this model takes no images" };
+  }
   if (mode === "text") return base;
 
   if (mode === "frames") {
