@@ -5,8 +5,8 @@
 // confirms the cost before anything generates.
 //
 // LLM: Claude through Pika's Anthropic Messages surface (one Pika key for
-// text, image and video). The reply is forced through a single `canvas_plan`
-// tool so it is always structured. Each message costs a flat AGENT_COINS:
+// text, image and video). The reply comes through a single `canvas_plan`
+// tool (or JSON in text). Each message costs a flat AGENT_COINS:
 // reserved first, deducted on success, released on any failure.
 //
 // LOOP mode (body.mode = "loop"): the canvas runs a goal on its own inside a
@@ -304,9 +304,9 @@ Deno.serve(async (req) => {
     }
     content.push({
       type: "text",
-      text: context + (withImages || !images.length ? "" : "\n\n(The referenced images could not be shown to you; rely on their labels.)") +
+      text: context + (withImages || (!images.length && !resultImages.length) ? "" : "\n\n(The images could not be shown to you; rely on their labels.)") +
         (withTool
-          ? ""
+          ? `\n\nAnswer by calling the ${isLoop ? "loop_step" : "canvas_plan"} tool.`
           : isLoop
             ? '\n\nRespond with ONLY a JSON object {"reply": "...", "target": 4, "verdicts": [{"handle":"n9","keep":true,"score":8,"issue":""}], "done": false, "ops": [...]} using the canvas_plan op shapes.'
             : '\n\nRespond with ONLY a JSON object {"reply": "...", "questions": [], "ops": [...]} using the canvas_plan op shapes.'),
@@ -319,11 +319,10 @@ Deno.serve(async (req) => {
         max_tokens: isLoop ? 8000 : 4096,
         system: isLoop ? SYSTEM + LOOP_SYSTEM : SYSTEM,
         messages: [{ role: "user", content }],
-        ...(withTool
-          ? isLoop
-            ? { tools: [LOOP_TOOL], tool_choice: { type: "tool", name: "loop_step" } }
-            : { tools: [PLAN_TOOL], tool_choice: { type: "tool", name: "canvas_plan" } }
-          : {}),
+        // Pika's Opus rejects a forced tool_choice ("tool"/"any"), so the tool
+        // is offered with "auto" and the prompt asks for it; extractPlan also
+        // reads a JSON reply in text.
+        ...(withTool ? { tools: [isLoop ? LOOP_TOOL : PLAN_TOOL], tool_choice: { type: "auto" } } : {}),
       }),
     });
     const payload = await res.json().catch(() => ({}));
@@ -331,9 +330,11 @@ Deno.serve(async (req) => {
   };
 
   try {
-    // Images + tool first; then fall back step by step if the gateway refuses a feature.
+    // Images + tool first; then fall back step by step if the gateway refuses
+    // a feature. The images are the point (references, loop results), so the
+    // tool goes before the images do.
     const attempts: [boolean, boolean][] = images.length || resultImages.length
-      ? [[true, true], [false, true], [false, false]]
+      ? [[true, true], [true, false], [false, false]]
       : [[false, true], [false, false]];
     let last: { status: number; msg: string } = { status: 0, msg: "" };
     for (const [withImages, withTool] of attempts) {
