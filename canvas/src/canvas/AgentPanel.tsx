@@ -13,6 +13,7 @@ import {
   chipForNode,
   handleMap,
   isDraft,
+  nodeLabel,
   nodeThumb,
   type ApplyResult,
   type Chip,
@@ -295,7 +296,7 @@ export default function AgentPanel({
     if (!text.replace(/\u0000\d+\u0000/g, "").trim() && !chips.length) return;
 
     const { toHandle, toId } = handleMap(nodes);
-    const mentions = chips.map((c, i) => {
+    const mentions: Record<string, unknown>[] = chips.map((c, i) => {
       if (c.kind === "model") {
         return c.slug === "@favorites"
           ? { token: `@[${i + 1}]`, kind: "favorites", slugs: [...favs] }
@@ -304,12 +305,28 @@ export default function AgentPanel({
       return { token: `@[${i + 1}]`, kind: "node", handle: toHandle.get(c.nodeId) ?? "(deleted)", type: c.nodeType, label: c.label };
     });
     const message = text.replace(/\u0000(\d+)\u0000/g, (_, i) => `@[${Number(i) + 1}]`);
-    const images = chips
-      .filter((c): c is Extract<Chip, { kind: "node" }> => c.kind === "node")
-      .map((c) => {
-        const n = nodes.find((x) => x.id === c.nodeId);
+    // References: the nodes mentioned as chips; with none, the nodes selected
+    // on the board ("this image" means the one the user has selected).
+    let refIds = chips.filter((c): c is Extract<Chip, { kind: "node" }> => c.kind === "node").map((c) => c.nodeId);
+    if (!refIds.length) {
+      const picked = nodes.filter((n) => n.selected && nodeThumb(n));
+      refIds = picked.map((n) => n.id);
+      picked.forEach((n) =>
+        mentions.push({
+          token: "(selected)",
+          kind: "node",
+          handle: toHandle.get(n.id) ?? "(deleted)",
+          type: n.type ?? "",
+          label: nodeLabel(n),
+          note: "selected on the board: this is the reference the user means",
+        }),
+      );
+    }
+    const images = refIds
+      .map((id) => {
+        const n = nodes.find((x) => x.id === id);
         const url = n ? nodeThumb(n) : null;
-        return url ? { handle: toHandle.get(c.nodeId)!, url } : null;
+        return url ? { handle: toHandle.get(id)!, url } : null;
       })
       .filter((x): x is { handle: string; url: string } => !!x);
 
@@ -330,7 +347,7 @@ export default function AgentPanel({
       if (!Number.isFinite(usdBudget) || usdBudget < 0.3) return;
       ed.innerHTML = "";
       setEmpty(true);
-      void runLoop({ text, chips, message, mentions, budgetCoins: Math.round(usdBudget * 500) });
+      void runLoop({ text, chips, message, mentions, refIds, budgetCoins: Math.round(usdBudget * 500) });
       return;
     }
 
@@ -405,6 +422,7 @@ export default function AgentPanel({
     chips: Chip[];
     message: string;
     mentions: unknown[];
+    refIds: string[];
     budgetCoins: number;
   }) => {
     const msgId = crypto.randomUUID();
@@ -423,7 +441,10 @@ export default function AgentPanel({
     setBusy(true);
     setOpen(true);
 
-    const refIds = a.chips.filter((c): c is Extract<Chip, { kind: "node" }> => c.kind === "node").map((c) => c.nodeId);
+    const refIds = a.refIds;
+    // Say up front which images the loop treats as the reference.
+    const refNames = refIds.map((id) => nodesRef.current.find((n) => n.id === id)).filter((n): n is Node => !!n).map(nodeLabel);
+    show({ log: [refNames.length ? `Reference: ${refNames.join(", ")}` : "No reference image (select one or drag it into the message)"] });
     const kept: string[] = [];
     let lastRound: string[] = [];
     const costOf = new Map<string, number>();
