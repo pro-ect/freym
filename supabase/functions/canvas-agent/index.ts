@@ -8,12 +8,23 @@
 // text, image and video). The reply is forced through a single `canvas_plan`
 // tool so it is always structured. Each message costs a flat AGENT_COINS:
 // reserved first, deducted on success, released on any failure.
+//
+// LOOP mode (body.mode = "loop"): the canvas runs a goal on its own inside a
+// coin budget. Each step the agent sees the goal, the references and the
+// last round's RESULTS as images, judges every result (keep / reject + the
+// issue), and plans the next round — or says the goal is met. The canvas
+// runs the round, waits for the results and calls again. The canvas also
+// enforces the budget; this function only prices its own step.
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const PIKA_MESSAGES = "https://api.dev.pika.art/anthropic/v1/messages";
 const MODEL = Deno.env.get("CANVAS_AGENT_MODEL") ?? "anthropic/claude-opus-5.5";
 const AGENT_COINS = 30; // ≈ $0.06 per message (500 coins = $1)
 const MAX_IMAGES = 6;
+// Loop steps look at more images (references + a round of results).
+const LOOP_MAX_IMAGES = 16;
+const LOOP_BASE_COINS = 30;
+const LOOP_COINS_PER_IMAGE = 4;
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -65,6 +76,58 @@ For follow-ups ("swap X for Y", "add 2 more", "make it 9:16"), edit the draft: r
 set_prompt. Keep what the user did not ask to change.
 "reply": 1–3 short plain sentences saying what you set up (or what you need to know). Do not quote prices — the canvas shows them.`;
 
+const LOOP_SYSTEM = `
+
+LOOP MODE — you work on a goal by yourself, round by round, inside a coin budget.
+Each step you get the GOAL, the reference images, the BUDGET left, and the RESULTS of the last round as images (with handles).
+1. Judge every new result with your own eyes against the goal and the references: likeness to the reference (face, hair,
+   outfit, proportions), what the goal asks for (count, variety, pose, style), anatomy (hands, eyes, faces), legible text,
+   artifacts, crops. keep=true only for a result you would hand to the client. score 1-10. issue: the main problem in a few words
+   (empty when kept). Two kept results must not be near-duplicates — keep the better one.
+2. "target": the number of finished results the goal asks for (e.g. "10 character options" → 10; default 4).
+   Kept results from earlier rounds still count.
+3. If enough results are kept, or the goal is met, set done=true and leave ops empty.
+4. Otherwise plan the NEXT round with ops: only what is missing, and fixes for what failed.
+   - A near-miss (good overall, one local flaw) → wire that result into an image EDIT model (max_images ≥ 1) with a short,
+     targeted fix prompt ("keep everything, fix the left hand to five fingers").
+   - A miss → a new run with a better prompt that removes the cause; never repeat a prompt that failed.
+   - If one model fails the same way twice, switch to another strong model.
+   - Wire the reference images into every model that should keep the character/product (respect max_images).
+5. Each model node makes ONE image. For N new results add N model nodes (one prompt each, or one prompt per variation).
+6. Budget: the round's cost is the sum of "coins" of the models you add. Keep it within the budget left minus 80 coins
+   (the next review). If no useful round fits, set done=true and say so. Prefer cheaper strong models when the budget is tight.
+7. "reply": one or two short sentences — what passed, what failed and what this round tries. No prices.
+Loop ops may only ADD prompts/models and wires (no remove / set_* of existing nodes).
+When ROUND is beyond the max rounds, this is the final review: only judge, set done=true, ops empty.`;
+
+const LOOP_TOOL = {
+  name: "loop_step",
+  description: "Verdicts on the last round, whether the goal is met, and the next round's board edits.",
+  input_schema: {
+    type: "object",
+    properties: {
+      reply: { type: "string" },
+      target: { type: "integer", description: "How many finished results the goal asks for" },
+      verdicts: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            handle: { type: "string" },
+            keep: { type: "boolean" },
+            score: { type: "integer" },
+            issue: { type: "string" },
+          },
+          required: ["handle", "keep"],
+        },
+      },
+      done: { type: "boolean" },
+      ops: { type: "array", items: { type: "object" } },
+    },
+    required: ["reply", "verdicts", "done", "ops"],
+  },
+};
+
 const PLAN_TOOL = {
   name: "canvas_plan",
   description: "The board edits to draft, plus a short reply to the user.",
@@ -95,6 +158,9 @@ const PLAN_TOOL = {
   },
 };
 
+// Loop rounds use the same op shapes as a plan.
+(LOOP_TOOL.input_schema.properties as Record<string, unknown>).ops = PLAN_TOOL.input_schema.properties.ops;
+
 type Body = {
   message?: string;
   mentions?: unknown[];
@@ -102,6 +168,16 @@ type Body = {
   board?: unknown[];
   catalog?: unknown[];
   history?: { role: string; text: string }[];
+  mode?: "plan" | "loop";
+  loop?: {
+    round?: number;
+    max_rounds?: number;
+    budget_coins?: number;
+    left_coins?: number;
+    kept?: { handle: string; model?: string; note?: string }[];
+    results?: { handle: string; url?: string | null; model?: string; prompt?: string; status?: string; error?: string }[];
+    log?: string[];
+  };
 };
 
 /** Supabase storage → a 1024px rendition, so a 22 MB 4K PNG stays small. */
@@ -110,9 +186,18 @@ function smallImage(url: string): string {
   return m ? `${m[1]}/storage/v1/render/image/public/${m[2]}?width=1024&resize=contain&quality=75` : url;
 }
 
-function extractPlan(payload: any): { reply: string; questions: string[]; ops: unknown[] } | null {
+type Extracted = {
+  reply: string;
+  questions: string[];
+  ops: unknown[];
+  target?: number;
+  verdicts?: unknown[];
+  done?: boolean;
+};
+
+function extractPlan(payload: any, toolName = "canvas_plan"): Extracted | null {
   const blocks: any[] = payload?.content ?? [];
-  const tool = blocks.find((b) => b?.type === "tool_use" && b?.name === "canvas_plan");
+  const tool = blocks.find((b) => b?.type === "tool_use" && b?.name === toolName);
   let raw: any = tool?.input ?? null;
   if (!raw) {
     const text = blocks.filter((b) => b?.type === "text").map((b) => b.text).join("\n");
@@ -128,6 +213,13 @@ function extractPlan(payload: any): { reply: string; questions: string[]; ops: u
     reply: String(raw.reply ?? ""),
     questions: Array.isArray(raw.questions) ? raw.questions.map(String) : [],
     ops: Array.isArray(raw.ops) ? raw.ops : [],
+    ...(toolName === "loop_step"
+      ? {
+          target: Number.isFinite(Number(raw.target)) ? Number(raw.target) : undefined,
+          verdicts: Array.isArray(raw.verdicts) ? raw.verdicts : [],
+          done: raw.done === true || raw.done === "true",
+        }
+      : {}),
   };
 }
 
@@ -152,10 +244,18 @@ Deno.serve(async (req) => {
   const pikaKey = Deno.env.get("PIKA_API_KEY");
   if (!pikaKey) return json({ error: "PIKA_API_KEY is not configured" }, 500);
 
+  const isLoop = body.mode === "loop";
+  const loop = body.loop ?? {};
+  const refImages = (body.images ?? []).filter((i) => i?.url).slice(0, MAX_IMAGES);
+  const resultImages = isLoop
+    ? (loop.results ?? []).filter((r) => r?.url).slice(0, LOOP_MAX_IMAGES - refImages.length)
+    : [];
+  const coins = isLoop ? LOOP_BASE_COINS + LOOP_COINS_PER_IMAGE * (refImages.length + resultImages.length) : AGENT_COINS;
+
   const { data: reserved, error: reserveError } = await userClient.rpc("reserve_coins", {
     p_user_id: user.id,
-    p_amount: AGENT_COINS,
-    p_description: "Reserve for canvas agent message",
+    p_amount: coins,
+    p_description: isLoop ? "Reserve for canvas agent loop step" : "Reserve for canvas agent message",
   });
   if (reserveError) {
     if (reserveError.message?.includes("Insufficient coins")) {
@@ -178,31 +278,52 @@ Deno.serve(async (req) => {
     `BOARD (existing nodes):\n${JSON.stringify(body.board ?? [])}\n\n` +
     `MENTIONS in the message (@[...] tokens):\n${JSON.stringify(body.mentions ?? [])}\n\n` +
     (history ? `EARLIER IN THIS CHAT:\n${history}\n\n` : "") +
-    `USER MESSAGE:\n${message}`;
-  const images = (body.images ?? []).filter((i) => i?.url).slice(0, MAX_IMAGES);
+    (isLoop
+      ? `GOAL:\n${message}\n\n` +
+        `ROUND: ${loop.round ?? 1} of at most ${loop.max_rounds ?? 6}\n` +
+        `BUDGET: ${loop.budget_coins ?? 0} coins total, ${loop.left_coins ?? 0} coins left (500 coins = $1)\n\n` +
+        `KEPT IN EARLIER ROUNDS (${(loop.kept ?? []).length}):\n${JSON.stringify(loop.kept ?? [])}\n\n` +
+        `LAST ROUND RESULTS (judge each one; images follow their handles above):\n${JSON.stringify(
+          (loop.results ?? []).map((r) => ({ handle: r.handle, model: r.model, prompt: r.prompt?.slice(0, 300), status: r.status, error: r.error, shown: !!r.url })),
+        )}\n\n` +
+        ((loop.log ?? []).length ? `LOOP LOG:\n${(loop.log ?? []).slice(-12).join("\n")}\n` : "")
+      : `USER MESSAGE:\n${message}`);
+  const images = refImages;
 
   const call = async (withImages: boolean, withTool: boolean) => {
     const content: unknown[] = [];
     if (withImages) {
       for (const img of images) {
-        content.push({ type: "text", text: `Image of node ${img.handle}:` });
+        content.push({ type: "text", text: `${isLoop ? "Reference image" : "Image"} of node ${img.handle}:` });
         content.push({ type: "image", source: { type: "url", url: smallImage(img.url) } });
+      }
+      for (const r of resultImages) {
+        content.push({ type: "text", text: `Result ${r.handle} (${r.model ?? "model"}):` });
+        content.push({ type: "image", source: { type: "url", url: smallImage(r.url!) } });
       }
     }
     content.push({
       type: "text",
       text: context + (withImages || !images.length ? "" : "\n\n(The referenced images could not be shown to you; rely on their labels.)") +
-        (withTool ? "" : '\n\nRespond with ONLY a JSON object {"reply": "...", "questions": [], "ops": [...]} using the canvas_plan op shapes.'),
+        (withTool
+          ? ""
+          : isLoop
+            ? '\n\nRespond with ONLY a JSON object {"reply": "...", "target": 4, "verdicts": [{"handle":"n9","keep":true,"score":8,"issue":""}], "done": false, "ops": [...]} using the canvas_plan op shapes.'
+            : '\n\nRespond with ONLY a JSON object {"reply": "...", "questions": [], "ops": [...]} using the canvas_plan op shapes.'),
     });
     const res = await fetch(PIKA_MESSAGES, {
       method: "POST",
       headers: { "content-type": "application/json", "X-API-Key": pikaKey, "anthropic-version": "2023-06-01" },
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: 4096,
-        system: SYSTEM,
+        max_tokens: isLoop ? 8000 : 4096,
+        system: isLoop ? SYSTEM + LOOP_SYSTEM : SYSTEM,
         messages: [{ role: "user", content }],
-        ...(withTool ? { tools: [PLAN_TOOL], tool_choice: { type: "tool", name: "canvas_plan" } } : {}),
+        ...(withTool
+          ? isLoop
+            ? { tools: [LOOP_TOOL], tool_choice: { type: "tool", name: "loop_step" } }
+            : { tools: [PLAN_TOOL], tool_choice: { type: "tool", name: "canvas_plan" } }
+          : {}),
       }),
     });
     const payload = await res.json().catch(() => ({}));
@@ -211,22 +332,24 @@ Deno.serve(async (req) => {
 
   try {
     // Images + tool first; then fall back step by step if the gateway refuses a feature.
-    const attempts: [boolean, boolean][] = images.length
+    const attempts: [boolean, boolean][] = images.length || resultImages.length
       ? [[true, true], [false, true], [false, false]]
       : [[false, true], [false, false]];
     let last: { status: number; msg: string } = { status: 0, msg: "" };
     for (const [withImages, withTool] of attempts) {
       const { res, payload } = await call(withImages, withTool);
       if (res.ok) {
-        const plan = extractPlan(payload);
+        const plan = extractPlan(payload, isLoop ? "loop_step" : "canvas_plan");
         if (!plan) { last = { status: 502, msg: "empty reply" }; continue; }
-        console.log("canvas-agent ok", { withImages, withTool, usage: payload?.usage, ops: plan.ops.length });
+        console.log("canvas-agent ok", { mode: isLoop ? "loop" : "plan", withImages, withTool, usage: payload?.usage, ops: plan.ops.length, coins });
         const { error: deductError } = await admin.rpc("deduct_reserved_coins", {
           p_reserve_transaction_id: reserveId,
-          p_description: `Deduct for canvas agent message (${plan.ops.length} ops)`,
+          p_description: isLoop
+            ? `Deduct for canvas agent loop step (round ${loop.round ?? 1}, ${plan.ops.length} ops)`
+            : `Deduct for canvas agent message (${plan.ops.length} ops)`,
         });
         if (deductError) console.error("canvas-agent deduct", deductError.message);
-        return json({ ...plan, coins: AGENT_COINS, saw_images: withImages });
+        return json({ ...plan, coins, saw_images: withImages });
       }
       last = { status: res.status, msg: payload?.error?.message ?? payload?.message ?? `Pika returned ${res.status}` };
       console.error("canvas-agent pika", { withImages, withTool, ...last });

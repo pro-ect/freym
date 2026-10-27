@@ -765,3 +765,51 @@ button.fc-chip { cursor: pointer; }
 .fc-model-card:hover .fc-fav { color: #8b8b96; }
 .fc-fav.on, .fc-model-card:hover .fc-fav.on { color: #fbbf24; }
 .fc-fav:hover { color: #fbbf24; }
+
+/* agent loop */
+.fc-agent-loop-toggle {
+  background: none; border: 1px solid #2e2e35; color: #a3a3ad;
+  border-radius: 8px; padding: 5px 9px; font-size: 12px; white-space: nowrap;
+}
+.fc-agent-loop-toggle:hover { color: #fff; border-color: #55555e; }
+.fc-agent-loop-toggle.on { color: #fff; border-color: #8b5cf6; background: #241d3a; }
+.fc-agent-budget {
+  display: inline-flex; align-items: center; gap: 2px;
+  border: 1px solid #3b2f63; border-radius: 8px; padding: 0 6px; height: 28px;
+  font-size: 12px; color: #a78bfa;
+}
+.fc-agent-budget input {
+  width: 34px; background: none; border: none; outline: none; color: #fff; font-size: 12.5px;
+}
+.fc-agent-loop {
+  border: 1px solid #3b2f63; background: #17151f; border-radius: 12px;
+  padding: 10px; display: flex; flex-direction: column; gap: 8px; margin-top: 6px;
+}
+.fc-agent-loop.done { border-color: #2f5a43; }
+.fc-agent-loop.error { border-color: #6b2f37; }
+.fc-agent-loop-head { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12.5px; color: #a3a3ad; }
+.fc-agent-loop-head b { color: #fff; font-weight: 600; }
+.fc-agent-loop-bar { height: 4px; background: #2a2735; border-radius: 4px; overflow: hidden; }
+.fc-agent-loop-bar i { display: block; height: 100%; background: #8b5cf6; transition: width 0.4s; }
+.fc-agent-loop-phase { font-size: 12.5px; color: #d6d6dc; display: flex; align-items: center; gap: 7px; }
+.fc-agent-loop-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: #a78bfa;
+  animation: fc-loop-pulse 1.2s ease-in-out infinite;
+}
+@keyframes fc-loop-pulse { 50% { opacity: 0.3; } }
+.fc-agent-loop-log { margin: 0; padding-left: 16px; font-size: 12px; color: #8e8e98; display: flex; flex-direction: column; gap: 3px; }
+.fc-agent-loop-picks { display: flex; flex-wrap: wrap; gap: 6px; }
+.fc-agent-loop-picks button {
+  width: 48px; height: 48px; padding: 0; border-radius: 8px; overflow: hidden;
+  border: 1px solid #2f5a43; background: #1f1d29; color: #a3a3ad;
+}
+.fc-agent-loop-picks button:hover { border-color: #4ade80; }
+.fc-agent-loop-picks img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.react-flow__node.fc-pick > .fc-node { outline: 2px solid #4ade80; outline-offset: 4px; }
+.react-flow__node.fc-pick > .fc-node::after {
+  content: "✓ Pick"; position: absolute; top: -26px; left: 0; font-size: 11px; color: #4ade80;
+}
+.react-flow__node.fc-reject > .fc-node { opacity: 0.55; }
+.react-flow__node.fc-reject > .fc-node::after {
+  content: "Rejected"; position: absolute; top: -26px; left: 0; font-size: 11px; color: #f87171;
+}

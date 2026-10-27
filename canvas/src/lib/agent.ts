@@ -3,6 +3,18 @@ import type { Plan } from "./agentPlan";
 
 export type AgentTurn = { role: "user" | "assistant"; text: string };
 
+export type Verdict = { handle: string; keep: boolean; score?: number; issue?: string };
+export type LoopContext = {
+  round: number;
+  max_rounds: number;
+  budget_coins: number;
+  left_coins: number;
+  kept: { handle: string; model?: string; note?: string }[];
+  results: { handle: string; url?: string | null; model?: string; prompt?: string; status?: string; error?: string }[];
+  log: string[];
+};
+export type AgentAnswer = Plan & { coins?: number; target?: number; verdicts?: Verdict[]; done?: boolean };
+
 /** One planning call to canvas-agent. Paid per message (flat coins). */
 export async function askAgent(body: {
   message: string;
@@ -11,7 +23,9 @@ export async function askAgent(body: {
   board: unknown[];
   catalog: unknown[];
   history: AgentTurn[];
-}): Promise<Plan & { coins?: number }> {
+  mode?: "plan" | "loop";
+  loop?: LoopContext;
+}): Promise<AgentAnswer> {
   const { data: sess } = await supabase.auth.getSession();
   const token = sess.session?.access_token;
   if (!token) throw new Error("not signed in");
@@ -29,5 +43,13 @@ export async function askAgent(body: {
     throw new Error(json?.error ?? `request failed (${res.status})`);
   }
   window.dispatchEvent(new CustomEvent("fc-balance-refresh"));
-  return { reply: String(json.reply ?? ""), questions: json.questions ?? [], ops: json.ops ?? [], coins: json.coins };
+  return {
+    reply: String(json.reply ?? ""),
+    questions: json.questions ?? [],
+    ops: json.ops ?? [],
+    coins: json.coins,
+    target: json.target,
+    verdicts: Array.isArray(json.verdicts) ? json.verdicts : undefined,
+    done: json.done,
+  };
 }
