@@ -153,7 +153,7 @@ export default function AgentPanel({
   nodes: Node[];
   edges: Edge[];
   makeModelNode: (m: CloudModel, pos: { x: number; y: number }) => Node;
-  commit: (r: { nodes: Node[]; edges: Edge[] }) => void;
+  commit: (r: { nodes: Node[]; edges: Edge[] }, base?: { nodes: Node[]; edges: Edge[] }) => void;
   runDraft: (ids: string[]) => void;
   centerPos: () => { x: number; y: number };
 }) {
@@ -171,7 +171,8 @@ export default function AgentPanel({
   const [at, setAt] = useState<{ query: string; index: number } | null>(null);
   const [loopOn, setLoopOn] = useState(false);
   const [budgetUsd, setBudgetUsd] = useState("3");
-  const loopStop = useRef(false);
+  // Loops run side by side; each has its own stop flag (by message id).
+  const loopStops = useRef(new Map<string, boolean>());
   // The loop is async and long: it reads the live board through refs.
   const nodesRef = useRef(nodes);
   nodesRef.current = nodes;
@@ -380,7 +381,7 @@ export default function AgentPanel({
           makeModelNode,
           fallbackPos: centerPos(),
         });
-        commit(result);
+        commit(result, { nodes, edges });
         // Bring the new draft into view once React Flow has measured it.
         const ids = result.created;
         if (ids.length) setTimeout(() => void fitView({ nodes: ids.map((id) => ({ id })), padding: 0.25, duration: 500, maxZoom: 1 }), 120);
@@ -437,8 +438,8 @@ export default function AgentPanel({
       { id: crypto.randomUUID(), role: "user", text: a.text, chips: a.chips },
       { id: msgId, role: "assistant", text: "Starting the loop…", loop: st },
     ]);
-    loopStop.current = false;
-    setBusy(true);
+    loopStops.current.set(msgId, false);
+    const stopped = () => !!loopStops.current.get(msgId);
     setOpen(true);
 
     const refIds = a.refIds;
@@ -460,7 +461,7 @@ export default function AgentPanel({
     try {
       const catalogModels = models.length ? models : await fetchModels();
       for (let round = 1; round <= MAX_ROUNDS + 1; round++) {
-        if (loopStop.current) { show({ status: "stopped", phase: "Stopped" }); break; }
+        if (stopped()) { show({ status: "stopped", phase: "Stopped" }); break; }
         const left = st.budgetCoins - st.spent;
         const cur = nodesRef.current;
         const { toHandle, toId } = handleMap(cur);
@@ -527,7 +528,8 @@ export default function AgentPanel({
         const board = nodesRef.current.map((n) =>
           keepIds.includes(n.id) ? { ...n, className: "fc-pick" } : rejectIds.includes(n.id) ? { ...n, className: "fc-reject" } : n,
         );
-        if (keepIds.length || rejectIds.length) commit({ nodes: board, edges: edgesRef.current });
+        const base = { nodes: nodesRef.current, edges: edgesRef.current };
+        if (keepIds.length || rejectIds.length) commit({ nodes: board, edges: base.edges }, base);
         const line = lastRound.length
           ? `Round ${round - 1}: kept ${keepIds.length} of ${lastRound.length}${issues.length ? ` — ${issues.slice(0, 3).join("; ")}` : ""}`
           : "";
@@ -535,7 +537,7 @@ export default function AgentPanel({
 
         if (round > MAX_ROUNDS) { show({ status: "done", phase: `Stopped after ${MAX_ROUNDS} rounds` }); break; }
         if (ans.done) { show({ status: "done", phase: "Goal met" }); break; }
-        if (loopStop.current) { show({ status: "stopped", phase: "Stopped" }); break; }
+        if (stopped()) { show({ status: "stopped", phase: "Stopped" }); break; }
 
         // The next round: additions only, trimmed to the budget left.
         const ops = (ans.ops ?? []).filter((o) => !/^(remove|set_|delete)/.test(String((o as { op?: string }).op ?? "")));
@@ -574,7 +576,7 @@ export default function AgentPanel({
           show({ status: "done", phase: roundModels.length ? "The budget left is too small for another round" : "Nothing to run" });
           break;
         }
-        commit({ nodes: outNodes, edges: outEdges });
+        commit({ nodes: outNodes, edges: outEdges }, base);
         setTimeout(() => void fitView({ nodes: created.map((id) => ({ id })), padding: 0.25, duration: 500, maxZoom: 1 }), 120);
         await new Promise((r) => setTimeout(r, 250));
         runDraft(created);
@@ -583,7 +585,7 @@ export default function AgentPanel({
           phase: `Round ${round}: running ${run.length} model${run.length === 1 ? "" : "s"}${dropped.length ? ` (${dropped.length} cut to fit the budget)` : ""}…`,
         });
 
-        await waitForRuns(run, () => nodesRef.current, () => loopStop.current);
+        await waitForRuns(run, () => nodesRef.current, stopped);
         // Failed runs are refunded by the backend.
         for (const id of run) {
           const n = nodesRef.current.find((x) => x.id === id);
@@ -595,7 +597,7 @@ export default function AgentPanel({
     } catch (e) {
       show({ status: "error", phase: String((e as Error).message ?? e) });
     } finally {
-      setBusy(false);
+      loopStops.current.delete(msgId);
       window.dispatchEvent(new CustomEvent("fc-balance-refresh"));
     }
   };
@@ -663,7 +665,7 @@ export default function AgentPanel({
                   nodes={nodes}
                   onFocus={focusNode}
                   onStop={() => {
-                    loopStop.current = true;
+                    loopStops.current.set(m.id, true);
                     setThread((t) => t.map((x) => (x.id === m.id && x.loop ? { ...x, loop: { ...x.loop, phase: "Stopping after this step…" } } : x)));
                   }}
                 />
@@ -678,7 +680,7 @@ export default function AgentPanel({
                     settle(m.id, "run");
                   }}
                   onKeep={(ids) => {
-                    commit({ nodes: nodes.map((n) => (ids.includes(n.id) ? stripDraft(n) : n)), edges });
+                    commit({ nodes: nodes.map((n) => (ids.includes(n.id) ? stripDraft(n) : n)), edges }, { nodes, edges });
                     settle(m.id, "kept");
                   }}
                   onDiscard={(ids) => {

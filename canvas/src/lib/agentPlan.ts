@@ -427,3 +427,46 @@ export function clearDraft(nodes: Node[], ids?: Set<string>): Node[] {
     return { ...n, className: undefined, data };
   });
 }
+
+/**
+ * Apply what changed between `base` and `next` onto the LIVE board `prev`.
+ * The agent computes edits on a snapshot; meanwhile runs patch node data
+ * (status, results) and other loops add nodes. Replacing the board with the
+ * snapshot would drop those, so only the agent's own changes are applied:
+ * added items, removed items, and the fields it changed on the rest.
+ */
+export function mergeById<T extends { id: string }>(prev: T[], base: T[], next: T[]): T[] {
+  const baseById = new Map(base.map((x) => [x.id, x]));
+  const nextById = new Map(next.map((x) => [x.id, x]));
+  const removed = new Set(base.filter((x) => !nextById.has(x.id)).map((x) => x.id));
+  const out = prev
+    .filter((x) => !removed.has(x.id))
+    .map((x) => {
+      const b = baseById.get(x.id);
+      const n = nextById.get(x.id);
+      if (!b || !n || b === n) return x;
+      const r = x as Record<string, unknown>;
+      const bb = b as Record<string, unknown>;
+      const nn = n as Record<string, unknown>;
+      const merged: Record<string, unknown> = { ...r };
+      for (const k of Object.keys({ ...bb, ...nn })) {
+        if (k === "selected" || k === "measured" || nn[k] === bb[k]) continue;
+        if (k === "data" && bb.data && nn.data && r.data) {
+          const d = { ...(r.data as Record<string, unknown>) };
+          const bd = bb.data as Record<string, unknown>;
+          const nd = nn.data as Record<string, unknown>;
+          for (const dk of Object.keys({ ...bd, ...nd })) {
+            if (nd[dk] !== bd[dk]) {
+              if (dk in nd) d[dk] = nd[dk];
+              else delete d[dk];
+            }
+          }
+          merged.data = d;
+        } else merged[k] = nn[k];
+      }
+      return merged as T;
+    });
+  const have = new Set(out.map((x) => x.id));
+  for (const n of next) if (!baseById.has(n.id) && !have.has(n.id)) out.push(n);
+  return out;
+}

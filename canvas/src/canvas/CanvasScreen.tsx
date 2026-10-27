@@ -31,7 +31,7 @@ import CurvedEdge from "./CurvedEdge";
 import ModelSidebar from "./ModelSidebar";
 import PropertiesPanel from "./PropertiesPanel";
 import AgentPanel from "./AgentPanel";
-import { chipForNode, clearDraft } from "../lib/agentPlan";
+import { chipForNode, clearDraft, mergeById } from "../lib/agentPlan";
 import { useHistory } from "./useHistory";
 import { loadProject, saveProject, renameProject, ensureShareToken } from "../lib/projects";
 import { resumeJobs } from "../lib/runner";
@@ -681,10 +681,17 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
     },
     [getNodes, getEdges, setNodes, runModels],
   );
+  // Agent edits are computed on a snapshot (`base`); merge them onto the live
+  // board so run results and parallel loops are not overwritten.
   const commitPlan = useCallback(
-    (r: { nodes: Node[]; edges: Edge[] }) => {
-      setNodes(r.nodes);
-      setEdges(r.edges);
+    (r: { nodes: Node[]; edges: Edge[] }, base?: { nodes: Node[]; edges: Edge[] }) => {
+      if (!base) {
+        setNodes(r.nodes);
+        setEdges(r.edges);
+        return;
+      }
+      setNodes((prev) => mergeById(prev, base.nodes, r.nodes));
+      setEdges((prev) => mergeById(prev, base.edges, r.edges));
     },
     [setNodes, setEdges],
   );
