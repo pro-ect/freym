@@ -54,7 +54,8 @@ export function groupModels(models: CloudModel[]) {
   const isText = (m: CloudModel) => m.category === "text";
   const isAudio = (m: CloudModel) => m.category === "audio";
   return {
-    text: models.filter(isText),
+    // 'legacy' writers stay runnable for nodes already on boards, but leave the sidebar.
+    text: models.filter((m) => isText(m) && !m.tags?.includes("legacy")),
     audio: models.filter(isAudio),
     image: models.filter((m) => m.category !== "video" && !isText(m) && !isAudio(m) && !isTool(m)),
     video: models.filter((m) => m.category === "video" && !isTool(m)),

@@ -4,14 +4,14 @@
 // The LLM is a `text`-category row in the shared models table (canvas_models
 // view), served through Pika's OpenAI-compatible chat surface — one API key
 // for text, image and video. `model_configs.replicate_version` holds the Pika
-// model id ("anthropic/claude-opus-5", "openai/gpt-5.5", …). Each run costs a
+// model id ("anthropic/claude-opus-5.5", "openai/gpt-6.1-sol", …). Each run costs a
 // flat `model_pricing.coin_cost`: reserved before the call, deducted on
 // success, released on any failure. No generation_queue row — the call is
 // synchronous and returns text, not media.
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const PIKA_API_BASE = "https://api.dev.pika.art";
-const DEFAULT_MODEL = "claude-opus-5-pika";
+const DEFAULT_MODEL = "claude-opus-55-pika";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -164,6 +164,8 @@ Deno.serve(async (req) => {
 
     const text: string = payload?.choices?.[0]?.message?.content ?? "";
     const prompts = parsePrompts(text, count);
+    // Token usage per writer — the flat coin_cost is checked against this.
+    console.log("prompt-gen ok", JSON.stringify({ slug, count, got: prompts.length, usage: payload?.usage ?? null }));
     if (!prompts.length) {
       await release("no prompts in the reply");
       return json({ error: "no prompts returned — try rewording the brief" }, 502);
