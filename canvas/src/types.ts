@@ -22,6 +22,8 @@ export type RateTable = {
   audio_off_rates?: Record<string, number>;
   /** Flat per-generation cents keyed by joined input values (e.g. quality:resolution). */
   flat?: { key?: string[]; rates: Record<string, number> };
+  /** Cents added per wired input image on top of a flat rate (GPT Image 2.6). */
+  image_in_cents?: number;
 };
 
 export type CloudModel = {

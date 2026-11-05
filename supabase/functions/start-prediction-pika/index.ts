@@ -63,7 +63,23 @@ type RateTable = {
   /** Rate multiplier when the request carries reference VIDEO input — vendors
    *  bill input video (Seedance ~+20%, MiniMax bills input seconds). */
   video_in_multiplier?: number;
+  /** Cents added per input image on top of a flat rate (GPT Image 2.6 bills
+   *  2048 image-input tokens per reference). */
+  image_in_cents?: number;
 };
+
+/** Cents for the input images of a flat-priced run (0 when none are wired). */
+function imageInCentsFor(
+  pricing: Record<string, unknown>,
+  input: Record<string, unknown>,
+  imgParam: string | null,
+): number {
+  const per = Number((pricing.rate_table as RateTable | null)?.image_in_cents);
+  if (!imgParam || !Number.isFinite(per) || per <= 0) return 0;
+  const v = input[imgParam];
+  const count = Array.isArray(v) ? v.length : v ? 1 : 0;
+  return per * count;
+}
 
 /**
  * Flat per-generation cents for models whose price moves with quality/resolution
@@ -175,7 +191,8 @@ Deno.serve(async (req) => {
     // Data-driven price: flat tier tables (quality×resolution) win, then
     // per-second models multiply out the billable duration with the rate
     // picked by resolution/audio, then the static coin_cost.
-    const flatCents = flatCentsFor(pricing, input);
+    const flatRate = flatCentsFor(pricing, input);
+    const flatCents = flatRate != null ? flatRate + imageInCentsFor(pricing, input, imgParam) : null;
     const perSecondCents = flatCents != null ? 0 : perSecondCentsFor(pricing, input);
     const coinsCost = flatCents != null
       ? Math.ceil(flatCents * COINS_PER_CENT)

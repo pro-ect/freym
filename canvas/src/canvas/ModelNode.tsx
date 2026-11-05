@@ -194,7 +194,7 @@ export default function ModelNode({ id, data, selected }: NodeProps) {
     return () => { live = false; };
   }, [res.slug, d.slug]);
   const flatOnly = !d.rateTable && !d.perSecondCents;
-  const coins = flatOnly && routedCoins != null ? routedCoins : estimateCoins(d);
+  const coins = flatOnly && routedCoins != null ? routedCoins : estimateCoins(d, res.images.length);
   const showModes = d.category === "video" && res.canFrames && res.canRefs;
   const mode: InputMode = d.inputMode ?? "auto";
 

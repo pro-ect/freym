@@ -50,13 +50,19 @@ function flatCents(
 
 /** Live coin cost for a model node given its current params — quality tiers,
  *  resolution, audio and duration all move the price. Falls back to the static
- *  coin_cost for flat-priced models (Omni, Pikaffects, most image models). */
+ *  coin_cost for flat-priced models (Omni, Pikaffects, most image models).
+ *  `images` = wired input images, for tables that bill each one
+ *  (image_in_cents); mirrors start-prediction-pika. */
 export function estimateCoins(
   d: Pick<ModelNodeData, "costCoins" | "perSecondCents" | "rateTable" | "params">,
+  images = 0,
 ): number | null {
   const custom = (d.params?.custom ?? {}) as Record<string, unknown>;
   const flat = flatCents(d.rateTable, custom);
-  if (flat != null) return Math.ceil(flat * COINS_PER_CENT);
+  if (flat != null) {
+    const per = Number(d.rateTable?.image_in_cents) || 0;
+    return Math.ceil((flat + per * images) * COINS_PER_CENT);
+  }
   const cents = perSecondCents(d.rateTable, d.perSecondCents, custom);
   if (cents > 0) return Math.ceil(cents * billableSeconds(custom) * COINS_PER_CENT);
   return d.costCoins;
