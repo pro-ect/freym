@@ -26,6 +26,13 @@ import { PIKA_API_BASE, corsHeaders, finalizePikaJob, pikaApiKey, type QueueRow 
 
 const COINS_PER_CENT = 5; // 500 coins = $1, same constant as start-prediction-fal
 
+/** Cents → coins, rounded up. Rounds to 6 decimals first so float noise
+ *  (2.16 + 0.64 = 2.8000000000000003) does not add a coin. Canvas pricing.ts
+ *  uses the same rule. */
+function centsToCoins(cents: number): number {
+  return Math.ceil(Math.round(cents * COINS_PER_CENT * 1e6) / 1e6);
+}
+
 function jsonResponse(body: Record<string, unknown>, status = 200): Response {
   return new Response(JSON.stringify({ ...body, timestamp: new Date().toISOString() }), {
     status,
@@ -195,9 +202,9 @@ Deno.serve(async (req) => {
     const flatCents = flatRate != null ? flatRate + imageInCentsFor(pricing, input, imgParam) : null;
     const perSecondCents = flatCents != null ? 0 : perSecondCentsFor(pricing, input);
     const coinsCost = flatCents != null
-      ? Math.ceil(flatCents * COINS_PER_CENT)
+      ? centsToCoins(flatCents)
       : perSecondCents > 0
-        ? Math.ceil(perSecondCents * billableSeconds(input) * COINS_PER_CENT)
+        ? centsToCoins(perSecondCents * billableSeconds(input))
         : (pricing.coin_cost ?? 0);
     console.log(`[${requestId}] coins: ${coinsCost}`);
 

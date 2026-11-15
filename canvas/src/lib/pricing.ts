@@ -2,6 +2,13 @@ import type { ModelNodeData, RateTable } from "../types";
 
 const COINS_PER_CENT = 5; // 500 coins = $1, same constant as start-prediction-pika
 
+/** Cents → coins, rounded up after rounding to 6 decimals, so float noise
+ *  (2.16 + 0.64 = 2.8000000000000003) does not add a coin. Same rule as
+ *  start-prediction-pika. */
+function centsToCoins(cents: number): number {
+  return Math.ceil(Math.round(cents * COINS_PER_CENT * 1e6) / 1e6);
+}
+
 /** Mirror of the server's billable-seconds rule so the displayed price matches
  *  what the run will reserve. Pika 2.5 uses duration_s, the aggregated vendor
  *  models use duration, Pikaframes bills per keyframe transition (shown here
@@ -61,9 +68,9 @@ export function estimateCoins(
   const flat = flatCents(d.rateTable, custom);
   if (flat != null) {
     const per = Number(d.rateTable?.image_in_cents) || 0;
-    return Math.ceil((flat + per * images) * COINS_PER_CENT);
+    return centsToCoins(flat + per * images);
   }
   const cents = perSecondCents(d.rateTable, d.perSecondCents, custom);
-  if (cents > 0) return Math.ceil(cents * billableSeconds(custom) * COINS_PER_CENT);
+  if (cents > 0) return centsToCoins(cents * billableSeconds(custom));
   return d.costCoins;
 }
