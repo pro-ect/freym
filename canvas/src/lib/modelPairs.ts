@@ -60,6 +60,10 @@ export const ROUTES: Record<string, ModelRoutes> = {
     image: { slug: "nb-pro-2k-edit-pika", param: "image_urls", max: 10 },
     refHint: "Wired images are numbered in the order you connected them — refer to them as image 1, image 2… in the prompt.",
   },
+  "seedream-55-pika": {
+    image: { slug: "seedream-55-edit-pika", param: "image_urls", max: 10 },
+    refHint: "Wired images are numbered in the order you connected them — refer to them as image 1, image 2… in the prompt.",
+  },
   "seedream-5-pro-t2i-pika": {
     image: { slug: "seedream-5-pro-edit-pika", param: "image_urls", max: 10 },
     refHint: "Wired images are numbered in the order you connected them — refer to them as image 1, image 2… in the prompt.",
