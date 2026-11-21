@@ -85,6 +85,13 @@ Eugene's order: **marks first, type separately, then combine (or keep type only)
    arrangements, or type only.
 4. Every mark gets an art-director note: concept, legibility at 16 px, cliché risk. For science
    brands, also check that the symbol is true to the science.
+5. **Vector wordmark: do not trust opentype.js kerning.**
+   - opentype.js 1.3.4 does not read most fonts' GPOS kerning, and `getKerningValue` returns 0.
+     On Instrument Sans this lost V–a −81 and a–V −83, so the V floated away from its neighbours.
+   - Measure the real pair kerning with the browser (canvas `measureText` of a pair minus its two
+     letters, `fontKerning = "normal"`), store it in `kerning.json`, and build from that.
+   - Give the user a kerning tool (one slider per pair, on top of the font's kerning) for optical
+     fixes. TheraVac reference: `~/theravac/logo/kerning-tool.html` + `build-wordmark.mjs`.
 
 ## Where it runs
 
