@@ -56,10 +56,35 @@ board gen video --model minimax-h3 --from n_xxxx --end same --duration 6 --promp
   - No cuts and no new objects.
   - Light that does not change.
   - Use `--end same`, so the last frame equals the first.
+  - With `--end same` the move must **return**: "eases in and back out", "drifts left and back". A
+    one-way push-in or orbit cannot end on its first frame, and the model then jumps or stalls.
 - **Say what moves and how slowly:** "particles drift slowly", "a gentle parallax". Do not write "dynamic",
   "fast" or "explosion" for a background loop.
 - **A hero video sits under text.** Keep a calm zone for the headline and avoid strobing highlights.
 - **Turn audio off** (`generate_audio: false`); a hero video autoplays muted anyway.
+
+### FPV variant (Eugene liked it, 2026-11-21)
+- A drone-like flight through the subject ("first-person FPV drone flight … threading through the gaps
+  … soft motion blur"), 8 s, FLUX 3 Max.
+- It loops too: with `--end same`, a field of repeating objects lets the flight "arrive" back at the
+  opening view, like an infinite zoom (seam 33.8 dB in the first test).
+
+## Recipe: logo
+
+Eugene's order: **marks first, type separately, then combine (or keep type only).**
+
+1. **Marks only**, 5–7 of them, with no letters ("Logo symbol only: no letters, no text"):
+   - Engines: **Recraft V4 vector** (`recraft-4-vector`, $0.08, SVG) and **QuiverAI**
+     (needs `~/.config/quiverai/key`).
+   - Give the palette with `--colors`.
+   - Cover both directions: evolve the current logo's idea, and new symbols from the product or
+     science.
+2. **Type separately:** the name set in 4–6 open-source families from **typedump.com**, as one HTML
+   card sheet with 16 px / 11 px tests. AI logo models warp letters, so the name is always real type.
+3. **The user picks** a mark (or none) and a type, then build the lockups: mark + type in 2–3
+   arrangements, or type only.
+4. Every mark gets an art-director note: concept, legibility at 16 px, cliché risk. For science
+   brands, also check that the symbol is true to the science.
 
 ## Where it runs
 

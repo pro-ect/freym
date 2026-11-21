@@ -23,6 +23,13 @@ Checked 2026-11-21: all five endpoints exist (public OpenAPI schema answers 200)
 
 Both video models take an end frame, so `--end same` gives a seamless loop.
 
+## Logo (vector)
+
+| model | board alias | fal endpoint | fal price | notes |
+|---|---|---|---|---|
+| Recraft V4 vector | `recraft-4-vector` | `fal-ai/recraft/v4/text-to-vector` | $0.08 / SVG | 11–13 s; holds the given palette; 7–154 paths (dot patterns get heavy) |
+| Recraft V4 Pro vector | `recraft-4-pro-vector` | `fal-ai/recraft/v4/pro/text-to-vector` | $0.30 / SVG | 13–15 s; cleaner, fewer paths, but drifted from the palette (royal blue, mint) |
+
 ## Learned from runs
 
 _(Fill in after each run: date, project, model, what the result was good or bad at, real cost.)_
@@ -36,3 +43,12 @@ _(Fill in after each run: date, project, model, what the result was good or bad 
 - **Nano Banana 2.1**, 22 s, est. ~$0.10: 2752×1536 at `resolution: 2K`. Good composition, but its
   "particle with strands" became a spiky, corona-like virus. Avoid this look for vaccine or biotech
   brands.
+- **Nano Banana 2.1 /edit** with 2 references (the image + a real PDB structure picture), 39 s, est.
+  ~$0.14: it rebuilt the shell as small protein subunits (more true), but the peptides stayed as
+  stalks with heads. Prompting "a tenth of the radius, no stalks" was only partly followed.
+- **FLUX 3 Max i2v**, 720p: 15–46 s (!). Loops with `--end same` close cleanly (seam 30.9 dB calm,
+  33.8 dB FPV). The calm loop moves very little. Output 1280×704.
+- **MiniMax H3 i2v**, 768P: 148–184 s. It shows more motion (a visible push-in), but it shifted the
+  colours mid-clip (tips to cyan and lime). `prompt_expansion_mode` must be "disabled", not "off".
+  Output 1344×768.
+- **Real costs:** not yet compared with the fal dashboard (estimates only).
