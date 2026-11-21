@@ -26,3 +26,13 @@ Both video models take an end frame, so `--end same` gives a seamless loop.
 ## Learned from runs
 
 _(Fill in after each run: date, project, model, what the result was good or bad at, real cost.)_
+
+### 2026-11-21 · biotech hero key image (macro VLP particle, light, 16:9)
+- **GPT Image 2.6 Sunburst**, 28 s, est. ~$0.25: the clearest structure (geodesic facets, regular
+  pattern), brand colours held well. ★ for the scientific look. **`image_size: landscape_16_9` gives
+  only 1088×608**: for a 2K still, pass `{width, height}` instead.
+- **Seedream 5.5**, 15 s, est. ~$0.045: 2560×1440 as asked, very regular array, bright and clean.
+  It turned "peptide strands" into Y-shapes that read as antibodies. The cheapest and the fastest.
+- **Nano Banana 2.1**, 22 s, est. ~$0.10: 2752×1536 at `resolution: 2K`. Good composition, but its
+  "particle with strands" became a spiky, corona-like virus. Avoid this look for vaccine or biotech
+  brands.
