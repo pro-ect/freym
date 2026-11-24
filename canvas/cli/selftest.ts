@@ -81,6 +81,26 @@ await check("adding under a board: the new block starts below every old node", a
   assert.ok(added.every((n) => n.position.y > bottom), "below everything");
 });
 
+await check("images that feed no model go in a grid of 4, above the references and the models", async () => {
+  const ops: Record<string, unknown>[] = [{ op: "add_text", key: "t", text: "Set", size: 48 }];
+  for (let i = 0; i < 6; i++) ops.push({ op: "add_image", key: `g${i}`, src: i % 2 ? "a.jpg" : "b.jpg" });
+  ops.push({ op: "add_image", key: "ref", src: "b.jpg" }, { op: "add_prompt", key: "p", text: "x" }, { op: "add_model", key: "m", slug: "img-a" });
+  ops.push({ op: "connect", from: "p", to: "m" }, { op: "connect", from: "ref", to: "m" });
+  const r = await buildBoard(parsePlan(JSON.stringify({ ops })), { nodes: [], edges: [], models, resolveImage });
+  const imgs = r.nodes.filter((n) => n.type === "image");
+  const grid = imgs.slice(0, 6);
+  const ref = imgs[6];
+  assert.deepEqual(grid.slice(0, 4).map((n) => n.position.y), Array(4).fill(grid[0].position.y), "first row of 4");
+  assert.deepEqual(grid.slice(0, 4).map((n) => n.position.x), [0, 360, 720, 1080], "columns 360 apart");
+  assert.ok(grid[4].position.y > grid[0].position.y && grid[4].position.x === 0, "the fifth starts row 2");
+  const gridBottom = Math.max(...grid.map((n) => boxOf(n).y + boxOf(n).h));
+  assert.ok(ref.position.y > gridBottom, "the reference column starts under the grid");
+  const m = r.nodes.find((n) => n.type === "model")!;
+  assert.ok(m.position.y > gridBottom, "the model row starts under the grid");
+  for (const [i, a] of r.nodes.entries())
+    for (const b of r.nodes.slice(i + 1)) assert.ok(!hit(boxOf(a), boxOf(b)), `${a.type} and ${b.type} overlap`);
+});
+
 await check("every problem comes back at once, and nothing is built", async () => {
   const bad = parsePlan(JSON.stringify({
     ops: [

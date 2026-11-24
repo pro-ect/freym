@@ -1,6 +1,6 @@
 ---
 name: freym
-description: Make boards on the freym canvas (freym.app/canvas) from any project with the `freym` CLI — titles, reference images, prompts and model cards wired together, checked like the canvas agent checks them. Use it when someone asks for a freym board, to "put this on freym", to compare models on freym, or for a node board of generations.
+description: Make GENERATION boards on the freym canvas (freym.app/canvas) with the `freym` CLI — prompts and reference images wired into model cards. Use it to compare models or set up a round of images or video on freym. Not for reviews, art-director picks or HTML pages: those go on `board`.
 ---
 
 # freym
@@ -12,6 +12,21 @@ same nodes, checks and layout as a board the canvas agent makes.
 
 **Boards only.** The CLI never starts a model run and never spends coins. The user presses Run
 (or "Run all") in the canvas.
+
+## What it is for, and what it is not for
+
+| the job | where |
+|---|---|
+| a round of generations: one prompt and the same references into several models; image → video chains | **freym** (this skill) |
+| a set of reference pictures to generate from | **freym**, wired into the model cards |
+| an art-director review, options A/B to pick, a design review, screenshots with text, HTML pages | **`board`** (live pages, comments, picks by comment), never freym |
+
+The freym canvas shows a picture in a node 300 units wide, with no comments. A screenshot of a
+review card is not readable there, and the user cannot pick by comment.
+
+If the user asks for review or art-director work "on freym" or "via freym", do not upload
+screenshots. Ask one short question: "the freym canvas (pictures only) or `board` (live pages and
+comments)?" Recommend `board`. A plan with no model card makes the CLI print a note about this.
 
 ## Setup (check once per session)
 
@@ -56,7 +71,8 @@ everything.
 ## Privacy
 
 - Uploaded reference images go to a **public** bucket (anyone with the URL can open them). Upload
-  client or private material only after the user says yes.
+  client or private material only after the user says yes in chat. Screenshots of a client's
+  product or of a review page are client material. Auto mode does not make this question go away.
 - No client names or private project details in prompts (the providers see them).
 
 ## Gotchas

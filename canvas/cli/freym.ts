@@ -171,8 +171,13 @@ function summary(r: Awaited<ReturnType<typeof buildBoard>>) {
   const c = r.counts;
   const parts = [`${c.titles} title${c.titles === 1 ? "" : "s"}`, `${c.images} image${c.images === 1 ? "" : "s"}`, `${c.prompts} prompt${c.prompts === 1 ? "" : "s"}`, `${c.models} model${c.models === 1 ? "" : "s"}`, `${c.wires} wire${c.wires === 1 ? "" : "s"}`];
   const runs = r.runs.map((x) => `  ${x.model.padEnd(28)} ${x.coins == null ? "price unknown" : `${x.coins} coins (${usd(x.coins)})`}`).join("\n");
-  return `${parts.join(", ")}\n${runs}${r.runs.length ? `\none run of every model ≈ ${r.coins} coins (${usd(r.coins)}); runs start in the canvas` : ""}`;
+  return `${parts.join(", ")}${runs ? `\n${runs}` : ""}${r.runs.length ? `\none run of every model ≈ ${r.coins} coins (${usd(r.coins)}); runs start in the canvas` : ""}${c.models ? "" : `\n${NO_MODELS}`}`;
 }
+
+// The freym canvas is a generation canvas. A board with no model card is usually a review or a
+// gallery that belongs on `board` (live HTML pages, comments, picks).
+const NO_MODELS =
+  "note: this board has no model cards. The freym canvas is for generations (prompts and references into models). For a review, options to pick or HTML pages, use the `board` CLI (art-director work).";
 
 async function main() {
   const { pos, flags } = parseArgs(process.argv.slice(2));

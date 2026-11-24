@@ -17,6 +17,7 @@ const APPLY_OPS = new Set(["add_prompt", "add_model", "connect", "set_prompt", "
 const IMG_W = 300; // an image node is max 300 wide; its picture fills the width
 const IMG_CHROME = 80; // header + Replace button
 const IMG_GAP = 60;
+const GRID_COLS = 4; // images that feed no model
 const TITLE_GAP = 40;
 
 export function parsePlan(text: string): PlanFile {
@@ -115,24 +116,43 @@ export async function buildBoard(
   });
   const top = texts.length ? y + TITLE_GAP : origin.y;
 
-  // Reference images in a column on the left; applyPlan puts what they feed to their right.
+  // Images that feed a model are references: a column on the left, and applyPlan puts what they
+  // feed to their right. Images that feed nothing are a set to look at: a grid, above the rest.
   const toId = handles;
+  const wired = new Set(
+    applyOps
+      .filter((o) => (o as { op: string }).op === "connect")
+      .map((o) => String((o as Record<string, unknown>).from ?? (o as Record<string, unknown>).source ?? "")),
+  );
   const imageNodes: Node[] = [];
-  let imgY = top;
+  const loose: Node[] = [];
+  const refs: Node[] = [];
   for (const img of images) {
     try {
       const r = await ctx.resolveImage(img);
       const h = Math.round(IMG_CHROME + IMG_W * (r.ratio && r.ratio > 0 ? Math.min(r.ratio, 3) : 1));
-      const n = imageNode(r.url, { x: origin.x, y: imgY }, r.fileName ? { fileName: r.fileName } : {});
+      const n = imageNode(r.url, { x: origin.x, y: top }, r.fileName ? { fileName: r.fileName } : {});
       // A size estimate until the canvas measures the node: layout (and the next `freym add`)
       // then knows how tall the picture is.
       n.measured = { width: IMG_W, height: h };
-      imgY += h + IMG_GAP;
       imageNodes.push(n);
+      (wired.has(img.key) ? refs : loose).push(n);
       toId.set(img.key, n.id);
     } catch (e) {
       problems.push(`image "${img.key}": ${(e as Error).message}`);
     }
+  }
+  let rowY = top;
+  for (let i = 0; i < loose.length; i += GRID_COLS) {
+    const row = loose.slice(i, i + GRID_COLS);
+    row.forEach((n, j) => (n.position = { x: origin.x + j * (IMG_W + IMG_GAP), y: rowY }));
+    rowY += Math.max(...row.map((n) => n.measured!.height!)) + IMG_GAP;
+  }
+  const blockTop = loose.length ? rowY + IMG_GAP : top;
+  let imgY = blockTop;
+  for (const n of refs) {
+    n.position = { x: origin.x, y: imgY };
+    imgY += n.measured!.height! + IMG_GAP;
   }
 
   const result = applyPlan(
@@ -143,7 +163,7 @@ export async function buildBoard(
       models: ctx.models,
       toId,
       makeModelNode: modelToNode,
-      fallbackPos: { x: origin.x + (imageNodes.length ? IMG_W + 80 : 0), y: top },
+      fallbackPos: { x: origin.x + (refs.length ? IMG_W + 80 : 0), y: blockTop },
     },
   );
   const all = [...problems, ...result.warnings];
