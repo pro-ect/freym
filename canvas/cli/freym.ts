@@ -9,6 +9,7 @@ import { boardForAgent, catalogForAgent, handleMap } from "../src/lib/agentPlan"
 import { fetchModels } from "../src/lib/models";
 import { usd } from "../src/lib/balance";
 import { CliError } from "./errors";
+import { BUILD, closeReport, findReport, flushOutbox, listReports, outboxSize, queueReport, recordFailure, type Row } from "./feedback";
 import { buildBoard, parsePlan, type ImageSrc } from "./plan";
 import { loginGoogle, loginOwner, loginPassphrase, logout, requireUser, sb } from "./session";
 
@@ -32,6 +33,14 @@ Usage
   freym add <board> <plan.json>   add a plan to a board (close the board in the browser first)
   freym open <board> | freym share <board>    open it / a read-only link
   freym plan-help                 the plan format, for an agent
+
+Report a problem with freym itself (agents: do it; this is how freym gets fixed)
+  freym feedback <kind> "<summary>" [--details "…"] [--last]
+                                  kinds: bug, default (a default that is wrong), slow, missing,
+                                  docs (the skill or help misled you); --last attaches the facts
+                                  of the last failed freym command. Facts only: no prompts.
+  freym feedback list [--all] | show <id> | send
+  freym feedback close <id> --status fixed|wontfix|duplicate --note "…"   (the freym maintainer)
 
 Every command accepts --json. Exit codes: 0 ok, 1 usage or a plan that fails a check,
 2 not found, 3 network or IO, 4 sign-in. Boards only: the user starts runs in the canvas.`;
@@ -60,7 +69,7 @@ function parseArgs(argv: string[]): { pos: string[]; flags: Flags } {
     if (a.startsWith("--")) {
       const k = a.slice(2);
       const next = argv[i + 1];
-      if (["json", "open", "passphrase", "owner", "help"].includes(k) || next === undefined || next.startsWith("--")) flags[k] = true;
+      if (["json", "open", "passphrase", "owner", "help", "last", "all"].includes(k) || next === undefined || next.startsWith("--")) flags[k] = true;
       else flags[k] = argv[++i];
     } else pos.push(a);
   }
@@ -179,6 +188,50 @@ function summary(r: Awaited<ReturnType<typeof buildBoard>>) {
 const NO_MODELS =
   "note: this board has no model cards. The freym canvas is for generations (prompts and references into models). For a review, options to pick or HTML pages, use the `board` CLI (art-director work).";
 
+const short = (id: string) => id.slice(0, 8);
+const reportLine = (r: Row) =>
+  `#${short(r.id)}  ${r.kind.padEnd(7)} ${String(r.count).padStart(3)}×  ${r.last_seen_at.slice(0, 10)}  ${r.status === "open" ? "" : `[${r.status}] `}${r.summary}`;
+
+async function feedback(pos: string[], flags: Flags) {
+  const sub = pos[0];
+  if (sub === "list") {
+    const rows = await listReports(!!flags.all);
+    const waiting = outboxSize();
+    return out(
+      { reports: rows, outbox: waiting },
+      (rows.map(reportLine).join("\n") || (flags.all ? "no reports" : "no open reports")) +
+        (waiting ? `\n(${waiting} more on this Mac, not sent yet: freym feedback send)` : ""),
+    );
+  }
+  if (sub === "show") {
+    const r = await findReport(need(pos[1], "freym feedback show <id>"));
+    return out(
+      r,
+      `${reportLine(r)}\nid ${r.id}  first ${r.created_at.slice(0, 16).replace("T", " ")}\n` +
+        (r.details ? `\n${r.details}\n` : "") +
+        `\ncontext ${JSON.stringify(r.context, null, 2)}` +
+        (r.resolution ? `\n\nresolution: ${r.resolution}` : ""),
+    );
+  }
+  if (sub === "close") {
+    const r = await closeReport(need(pos[1], "freym feedback close <id> --status fixed --note \"…\""), String(flags.status ?? "fixed"), String(flags.note ?? ""));
+    return out(r, `${reportLine(r)}${r.resolution ? `\n  ${r.resolution}` : ""}`);
+  }
+  if (sub !== "send") {
+    const kind = need(sub, 'freym feedback <bug|default|slow|missing|docs> "<summary>" [--details "…"] [--last]');
+    let details = typeof flags.details === "string" ? flags.details : undefined;
+    if (typeof flags["details-file"] === "string") details = fs.readFileSync(path.resolve(flags["details-file"]), "utf8");
+    queueReport(kind, need(pos[1], `freym feedback ${kind} "<summary>"`), details, !!flags.last, path.basename(process.cwd()));
+  }
+  const r = await flushOutbox();
+  const lines = [
+    ...r.sent.map((s) => (s.is_new ? `filed #${short(s.id)}: ${s.summary}` : `counted on #${short(s.id)} (now ${s.count}×): ${s.summary}`)),
+    ...r.dropped.map((d) => `dropped (the database refused it): ${d}`),
+    ...(r.left ? [`kept on this Mac (${r.left} waiting): ${r.error}. It goes out with the next \`freym feedback\` or \`freym feedback send\`.`] : []),
+  ];
+  return out(r, lines.join("\n") || "nothing to send");
+}
+
 async function main() {
   const { pos, flags } = parseArgs(process.argv.slice(2));
   JSON_OUT = !!flags.json;
@@ -188,6 +241,12 @@ async function main() {
   switch (cmd) {
     case "plan-help":
       return out({ help: PLAN_HELP }, PLAN_HELP);
+
+    case "version":
+      return out({ build: BUILD }, BUILD);
+
+    case "feedback":
+      return feedback(pos, flags);
 
     case "login": {
       if (flags.owner) await loginOwner();
@@ -331,10 +390,18 @@ function need(v: string | undefined, usage: string): string {
 main().then(
   () => process.exit(0),
   (e) => {
+    const unexpected = !(e instanceof CliError);
     const err = e instanceof CliError ? e : new CliError(String((e as Error)?.message ?? e), 3);
     const details = Array.isArray(err.details) ? (err.details as string[]) : [];
-    if (JSON_OUT) process.stdout.write(JSON.stringify({ error: err.message, problems: details, code: err.code }, null, 2) + "\n");
-    else process.stderr.write(`freym: ${err.message}${details.map((d) => `\n  - ${d}`).join("")}\n`);
+    const argv = process.argv.slice(2);
+    if (argv[0] !== "feedback") recordFailure(argv, err.code, err.message, details);
+    // Plan problems (1) and not-found (2) are the agent's to fix; the rest may be freym's.
+    const hint =
+      argv[0] !== "feedback" && (unexpected || err.code >= 3)
+        ? 'If this looks like a problem with freym itself: freym feedback bug "<what you expected>" --last'
+        : null;
+    if (JSON_OUT) process.stdout.write(JSON.stringify({ error: err.message, problems: details, code: err.code, ...(hint ? { hint } : {}) }, null, 2) + "\n");
+    else process.stderr.write(`freym: ${err.message}${details.map((d) => `\n  - ${d}`).join("")}\n${hint ? `freym: ${hint}\n` : ""}`);
     process.exit(err.code);
   },
 );

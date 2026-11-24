@@ -11,6 +11,7 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL } from "../src/lib/supabase";
 import { CliError } from "./errors";
 
 const DIR = process.env.FREYM_CONFIG_DIR ?? path.join(os.homedir(), ".config", "freym");
+export const CONFIG_DIR = DIR;
 const FILE = path.join(DIR, "session.json");
 const OWNER_FILE = path.join(DIR, "owner");
 // The auth allow list has http://localhost:5173/** (the canvas dev server port).

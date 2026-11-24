@@ -1,6 +1,6 @@
 ---
 name: freym
-description: Make GENERATION boards on the freym canvas (freym.app/canvas) with the `freym` CLI — prompts and reference images wired into model cards. Use it to compare models or set up a round of images or video on freym. Not for reviews, art-director picks or HTML pages: those go on `board`.
+description: Make GENERATION boards on the freym canvas (freym.app/canvas) with the `freym` CLI — prompts and reference images wired into model cards. Use it to compare models or set up a round of images or video on freym. Not for reviews, art-director picks or HTML pages: those go on `board`. Report any freym problem with `freym feedback`.
 ---
 
 # freym
@@ -85,9 +85,46 @@ everything.
 - Exit codes: 1 a plan or usage problem, 2 not found, 3 network or IO, 4 sign-in. Every command
   takes `--json`.
 
+## Report problems with freym itself
+
+`freym feedback` is how freym gets fixed: the freym maintainer reads every report. Report a
+problem the moment you meet it, then go on with a workaround. Do not wait for an answer.
+
+**When to report** (one report per problem):
+
+| what happened | kind |
+|---|---|
+| a command failed and you think freym is at fault (exit 3 or 4, a crash, a wrong result) | `bug` |
+| **the user rejects or corrects a board you made with freym** ("wrong board", "not like this") | `bug`, `default` or `docs` |
+| freym did what it says, but its default was wrong for the job (layout, a param, a price, a size) | `default` |
+| a step took too long or did needless work | `slow` |
+| you needed something freym cannot do (a node type, a command, a model) | `missing` |
+| this skill or `freym help` sent you the wrong way, or left you to guess | `docs` |
+
+A plan that fails `freym check` is not a report: fix the plan. Report only when the check is wrong.
+
+**How:**
+
+```bash
+freym feedback bug "freym new: image upload fails with 'Payload too large' for a 12 MB PNG" --last
+freym feedback default "images that feed no model stacked in one tall column; expected a grid"
+freym feedback docs "the skill did not say that reviews belong on board, so I put screenshots on freym" \
+  --details "user asked: show changes in artdirector mode via freym; I uploaded 11 screenshots"
+```
+
+- The summary is one line: what you did, what you expected, what happened.
+- `--last` attaches the facts of the last failed freym command (arguments, exit code, error,
+  problem list, build). Use it right after a failure.
+- **Facts only.** No prompt text, no plan contents, no client names, no secrets, no screenshots.
+  Say what kind of thing it was ("a 12 MB PNG", "a 9-image plan"), not what was in it.
+- The same open summary counts up (3×) instead of a new row, so a repeat is useful: send it.
+- The report goes to a local outbox first. If sign-in or the network fails, it waits and goes
+  out with the next `freym feedback`. Exit code 0 means the report is safe.
+- Tell the user in one line that you filed it (`filed #2fa421d8`).
+
 ## Where things are
 
-- CLI source: `~/freym/canvas/cli/` (`freym.ts`, `plan.ts`, `session.ts`); self-test
+- CLI source: `~/freym/canvas/cli/` (`freym.ts`, `plan.ts`, `session.ts`, `feedback.ts`); self-test
   `npm run test:cli`; build `npm run build:cli` (in `~/freym/canvas`).
 - Session: `~/.config/freym/session.json` (mode 600, the user's own sign-in; RLS applies).
 - `board gen` (the board CLI) is the other route: fal direct, results on a local board. Use freym

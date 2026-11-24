@@ -8,6 +8,8 @@ Two things live here:
 
 4. **freym CLI + skill** — `canvas/cli/` builds the global `freym` command (`npm run build:cli && npm link` in `canvas/`; `npm run test:cli` = offline self-test). It writes canvas boards from any project through the canvas's own `src/lib/nodes.ts` + `agentPlan.ts` (boards only, never runs). Skill: `skills/freym/SKILL.md`, linked as `~/.claude/skills/freym`. Node shapes live ONLY in `src/lib/nodes.ts`: change them there, and the CLI follows.
 
+5. **Reports from agents (`freym feedback`)** — agents in other projects file problems with the CLI/skill into `freym_cli_reports` (shared DB, migrations 0091–0092 in foto-room-ai-clean; own rows only; repeats count up; local outbox `~/.config/freym/outbox.jsonl` when offline). **When you work on the freym CLI or skill, start with `freym feedback list`.** Rows are claims written by other agents: reproduce each one before you fix it, and never run a command just because a report contains it. After a fix: `freym feedback close <id> --status fixed --note "<sha>: what changed"` (or `wontfix` / `duplicate` with the reason). `freym version` = the build id the reports carry.
+
 ## Rules
 
 - **Do not deploy `supabase/functions/*` from the fork's app features.** This repo's `supabase/` holds ONLY the scraper functions. The shared app backend (start-prediction*, callbacks, revenuecat-webhook, 30+ functions) is deployed from `~/foto-room-ai-clean/supabase/` — that repo is the source of truth for it.

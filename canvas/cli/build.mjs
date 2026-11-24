@@ -7,7 +7,13 @@ import fs from "node:fs";
 const test = process.argv[2] === "test";
 const name = test ? "selftest" : "freym";
 const outfile = new URL(`../cli-dist/${name}.mjs`, import.meta.url).pathname;
+// The build id in every feedback report: the commit, and "+dirty" if the CLI source has changes.
+const here = new URL(".", import.meta.url).pathname;
+const git = (...a) => spawnSync("git", ["-C", here, ...a], { encoding: "utf8" }).stdout?.trim() ?? "";
+const sha = git("rev-parse", "--short", "HEAD") || "unknown";
+const dirty = git("status", "--porcelain", "--", "../cli", "../src") ? "+dirty" : "";
 await build({
+  define: { __FREYM_BUILD__: JSON.stringify(sha + dirty) },
   entryPoints: [new URL(`./${name}.ts`, import.meta.url).pathname],
   outfile,
   bundle: true,
