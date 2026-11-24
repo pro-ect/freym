@@ -17,11 +17,13 @@ same nodes, checks and layout as a board the canvas agent makes.
 
 ```bash
 command -v freym || (cd ~/freym/canvas && npm run build:cli && npm link)
-freym whoami    # exit 4 = not signed in
+freym whoami    # the account and its coins; exit 4 = not signed in
 ```
 
-If `freym whoami` says "not signed in", ask the user to type `! freym login`. It opens the
-browser for Google sign-in, once per machine. Do not sign in for them.
+No sign-in step on the owner's Mac: `~/.config/freym/owner` holds the owner's user id, and any
+command signs in as the owner by itself (no browser) when no session exists. The session then
+renews itself. Only if `whoami` still exits 4 (no Supabase CLI login in the keychain, or no
+owner file), ask the user to type `! freym login` (Google sign-in in the browser).
 
 ## Workflow
 

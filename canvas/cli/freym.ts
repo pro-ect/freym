@@ -10,7 +10,7 @@ import { fetchModels } from "../src/lib/models";
 import { usd } from "../src/lib/balance";
 import { CliError } from "./errors";
 import { buildBoard, parsePlan, type ImageSrc } from "./plan";
-import { loginGoogle, loginPassphrase, logout, requireUser, sb } from "./session";
+import { loginGoogle, loginOwner, loginPassphrase, logout, requireUser, sb } from "./session";
 
 const SITE = "https://freym.app/canvas/";
 const MAX_DIM = 2048; // the canvas downscales uploads to this (lib/upload.ts)
@@ -20,6 +20,8 @@ const HELP = `freym — make freym canvas boards (${SITE}) from any project
 
 Usage
   freym login                     sign in with Google in the browser (once per machine)
+  freym login --owner             sign in as this Mac's owner, no browser (~/.config/freym/owner);
+                                  every command does this by itself when no one is signed in
   freym login --passphrase        the legacy passphrase account (reads FREYM_PASSPHRASE or stdin)
   freym logout | freym whoami
   freym models [--kind image|video]   the canvas models: slug, inputs, params, price
@@ -58,7 +60,7 @@ function parseArgs(argv: string[]): { pos: string[]; flags: Flags } {
     if (a.startsWith("--")) {
       const k = a.slice(2);
       const next = argv[i + 1];
-      if (["json", "open", "passphrase", "help"].includes(k) || next === undefined || next.startsWith("--")) flags[k] = true;
+      if (["json", "open", "passphrase", "owner", "help"].includes(k) || next === undefined || next.startsWith("--")) flags[k] = true;
       else flags[k] = argv[++i];
     } else pos.push(a);
   }
@@ -183,7 +185,8 @@ async function main() {
       return out({ help: PLAN_HELP }, PLAN_HELP);
 
     case "login": {
-      if (flags.passphrase) {
+      if (flags.owner) await loginOwner();
+      else if (flags.passphrase) {
         const p = process.env.FREYM_PASSPHRASE ?? fs.readFileSync(0, "utf8").split("\n")[0];
         if (!p?.trim()) throw new CliError("no passphrase (set FREYM_PASSPHRASE or pipe it on stdin)", 1);
         await loginPassphrase(p);

@@ -2,7 +2,7 @@
 // Stored in ~/.config/freym/session.json (mode 600). Tokens are never printed.
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
-import { execFile } from "node:child_process";
+import { execFile, execFileSync } from "node:child_process";
 import fs from "node:fs";
 import http from "node:http";
 import os from "node:os";
@@ -12,6 +12,7 @@ import { CliError } from "./errors";
 
 const DIR = process.env.FREYM_CONFIG_DIR ?? path.join(os.homedir(), ".config", "freym");
 const FILE = path.join(DIR, "session.json");
+const OWNER_FILE = path.join(DIR, "owner");
 // The auth allow list has http://localhost:5173/** (the canvas dev server port).
 const PORT = 5173;
 const CALLBACK = `http://localhost:${PORT}/freym-cli`;
@@ -59,7 +60,17 @@ export function sb(): SupabaseClient {
 
 /** The signed-in user, or an error that says how to sign in. */
 export async function requireUser(): Promise<{ id: string; email: string | null; isGuest: boolean }> {
-  const { data } = await sb().auth.getSession(); // refreshes an expired session
+  let { data } = await sb().auth.getSession(); // refreshes an expired session
+  if (!data.session && fs.existsSync(OWNER_FILE)) {
+    // The owner's own Mac: sign in with no browser (see loginOwner), once; the session then renews.
+    try {
+      await loginOwner();
+      process.stderr.write("freym: signed in as this Mac's owner (no browser)\n");
+    } catch (e) {
+      throw new CliError(`not signed in, and the owner sign-in failed: ${(e as Error).message}. Run \`freym login\` (browser).`, 4);
+    }
+    ({ data } = await sb().auth.getSession());
+  }
   const u = data.session?.user;
   if (!u) throw new CliError("not signed in: run `freym login` (it opens the browser once)", 4);
   const isGuest = !u.email || u.app_metadata?.provider === "anonymous" || !!u.is_anonymous;
@@ -150,6 +161,47 @@ export async function loginPassphrase(passphrase: string): Promise<void> {
   if (!session?.access_token) throw new CliError("sign-in failed (no session)", 4);
   const { error } = await sb().auth.setSession({ access_token: session.access_token, refresh_token: session.refresh_token });
   if (error) throw new CliError(`sign-in failed: ${error.message}`, 4);
+}
+
+/**
+ * Sign in as this Mac's owner with no browser. `~/.config/freym/owner` holds the owner's user id
+ * (no email or secret in the repo). The Supabase CLI login in the macOS keychain reads the
+ * project's service key (kept in memory only), which mints a one-time magic-link token for the
+ * owner's own account; verifying it gives an ordinary user session, saved like `freym login`'s.
+ * RLS still applies to everything the CLI does after that.
+ */
+export async function loginOwner(): Promise<void> {
+  let owner = "";
+  try {
+    owner = fs.readFileSync(OWNER_FILE, "utf8").trim();
+  } catch {
+    throw new CliError(`no owner set: put your user id in ${OWNER_FILE}`, 4);
+  }
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(owner)) throw new CliError(`${OWNER_FILE} must hold a user id (uuid)`, 4);
+  let raw = "";
+  try {
+    raw = execFileSync("security", ["find-generic-password", "-s", "Supabase CLI", "-w"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  } catch {
+    throw new CliError("no Supabase CLI login in the keychain (run `supabase login`)", 4);
+  }
+  const cliToken = raw.startsWith("go-keyring-base64:") ? Buffer.from(raw.slice(18), "base64").toString("utf8").trim() : raw;
+  const ref = new URL(SUPABASE_URL).hostname.split(".")[0];
+  const res = await fetch(`https://api.supabase.com/v1/projects/${ref}/api-keys?reveal=true`, { headers: { authorization: `Bearer ${cliToken}` } });
+  if (!res.ok) throw new CliError(`the Supabase CLI login cannot read this project's keys (${res.status})`, 4);
+  const keys = (await res.json()) as { name?: string; type?: string; api_key?: string }[];
+  const service = keys.find((k) => k.name === "service_role")?.api_key ?? keys.find((k) => k.type === "secret")?.api_key;
+  if (!service) throw new CliError("no service key on this project", 4);
+  const admin = createClient(SUPABASE_URL, service, { auth: { persistSession: false, autoRefreshToken: false } });
+  const { data: found, error: findErr } = await admin.auth.admin.getUserById(owner);
+  if (findErr || !found.user?.email) throw new CliError(`owner ${owner.slice(0, 8)}… not found`, 4);
+  const { data: link, error: linkErr } = await admin.auth.admin.generateLink({ type: "magiclink", email: found.user.email });
+  const hash = link?.properties?.hashed_token;
+  if (linkErr || !hash) throw new CliError(`could not mint a sign-in token: ${linkErr?.message ?? "no token"}`, 4);
+  const { data: s, error } = await sb().auth.verifyOtp({ token_hash: hash, type: "magiclink" });
+  if (error || s.session?.user.id !== owner) {
+    await logout();
+    throw new CliError(`owner sign-in failed: ${error?.message ?? "another user came back"}`, 4);
+  }
 }
 
 export async function logout(): Promise<void> {
