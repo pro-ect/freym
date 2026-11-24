@@ -73,6 +73,7 @@ function openUrl(url: string) {
 /** Google sign-in in the browser: PKCE, a one-shot callback server on localhost:5173. */
 export async function loginGoogle(log: (s: string) => void): Promise<void> {
   const servers: http.Server[] = [];
+  let listening!: Promise<void>;
   const gotCode = new Promise<string>((resolve, reject) => {
     const handler: http.RequestListener = (req, res) => {
       const u = new URL(req.url ?? "/", CALLBACK);
@@ -91,27 +92,33 @@ export async function loginGoogle(log: (s: string) => void): Promise<void> {
       if (code) resolve(code);
       else reject(new CliError(`sign-in failed: ${err ?? "no code"}`, 4));
     };
-    for (const host of ["127.0.0.1", "::1"]) {
-      const s = http.createServer(handler);
-      s.on("error", (e: NodeJS.ErrnoException) => {
-        if (host === "127.0.0.1")
-          reject(
-            new CliError(
-              e.code === "EADDRINUSE"
-                ? `port ${PORT} is busy (the canvas dev server?): stop it and run \`freym login\` again`
-                : `cannot listen on ${host}:${PORT}: ${e.message}`,
-              3,
-            ),
-          );
-      });
-      s.listen(PORT, host);
-      servers.push(s);
-    }
+    const ipv4 = http.createServer(handler);
+    const ipv6 = http.createServer(handler);
+    servers.push(ipv4, ipv6);
+    // The IPv4 server must listen before the browser opens; IPv6 is a bonus (localhost may be ::1).
+    listening = new Promise<void>((ok, fail) => {
+      ipv4.once("listening", () => ok());
+      ipv4.on("error", (e: NodeJS.ErrnoException) =>
+        fail(
+          new CliError(
+            e.code === "EADDRINUSE"
+              ? `port ${PORT} is busy (the canvas dev server?): stop it and run \`freym login\` again`
+              : `cannot listen on 127.0.0.1:${PORT}: ${e.message}`,
+            3,
+          ),
+        ),
+      );
+    });
+    ipv6.on("error", () => {});
+    ipv4.listen(PORT, "127.0.0.1");
+    ipv6.listen(PORT, "::1");
   });
+  gotCode.catch(() => {}); // awaited below; this only stops an early "unhandled rejection"
   const timeout = new Promise<never>((_, reject) =>
     setTimeout(() => reject(new CliError("sign-in timed out after 5 minutes", 4)), 5 * 60_000).unref(),
   );
   try {
+    await listening;
     const { data, error } = await sb().auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: CALLBACK, skipBrowserRedirect: true },
