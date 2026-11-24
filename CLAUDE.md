@@ -6,6 +6,8 @@ Two things live here:
 
 3. **freym canvas** — `canvas/` (Vite + React + @xyflow/react, node-canvas ported from ~/nigma's nodes app) builds into `docs/canvas/` → served at freym.app/canvas. Weavy-style node UI: prompt/image nodes wired into model nodes; models come from the shared `models` table; runs go through `start-prediction-fal` etc. and land via `generation_queue` realtime. Projects persist in `canvas_projects` (RLS per user). Access: passphrase → SHA-256 → deviceId → `guest-auth`; Eugene's admin passphrase account has a topped-up `profiles.coin_balance`. After changing `canvas/src`, run `npm run build` in `canvas/` and commit the `docs/canvas/` output — Vercel serves static docs/ only.
 
+4. **freym CLI + skill** — `canvas/cli/` builds the global `freym` command (`npm run build:cli && npm link` in `canvas/`; `npm run test:cli` = offline self-test). It writes canvas boards from any project through the canvas's own `src/lib/nodes.ts` + `agentPlan.ts` (boards only, never runs). Skill: `skills/freym/SKILL.md`, linked as `~/.claude/skills/freym`. Node shapes live ONLY in `src/lib/nodes.ts`: change them there, and the CLI follows.
+
 ## Rules
 
 - **Do not deploy `supabase/functions/*` from the fork's app features.** This repo's `supabase/` holds ONLY the scraper functions. The shared app backend (start-prediction*, callbacks, revenuecat-webhook, 30+ functions) is deployed from `~/foto-room-ai-clean/supabase/` — that repo is the source of truth for it.

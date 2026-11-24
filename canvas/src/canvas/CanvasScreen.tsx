@@ -39,46 +39,13 @@ import { generatePrompts } from "../lib/promptgen";
 import { fetchModels } from "../lib/models";
 import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from "../lib/supabase";
 import { refCapacity } from "../lib/modelPairs";
+import { defaultsFor, imageNode, modelToNode, textNode } from "../lib/nodes";
 import { patchNodeData } from "../types";
 import { isImageFile } from "../lib/upload";
 import type { CloudModel, ModelNodeData, PromptGenNodeData, PromptNodeData } from "../types";
 
 const nodeTypes = { prompt: PromptNode, text: TextNode, promptgen: PromptGenNode, image: ImageNode, video: VideoNode, audio: AudioNode, model: ModelNode };
 const edgeTypes = { default: CurvedEdge };
-
-/** Seed a new model node with the schema's own defaults so runs match the app. */
-function defaultsFor(schema: CloudModel["param_schema"]): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [key, field] of Object.entries(schema ?? {})) {
-    if (field?.default !== undefined) out[key] = field.default;
-  }
-  return out;
-}
-
-function modelToNode(m: CloudModel, position: { x: number; y: number }): Node {
-  return {
-    id: uuid(),
-    type: "model",
-    position,
-    data: {
-      slug: m.slug,
-      modelName: m.name,
-      category: m.category,
-      provider: m.provider,
-      costCoins: m.coin_cost,
-      perSecondCents: m.price_per_second_cents != null ? Number(m.price_per_second_cents) : null,
-      rateTable: m.rate_table ?? null,
-      supportsPrompt: m.supports_prompt !== false,
-      // Dual-mode image models accept the edit variant's reference count.
-      maxRefImages: refCapacity(m.slug, m.reference_images_max ?? 0),
-      imageParamName: m.image_parameter_name,
-      status: "idle",
-      images: [],
-      params: { custom: defaultsFor(m.param_schema) },
-      paramSchema: m.param_schema ?? null,
-    } satisfies ModelNodeData,
-  };
-}
 
 function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }) {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
@@ -517,12 +484,12 @@ function Canvas({ projectId, onBack }: { projectId: string; onBack: () => void }
   const addText = () =>
     setNodes((ns) => [
       ...ns.map((n) => ({ ...n, selected: false })),
-      { id: uuid(), type: "text", position: centerPos(), selected: true, data: { text: "", fontSize: 24 } },
+      { ...textNode("", centerPos()), selected: true },
     ]);
   const addImage = () =>
     setNodes((ns) => [
       ...ns,
-      { id: uuid(), type: "image", position: centerPos(), data: { url: null } },
+      imageNode(null, centerPos()),
     ]);
   const addVideo = () =>
     setNodes((ns) => [

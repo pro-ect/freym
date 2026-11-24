@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
 import { PARAM_MIRROR } from "./paramMirror";
 import type { CloudModel, ParamSchema } from "../types";
@@ -15,12 +16,13 @@ const DEAD_PARAMS: Record<string, string[]> = {
 
 let cache: CloudModel[] | null = null;
 
-export async function fetchModels(): Promise<CloudModel[]> {
+/** `client`: the canvas uses its own; the freym CLI passes its signed-in Node client. */
+export async function fetchModels(client: SupabaseClient = supabase): Promise<CloudModel[]> {
   if (cache) return cache;
   // canvas_models view = models × active model_configs × active model_pricing,
   // providers limited to ones the start-prediction* functions accept — the
   // guaranteed-runnable catalog, with the true provider for routing.
-  const { data, error } = await supabase
+  const { data, error } = await client
     .from("canvas_models")
     .select("*")
     .order("sort_order", { ascending: true });
@@ -28,7 +30,7 @@ export async function fetchModels(): Promise<CloudModel[]> {
 
   // param_schema (the model's own controls — creativity, quality, resolution…)
   // isn't on the canvas_models view, so pull it from `models` and merge by slug.
-  const { data: schemas } = await supabase.from("models").select("slug, param_schema");
+  const { data: schemas } = await client.from("models").select("slug, param_schema");
   const bySlug = new Map((schemas ?? []).map((s) => [s.slug, s.param_schema]));
 
   cache = (data ?? []).map((row) => {

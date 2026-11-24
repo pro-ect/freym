@@ -3,9 +3,14 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
+  "bin": {
+    "freym": "cli-dist/freym.mjs"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:cli": "node cli/build.mjs",
+    "test:cli": "node cli/build.mjs test",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
