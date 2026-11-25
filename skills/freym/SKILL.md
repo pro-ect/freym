@@ -24,9 +24,11 @@ same nodes, checks and layout as a board the canvas agent makes.
 The freym canvas shows a picture in a node 300 units wide, with no comments. A screenshot of a
 review card is not readable there, and the user cannot pick by comment.
 
-If the user asks for review or art-director work "on freym" or "via freym", do not upload
-screenshots. Ask one short question: "the freym canvas (pictures only) or `board` (live pages and
-comments)?" Recommend `board`. A plan with no model card makes the CLI print a note about this.
+**The user's words.** The user calls `board` "the new freym experiment" and often says "freym
+board", "on freym" or "via freym" for it. So for review, art-director, HTML or architecture work
+"on freym", use **`board`** (`board init`, `board add`, `board serve`) and say so in one line. Do not
+upload screenshots to the freym canvas. Use this skill only when the job is a generation round.
+A plan with no model card makes the CLI print a note about this.
 
 ## Setup (check once per session)
 
