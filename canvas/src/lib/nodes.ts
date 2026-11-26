@@ -5,7 +5,7 @@ import type { CloudModel, ImageNodeData, ModelNodeData, TextNodeData } from "../
 
 /**
  * The ONE place that builds board nodes. The canvas (sidebar, toolbar, paste,
- * agent) and the `freym` CLI both use it, so a board made outside the browser
+ * agent) and the `freym-aigen` CLI both use it, so a board made outside the browser
  * has exactly the nodes the canvas makes.
  */
 

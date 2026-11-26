@@ -66,14 +66,14 @@ export async function requireUser(): Promise<{ id: string; email: string | null;
     // The owner's own Mac: sign in with no browser (see loginOwner), once; the session then renews.
     try {
       await loginOwner();
-      process.stderr.write("freym: signed in as this Mac's owner (no browser)\n");
+      process.stderr.write("freym-aigen: signed in as this Mac's owner (no browser)\n");
     } catch (e) {
-      throw new CliError(`not signed in, and the owner sign-in failed: ${(e as Error).message}. Run \`freym login\` (browser).`, 4);
+      throw new CliError(`not signed in, and the owner sign-in failed: ${(e as Error).message}. Run \`freym-aigen login\` (browser).`, 4);
     }
     ({ data } = await sb().auth.getSession());
   }
   const u = data.session?.user;
-  if (!u) throw new CliError("not signed in: run `freym login` (it opens the browser once)", 4);
+  if (!u) throw new CliError("not signed in: run `freym-aigen login` (it opens the browser once)", 4);
   const isGuest = !u.email || u.app_metadata?.provider === "anonymous" || !!u.is_anonymous;
   return { id: u.id, email: u.email ?? null, isGuest };
 }
@@ -114,7 +114,7 @@ export async function loginGoogle(log: (s: string) => void): Promise<void> {
         fail(
           new CliError(
             e.code === "EADDRINUSE"
-              ? `port ${PORT} is busy (the canvas dev server?): stop it and run \`freym login\` again`
+              ? `port ${PORT} is busy (the canvas dev server?): stop it and run \`freym-aigen login\` again`
               : `cannot listen on 127.0.0.1:${PORT}: ${e.message}`,
             3,
           ),
@@ -168,7 +168,7 @@ export async function loginPassphrase(passphrase: string): Promise<void> {
  * Sign in as this Mac's owner with no browser. `~/.config/freym/owner` holds the owner's user id
  * (no email or secret in the repo). The Supabase CLI login in the macOS keychain reads the
  * project's service key (kept in memory only), which mints a one-time magic-link token for the
- * owner's own account; verifying it gives an ordinary user session, saved like `freym login`'s.
+ * owner's own account; verifying it gives an ordinary user session, saved like `freym-aigen login`'s.
  * RLS still applies to everything the CLI does after that.
  */
 export async function loginOwner(): Promise<void> {

@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "type": "module",
   "bin": {
-    "freym": "cli-dist/freym.mjs"
+    "freym-aigen": "cli-dist/freym-aigen.mjs"
   },
   "scripts": {
     "dev": "vite",

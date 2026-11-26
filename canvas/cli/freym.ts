@@ -1,4 +1,4 @@
-// freym — make freym canvas boards (freym.app/canvas) from any project.
+// freym-aigen — make freym canvas boards (freym.app/canvas) from any project.
 // Boards only: nothing here starts a model run or spends coins.
 import type { Edge, Node } from "@xyflow/react";
 import { execFile, execFileSync } from "node:child_process";
@@ -17,30 +17,30 @@ const SITE = "https://freym.app/canvas/";
 const MAX_DIM = 2048; // the canvas downscales uploads to this (lib/upload.ts)
 const MAX_BYTES = 8 * 1024 * 1024;
 
-const HELP = `freym — make freym canvas boards (${SITE}) from any project
+const HELP = `freym-aigen — make freym canvas boards (${SITE}) from any project
 
 Usage
-  freym login                     sign in with Google in the browser (once per machine)
-  freym login --owner             sign in as this Mac's owner, no browser (~/.config/freym/owner);
+  freym-aigen login               sign in with Google in the browser (once per machine)
+  freym-aigen login --owner       sign in as this Mac's owner, no browser (~/.config/freym/owner);
                                   every command does this by itself when no one is signed in
-  freym login --passphrase        the legacy passphrase account (reads FREYM_PASSPHRASE or stdin)
-  freym logout | freym whoami
-  freym models [--kind image|video]   the canvas models: slug, inputs, params, price
-  freym boards                    your boards (newest first)
-  freym show <board>              a board's nodes with handles (n1, n2…) to wire into
-  freym check <plan.json> [--board <board>]   run every check, write nothing
-  freym new "<name>" <plan.json> [--open]     a new board from a plan
-  freym add <board> <plan.json>   add a plan to a board (close the board in the browser first)
-  freym open <board> | freym share <board>    open it / a read-only link
-  freym plan-help                 the plan format, for an agent
+  freym-aigen login --passphrase  the legacy passphrase account (reads FREYM_PASSPHRASE or stdin)
+  freym-aigen logout | freym-aigen whoami
+  freym-aigen models [--kind image|video]   the canvas models: slug, inputs, params, price
+  freym-aigen boards              your boards (newest first)
+  freym-aigen show <board>        a board's nodes with handles (n1, n2…) to wire into
+  freym-aigen check <plan.json> [--board <board>]   run every check, write nothing
+  freym-aigen new "<name>" <plan.json> [--open]     a new board from a plan
+  freym-aigen add <board> <plan.json>   add a plan to a board (close the board in the browser first)
+  freym-aigen open <board> | freym-aigen share <board>    open it / a read-only link
+  freym-aigen plan-help           the plan format, for an agent
 
 Report a problem with freym itself (agents: do it; this is how freym gets fixed)
-  freym feedback <kind> "<summary>" [--details "…"] [--last]
+  freym-aigen feedback <kind> "<summary>" [--details "…"] [--last]
                                   kinds: bug, default (a default that is wrong), slow, missing,
                                   docs (the skill or help misled you); --last attaches the facts
                                   of the last failed freym command. Facts only: no prompts.
-  freym feedback list [--all] | show <id> | send
-  freym feedback close <id> --status fixed|wontfix|duplicate --note "…"   (the freym maintainer)
+  freym-aigen feedback list [--all] | show <id> | send
+  freym-aigen feedback close <id> --status fixed|wontfix|duplicate --note "…"   (the freym maintainer)
 
 Every command accepts --json. Exit codes: 0 ok, 1 usage or a plan that fails a check,
 2 not found, 3 network or IO, 4 sign-in. Boards only: the user starts runs in the canvas.`;
@@ -50,12 +50,12 @@ const PLAN_HELP = `A plan is a JSON file: {"name": "optional", "ops": [ … ]}. 
   {"op": "add_text",   "key": "t",  "text": "Hero key images", "size": 48}      a title (size 8–400 px, default 48)
   {"op": "add_image",  "key": "r1", "src": "refs/product.jpg"}                  a reference image: a local file (uploaded) or an https URL
   {"op": "add_prompt", "key": "p1", "text": "…"}
-  {"op": "add_model",  "key": "m1", "slug": "<slug from freym models>", "params": {"aspect_ratio": "16:9"}}
+  {"op": "add_model",  "key": "m1", "slug": "<slug from freym-aigen models>", "params": {"aspect_ratio": "16:9"}}
   {"op": "connect",    "from": "p1", "to": "m1"}                                a prompt, image or model into a model
-  {"op": "set_prompt", "id": "n3", "text": "…"} / {"op": "set_params", "id": "n4", "params": {…}}   (freym add: n3 = a handle from freym show)
+  {"op": "set_prompt", "id": "n3", "text": "…"} / {"op": "set_params", "id": "n4", "params": {…}}   (freym-aigen add: n3 = a handle from freym-aigen show)
 
 Layout is automatic: titles on top, reference images in a column on the left, then one row per prompt
-with the models it feeds; on \`freym add\` the new block goes under everything. Give no positions.
+with the models it feeds; on \`freym-aigen add\` the new block goes under everything. Give no positions.
 Checks (the canvas agent's own): the slug exists, params are ones the model declares with allowed values,
 a model takes no more images than it can, wires end on a model. Any failed check = nothing written.
 Consistent sets: wire the SAME reference images and the same prompt into each model you compare.`;
@@ -91,12 +91,12 @@ async function loadBoard(id: string) {
     .eq("id", id)
     .maybeSingle();
   if (error) throw new CliError(`could not read the board: ${error.message}`, 3);
-  if (!data) throw new CliError(`no board ${id} on this account (see \`freym boards\`)`, 2);
+  if (!data) throw new CliError(`no board ${id} on this account (see \`freym-aigen boards\`)`, 2);
   return data as { id: string; name: string; nodes: Node[]; edges: Edge[]; updated_at: string };
 }
 
 function readPlan(file: string | undefined) {
-  if (!file) throw new CliError("a plan file is required (see `freym plan-help`)", 1);
+  if (!file) throw new CliError("a plan file is required (see `freym-aigen plan-help`)", 1);
   let text: string;
   try {
     text = file === "-" ? fs.readFileSync(0, "utf8") : fs.readFileSync(path.resolve(file), "utf8");
@@ -200,11 +200,11 @@ async function feedback(pos: string[], flags: Flags) {
     return out(
       { reports: rows, outbox: waiting },
       (rows.map(reportLine).join("\n") || (flags.all ? "no reports" : "no open reports")) +
-        (waiting ? `\n(${waiting} more on this Mac, not sent yet: freym feedback send)` : ""),
+        (waiting ? `\n(${waiting} more on this Mac, not sent yet: freym-aigen feedback send)` : ""),
     );
   }
   if (sub === "show") {
-    const r = await findReport(need(pos[1], "freym feedback show <id>"));
+    const r = await findReport(need(pos[1], "freym-aigen feedback show <id>"));
     return out(
       r,
       `${reportLine(r)}\nid ${r.id}  first ${r.created_at.slice(0, 16).replace("T", " ")}\n` +
@@ -214,20 +214,20 @@ async function feedback(pos: string[], flags: Flags) {
     );
   }
   if (sub === "close") {
-    const r = await closeReport(need(pos[1], "freym feedback close <id> --status fixed --note \"…\""), String(flags.status ?? "fixed"), String(flags.note ?? ""));
+    const r = await closeReport(need(pos[1], "freym-aigen feedback close <id> --status fixed --note \"…\""), String(flags.status ?? "fixed"), String(flags.note ?? ""));
     return out(r, `${reportLine(r)}${r.resolution ? `\n  ${r.resolution}` : ""}`);
   }
   if (sub !== "send") {
-    const kind = need(sub, 'freym feedback <bug|default|slow|missing|docs> "<summary>" [--details "…"] [--last]');
+    const kind = need(sub, 'freym-aigen feedback <bug|default|slow|missing|docs> "<summary>" [--details "…"] [--last]');
     let details = typeof flags.details === "string" ? flags.details : undefined;
     if (typeof flags["details-file"] === "string") details = fs.readFileSync(path.resolve(flags["details-file"]), "utf8");
-    queueReport(kind, need(pos[1], `freym feedback ${kind} "<summary>"`), details, !!flags.last, path.basename(process.cwd()));
+    queueReport(kind, need(pos[1], `freym-aigen feedback ${kind} "<summary>"`), details, !!flags.last, path.basename(process.cwd()));
   }
   const r = await flushOutbox();
   const lines = [
     ...r.sent.map((s) => (s.is_new ? `filed #${short(s.id)}: ${s.summary}` : `counted on #${short(s.id)} (now ${s.count}×): ${s.summary}`)),
     ...r.dropped.map((d) => `dropped (the database refused it): ${d}`),
-    ...(r.left ? [`kept on this Mac (${r.left} waiting): ${r.error}. It goes out with the next \`freym feedback\` or \`freym feedback send\`.`] : []),
+    ...(r.left ? [`kept on this Mac (${r.left} waiting): ${r.error}. It goes out with the next \`freym-aigen feedback\` or \`freym-aigen feedback send\`.`] : []),
   ];
   return out(r, lines.join("\n") || "nothing to send");
 }
@@ -299,7 +299,7 @@ async function main() {
     }
 
     case "show": {
-      const b = await loadBoard(need(pos[0], "freym show <board>"));
+      const b = await loadBoard(need(pos[0], "freym-aigen show <board>"));
       const { toHandle } = handleMap(b.nodes);
       const nodes = boardForAgent(b.nodes, b.edges, toHandle);
       return out(
@@ -319,7 +319,7 @@ async function main() {
     }
 
     case "new": {
-      const name = need(pos[0], 'freym new "<name>" <plan.json>');
+      const name = need(pos[0], 'freym-aigen new "<name>" <plan.json>');
       const { plan, dir } = readPlan(pos[1]);
       const user = await requireUser();
       const models = await fetchModels(sb());
@@ -337,7 +337,7 @@ async function main() {
     }
 
     case "add": {
-      const id = need(pos[0], "freym add <board> <plan.json>");
+      const id = need(pos[0], "freym-aigen add <board> <plan.json>");
       const { plan, dir } = readPlan(pos[1]);
       const b = await loadBoard(id);
       const models = await fetchModels(sb());
@@ -359,13 +359,13 @@ async function main() {
     }
 
     case "open": {
-      const id = need(pos[0], "freym open <board>");
+      const id = need(pos[0], "freym-aigen open <board>");
       execFile("open", [boardUrl(id)], () => {});
       return out({ url: boardUrl(id) }, boardUrl(id));
     }
 
     case "share": {
-      const b = await loadBoard(need(pos[0], "freym share <board>"));
+      const b = await loadBoard(need(pos[0], "freym-aigen share <board>"));
       const { data } = await sb().from("canvas_projects").select("share_token").eq("id", b.id).maybeSingle();
       let token = data?.share_token as string | null;
       if (!token) {
@@ -378,7 +378,7 @@ async function main() {
     }
 
     default:
-      throw new CliError(`unknown command "${cmd}" (see \`freym help\`)`, 1);
+      throw new CliError(`unknown command "${cmd}" (see \`freym-aigen help\`)`, 1);
   }
 }
 
@@ -398,10 +398,10 @@ main().then(
     // Plan problems (1) and not-found (2) are the agent's to fix; the rest may be freym's.
     const hint =
       argv[0] !== "feedback" && (unexpected || err.code >= 3)
-        ? 'If this looks like a problem with freym itself: freym feedback bug "<what you expected>" --last'
+        ? 'If this looks like a problem with freym itself: freym-aigen feedback bug "<what you expected>" --last'
         : null;
     if (JSON_OUT) process.stdout.write(JSON.stringify({ error: err.message, problems: details, code: err.code, ...(hint ? { hint } : {}) }, null, 2) + "\n");
-    else process.stderr.write(`freym: ${err.message}${details.map((d) => `\n  - ${d}`).join("")}\n${hint ? `freym: ${hint}\n` : ""}`);
+    else process.stderr.write(`freym-aigen: ${err.message}${details.map((d) => `\n  - ${d}`).join("")}\n${hint ? `freym: ${hint}\n` : ""}`);
     process.exit(err.code);
   },
 );

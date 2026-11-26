@@ -1,4 +1,4 @@
-// `freym feedback`: agents report problems with freym itself (the CLI, its defaults, the skill).
+// `freym-aigen feedback`: agents report problems with freym itself (the CLI, its defaults, the skill).
 // A report goes to a local outbox FIRST, then to the freym_cli_reports table through the
 // freym_report() RPC — so a report survives the failure it reports (no sign-in, no network).
 // Facts only: the command, exit code, error and problem list, build id. Never plan text or prompts.
@@ -29,7 +29,7 @@ function writePrivate(file: string, text: string) {
 
 const clip = (s: string, n: number) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
 
-/** Every failed command leaves its facts here, for `freym feedback … --last`. */
+/** Every failed command leaves its facts here, for `freym-aigen feedback … --last`. */
 export function recordFailure(argv: string[], code: number, message: string, problems: string[]) {
   try {
     const last: LastFailure = {

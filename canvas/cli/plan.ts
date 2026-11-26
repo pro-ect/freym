@@ -28,7 +28,7 @@ export function parsePlan(text: string): PlanFile {
     throw new CliError(`the plan is not JSON: ${(e as Error).message}`, 1);
   }
   const plan = (Array.isArray(raw) ? { ops: raw } : raw) as PlanFile;
-  if (!plan || !Array.isArray(plan.ops)) throw new CliError('the plan needs an "ops" array (see `freym plan-help`)', 1);
+  if (!plan || !Array.isArray(plan.ops)) throw new CliError('the plan needs an "ops" array (see `freym-aigen plan-help`)', 1);
   return plan;
 }
 
@@ -85,7 +85,7 @@ export async function buildBoard(
       if (op === "add_model") {
         const slug = String(o.slug ?? "");
         const m = bySlug.get(slug);
-        if (!m || isHiddenVariant(slug)) return problems.push(`${at}: unknown model "${slug}" (see \`freym models\`)`);
+        if (!m || isHiddenVariant(slug)) return problems.push(`${at}: unknown model "${slug}" (see \`freym-aigen models\`)`);
         if (m.category !== "image" && m.category !== "video")
           return problems.push(`${at}: ${m.name} is a ${m.category} model; the CLI places image and video models only`);
       }
@@ -103,7 +103,7 @@ export async function buildBoard(
     ? { x: Math.min(...old.map((b) => b.x)), y: Math.max(...old.map((b) => b.y + b.h)) + 200 }
     : { x: 0, y: 0 };
 
-  // Existing nodes are n1, n2… (as `freym show` prints them); a new key must not hide one.
+  // Existing nodes are n1, n2… (as `freym-aigen show` prints them); a new key must not hide one.
   const handles = handleMap(ctx.nodes).toId;
   for (const k of keys) if (handles.has(k)) problems.push(`the key "${k}" is the handle of a node already on the board: pick another key`);
 
@@ -132,7 +132,7 @@ export async function buildBoard(
       const r = await ctx.resolveImage(img);
       const h = Math.round(IMG_CHROME + IMG_W * (r.ratio && r.ratio > 0 ? Math.min(r.ratio, 3) : 1));
       const n = imageNode(r.url, { x: origin.x, y: top }, r.fileName ? { fileName: r.fileName } : {});
-      // A size estimate until the canvas measures the node: layout (and the next `freym add`)
+      // A size estimate until the canvas measures the node: layout (and the next `freym-aigen add`)
       // then knows how tall the picture is.
       n.measured = { width: IMG_W, height: h };
       imageNodes.push(n);

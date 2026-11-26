@@ -1,4 +1,4 @@
-// Bundle the freym CLI into one Node file (esbuild comes with vite).
+// Bundle the freym-aigen CLI into one Node file (esbuild comes with vite).
 import { build } from "esbuild";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -6,7 +6,8 @@ import fs from "node:fs";
 // `node cli/build.mjs` builds the CLI; `node cli/build.mjs test` builds and runs the self-test.
 const test = process.argv[2] === "test";
 const name = test ? "selftest" : "freym";
-const outfile = new URL(`../cli-dist/${name}.mjs`, import.meta.url).pathname;
+// The command is `freym-aigen` (2026-11-26: `freym` is now the freym.design CLI, ~/freym-design).
+const outfile = new URL(`../cli-dist/${test ? "selftest" : "freym-aigen"}.mjs`, import.meta.url).pathname;
 // The build id in every feedback report: the commit, and "+dirty" if the CLI source has changes.
 const here = new URL(".", import.meta.url).pathname;
 const git = (...a) => spawnSync("git", ["-C", here, ...a], { encoding: "utf8" }).stdout?.trim() ?? "";
