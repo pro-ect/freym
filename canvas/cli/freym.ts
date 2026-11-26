@@ -184,9 +184,9 @@ function summary(r: Awaited<ReturnType<typeof buildBoard>>) {
 }
 
 // The freym canvas is a generation canvas. A board with no model card is usually a review or a
-// gallery that belongs on `board` (live HTML pages, comments, picks).
+// gallery that belongs on the `freym` CLI (freym.design, old name `board`: live HTML pages, comments, picks).
 const NO_MODELS =
-  "note: this board has no model cards. The freym canvas is for generations (prompts and references into models). For a review, options to pick or HTML pages, use the `board` CLI (art-director work).";
+  "note: this board has no model cards. The freym canvas is for generations (prompts and references into models). For a review, options to pick or HTML pages, use the `freym` CLI (freym.design, old name `board`; art-director work).";
 
 const short = (id: string) => id.slice(0, 8);
 const reportLine = (r: Row) =>

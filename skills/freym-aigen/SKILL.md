@@ -1,6 +1,6 @@
 ---
 name: freym-aigen
-description: Make GENERATION boards on the freym canvas (freym.app/canvas) with the `freym-aigen` CLI — prompts and reference images wired into model cards. Use it to compare models or set up a round of images or video on freym. Not for reviews, art-director picks or HTML pages: those go on `board`. Report any freym problem with `freym-aigen feedback`.
+description: Make GENERATION boards on the freym canvas (freym.app/canvas) with the `freym-aigen` CLI — prompts and reference images wired into model cards. Use it to compare models or set up a round of images or video on freym. Not for reviews, art-director picks or HTML pages: those go on a `freym` board (the freym.design CLI, old name `board`). Report any freym problem with `freym-aigen feedback`.
 ---
 
 # freym-aigen
@@ -19,15 +19,15 @@ same nodes, checks and layout as a board the canvas agent makes.
 |---|---|
 | a round of generations: one prompt and the same references into several models; image → video chains | **freym-aigen** (this skill, the freym canvas) |
 | a set of reference pictures to generate from | **freym-aigen**, wired into the model cards |
-| an art-director review, options A/B to pick, a design review, screenshots with text, HTML pages | **`board`** (live pages, comments, picks by comment), never freym |
+| an art-director review, options A/B to pick, a design review, screenshots with text, HTML pages | **`freym`** (the freym.design CLI, old name `board`: live pages, comments, picks by comment), never freym-aigen |
 
 The freym canvas shows a picture in a node 300 units wide, with no comments. A screenshot of a
 review card is not readable there, and the user cannot pick by comment.
 
-**The user's words.** The user calls `board` "the new freym experiment" and often says "freym
-board", "on freym" or "via freym" for it. So for review, art-director, HTML or architecture work
-"on freym", use **`board`** (`board init`, `board add`, `board serve`) and say so in one line. Do not
-upload screenshots to the freym canvas. Use this skill only when the job is a generation round.
+**The user's words.** Since 2026-11-26 `freym` is the freym.design CLI (it was `board`; the old
+name still works). "freym board", "on freym" or "via freym" means that CLI. So for review,
+art-director, HTML or architecture work "on freym", use **`freym`** (`freym init`, `freym add`,
+`freym serve`) and say so in one line. Do not upload screenshots to the freym canvas. Use this skill only when the job is a generation round.
 A plan with no model card makes the CLI print a note about this.
 
 ## Setup (check once per session)
@@ -129,5 +129,5 @@ freym-aigen feedback docs "the skill did not say that reviews belong on board, s
 - CLI source: `~/freym/canvas/cli/` (`freym.ts`, `plan.ts`, `session.ts`, `feedback.ts`); self-test
   `npm run test:cli`; build `npm run build:cli` (in `~/freym/canvas`).
 - Session: `~/.config/freym/session.json` (mode 600, the user's own sign-in; RLS applies).
-- `board gen` (the board CLI) is the other route: fal direct, results on a local board. Use freym
-  when the user wants the work on the freym canvas, in freym coins.
+- `freym gen` (the freym.design CLI, old name `board`) is the other route: fal direct, results on a
+  local board. Use freym-aigen when the user wants the work on the freym canvas, in freym coins.
