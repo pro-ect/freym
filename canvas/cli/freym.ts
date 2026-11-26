@@ -49,6 +49,9 @@ const PLAN_HELP = `A plan is a JSON file: {"name": "optional", "ops": [ … ]}. 
 
   {"op": "add_text",   "key": "t",  "text": "Hero key images", "size": 48}      a title (size 8–400 px, default 48)
   {"op": "add_image",  "key": "r1", "src": "refs/product.jpg"}                  a reference image: a local file (uploaded) or an https URL
+  {"op": "add_video",  "key": "v1", "src": "demo/screen.mp4"}                   a video (the canvas's Video node): a local .mp4, .mov, .webm
+                                                                                or .m4v (uploaded as it is, at most 50 MB) or an https URL;
+                                                                                to look at, or wired into a model that takes reference video
   {"op": "add_prompt", "key": "p1", "text": "…"}
   {"op": "add_model",  "key": "m1", "slug": "<slug from freym-aigen models>", "params": {"aspect_ratio": "16:9"}}
   {"op": "connect",    "from": "p1", "to": "m1"}                                a prompt, image or model into a model
@@ -118,6 +121,53 @@ function sipsDims(file: string): { w: number; h: number } | null {
 }
 
 const IMAGE_EXT = [".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif", ".gif", ".tif", ".tiff"];
+/** Videos go up as they are, like a video the canvas takes by drop (lib/upload.ts): no transcode, 50 MB. */
+const VIDEO_TYPE: Record<string, string> = { ".mp4": "video/mp4", ".m4v": "video/mp4", ".mov": "video/quicktime", ".webm": "video/webm" };
+const VIDEO_MAX_BYTES = 50 * 1024 * 1024;
+
+/** Height / width of a video's first video stream (ffprobe; a phone clip's rotation counts). Null = unknown. */
+function videoRatio(src: string): number | null {
+  try {
+    const out = execFileSync(
+      "ffprobe",
+      ["-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height:stream_side_data=rotation:stream_tags=rotate", "-of", "json", src],
+      { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 15000 },
+    );
+    const st = JSON.parse(out).streams?.[0];
+    if (!(st?.width > 0 && st?.height > 0)) return null;
+    const rot = Math.abs(Number(st.side_data_list?.find((d: { rotation?: number }) => d.rotation != null)?.rotation ?? st.tags?.rotate ?? 0)) % 180;
+    return rot === 90 ? st.width / st.height : st.height / st.width;
+  } catch {
+    return null; // no ffprobe, or not a video it reads: the node gets a 16:9 shape until the canvas measures it
+  }
+}
+
+/** A video src → a URL on the board (local files are uploaded as they are). */
+async function resolveVideo(baseDir: string, upload: boolean, src: string): Promise<{ url: string; fileName?: string; ratio: number }> {
+  const DEFAULT = 9 / 16;
+  if (/^https:\/\//i.test(src)) {
+    const res = await fetch(src, { method: "HEAD" }).catch(() => null);
+    if (!res?.ok) throw new Error(`cannot reach ${src} (${res?.status ?? "network error"})`);
+    const type = res.headers.get("content-type") ?? "";
+    if (!/^video\//.test(type)) throw new Error(`not a video: ${src}${type ? ` (${type})` : ""}`);
+    return { url: src, ratio: videoRatio(src) ?? DEFAULT };
+  }
+  if (/^[a-z]+:\/\//i.test(src)) throw new Error("only https URLs or local files");
+  const file = path.resolve(baseDir, src.replace(/^~(?=\/)/, os.homedir()));
+  if (!fs.existsSync(file) || !fs.statSync(file).isFile()) throw new Error(`file not found: ${src}`);
+  const ext = path.extname(file).toLowerCase();
+  const type = VIDEO_TYPE[ext];
+  if (!type) throw new Error(`not a video file: ${path.basename(file)} (.mp4, .mov, .webm or .m4v${IMAGE_EXT.includes(ext) ? "; an image: use add_image" : ""})`);
+  const size = fs.statSync(file).size;
+  if (size > VIDEO_MAX_BYTES) throw new Error(`${path.basename(file)} is ${Math.round(size / 1048576)} MB; the canvas takes at most 50 MB (shorten or compress it, e.g. ffmpeg -crf 28)`);
+  const ratio = videoRatio(file) ?? DEFAULT;
+  if (!upload) return { url: `file://${file}`, fileName: path.basename(file), ratio };
+  const user = await requireUser();
+  const key = `${user.id}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}${ext === ".m4v" ? ".mp4" : ext}`;
+  const { error } = await sb().storage.from("generation-inputs").upload(key, fs.readFileSync(file), { contentType: type, upsert: false });
+  if (error) throw new Error(`upload failed: ${error.message}`);
+  return { url: sb().storage.from("generation-inputs").getPublicUrl(key).data.publicUrl, fileName: path.basename(file), ratio };
+}
 
 /** A local image as the canvas uploads it: JPEG, at most 2048 px and 8 MB. */
 function asUploadJpeg(file: string, dims: { w: number; h: number } | null): { file: string; tmp?: string } {
@@ -144,6 +194,7 @@ async function fetchImage(url: string): Promise<string> {
 
 function imageResolver(baseDir: string, upload: boolean) {
   return async (img: ImageSrc) => {
+    if (img.kind === "video") return resolveVideo(baseDir, upload, img.src);
     if (/^https:\/\//i.test(img.src)) {
       // A URL goes on the board as is; it is downloaded once to check it and read its shape.
       const tmp = await fetchImage(img.src);
@@ -157,7 +208,8 @@ function imageResolver(baseDir: string, upload: boolean) {
     if (/^[a-z]+:\/\//i.test(img.src)) throw new Error("only https URLs or local files");
     const file = path.resolve(baseDir, img.src.replace(/^~(?=\/)/, os.homedir()));
     if (!fs.existsSync(file) || !fs.statSync(file).isFile()) throw new Error(`file not found: ${img.src}`);
-    if (!IMAGE_EXT.includes(path.extname(file).toLowerCase())) throw new Error(`not an image file: ${path.basename(file)}`);
+    if (!IMAGE_EXT.includes(path.extname(file).toLowerCase()))
+      throw new Error(`not an image file: ${path.basename(file)}${VIDEO_TYPE[path.extname(file).toLowerCase()] ? " (a video: use add_video)" : ""}`);
     const dims = sipsDims(file);
     const ratio = dims ? dims.h / dims.w : 1;
     if (!upload) {
@@ -178,7 +230,7 @@ function imageResolver(baseDir: string, upload: boolean) {
 
 function summary(r: Awaited<ReturnType<typeof buildBoard>>) {
   const c = r.counts;
-  const parts = [`${c.titles} title${c.titles === 1 ? "" : "s"}`, `${c.images} image${c.images === 1 ? "" : "s"}`, `${c.prompts} prompt${c.prompts === 1 ? "" : "s"}`, `${c.models} model${c.models === 1 ? "" : "s"}`, `${c.wires} wire${c.wires === 1 ? "" : "s"}`];
+  const parts = [`${c.titles} title${c.titles === 1 ? "" : "s"}`, `${c.images} image${c.images === 1 ? "" : "s"}`, ...(c.videos ? [`${c.videos} video${c.videos === 1 ? "" : "s"}`] : []), `${c.prompts} prompt${c.prompts === 1 ? "" : "s"}`, `${c.models} model${c.models === 1 ? "" : "s"}`, `${c.wires} wire${c.wires === 1 ? "" : "s"}`];
   const runs = r.runs.map((x) => `  ${x.model.padEnd(28)} ${x.coins == null ? "price unknown" : `${x.coins} coins (${usd(x.coins)})`}`).join("\n");
   return `${parts.join(", ")}${runs ? `\n${runs}` : ""}${r.runs.length ? `\none run of every model ≈ ${r.coins} coins (${usd(r.coins)}); runs start in the canvas` : ""}${c.models ? "" : `\n${NO_MODELS}`}`;
 }

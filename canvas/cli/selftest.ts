@@ -1,7 +1,7 @@
 // npm run test:cli — offline checks of the shared node factories and the plan → board build.
 import assert from "node:assert/strict";
 import type { Node } from "@xyflow/react";
-import { imageNode, modelToNode, textNode } from "../src/lib/nodes";
+import { imageNode, mediaNode, modelToNode, textNode } from "../src/lib/nodes";
 import type { CloudModel } from "../src/types";
 import { CliError } from "./errors";
 import { buildBoard, parsePlan } from "./plan";
@@ -33,6 +33,8 @@ await check("factories give the nodes the canvas made inline before the move", (
   const pos = { x: 1, y: 2 };
   assert.deepEqual(strip(textNode("", pos)), { id: "x", type: "text", position: pos, data: { text: "", fontSize: 24 } });
   assert.deepEqual(strip(imageNode(null, pos)), { id: "x", type: "image", position: pos, data: { url: null } });
+  // the Video node the canvas makes when a clip is dropped (CanvasScreen, MediaNode)
+  assert.deepEqual(strip(mediaNode("video", null, pos, { fileName: "a.mp4" })), { id: "x", type: "video", position: pos, data: { url: null, fileName: "a.mp4" } });
   const m = modelToNode(models[0], pos);
   assert.equal(m.type, "model");
   assert.deepEqual((m.data as { params: unknown }).params, { custom: { aspect_ratio: "1:1" } }, "schema defaults seed the params");
@@ -62,7 +64,7 @@ await check("a plan builds the same layout twice, with no overlaps and no draft 
   const r1 = await buildBoard(plan, { nodes: [], edges: [], models, resolveImage });
   const r2 = await buildBoard(plan, { nodes: [], edges: [], models, resolveImage });
   assert.deepEqual(r1.nodes.map((n) => n.position), r2.nodes.map((n) => n.position), "same positions");
-  assert.deepEqual(r1.counts, { titles: 1, images: 2, prompts: 2, models: 3, wires: 6 });
+  assert.deepEqual(r1.counts, { titles: 1, images: 2, videos: 0, prompts: 2, models: 3, wires: 6 });
   for (const [i, a] of r1.nodes.entries())
     for (const b of r1.nodes.slice(i + 1)) assert.ok(!hit(boxOf(a), boxOf(b)), `${a.type} and ${b.type} overlap`);
   assert.ok(r1.nodes.every((n) => !n.className && !(n.data as { draft?: boolean }).draft), "no draft marks");
@@ -99,6 +101,35 @@ await check("images that feed no model go in a grid of 4, above the references a
   assert.ok(m.position.y > gridBottom, "the model row starts under the grid");
   for (const [i, a] of r.nodes.entries())
     for (const b of r.nodes.slice(i + 1)) assert.ok(!hit(boxOf(a), boxOf(b)), `${a.type} and ${b.type} overlap`);
+});
+
+await check("add_video: a Video node, in the grid when it feeds nothing, as a reference when wired", async () => {
+  const ops = [
+    { op: "add_text", key: "t", text: "Demo", size: 48 },
+    { op: "add_video", key: "demo", src: "screen.mp4" },
+    { op: "add_image", key: "shot", src: "a.jpg" },
+    { op: "add_video", key: "ref", src: "clip.mov" },
+    { op: "add_prompt", key: "p", text: "x" }, { op: "add_model", key: "v", slug: "vid-a" },
+    { op: "connect", from: "p", to: "v" }, { op: "connect", from: "ref", to: "v" },
+  ];
+  const seen: { src: string; kind?: string }[] = [];
+  const r = await buildBoard(parsePlan(JSON.stringify({ ops })), {
+    nodes: [], edges: [], models,
+    resolveImage: async (img) => (seen.push(img), { url: `https://example.test/${img.src}`, fileName: img.src, ratio: img.kind === "video" ? 9 / 16 : 1 }),
+  });
+  assert.deepEqual(seen.map((x) => [x.src, x.kind]), [["screen.mp4", "video"], ["a.jpg", "image"], ["clip.mov", "video"]], "the resolver is told the kind");
+  const vids = r.nodes.filter((n) => n.type === "video");
+  assert.equal(vids.length, 2);
+  assert.deepEqual(vids[0].data, { url: "https://example.test/screen.mp4", fileName: "screen.mp4" });
+  assert.deepEqual(r.counts, { titles: 1, images: 1, videos: 2, prompts: 1, models: 1, wires: 2 });
+  const img = r.nodes.find((n) => n.type === "image")!;
+  assert.equal(vids[0].position.y, img.position.y, "the loose video sits in the grid row with the image");
+  const m = r.nodes.find((n) => n.type === "model")!;
+  assert.ok(r.edges.some((e) => e.source === vids[1].id && e.target === m.id), "the wired video feeds the model");
+  for (const [i, a] of r.nodes.entries())
+    for (const b of r.nodes.slice(i + 1)) assert.ok(!hit(boxOf(a), boxOf(b)), `${a.type} and ${b.type} overlap`);
+  await assert.rejects(buildBoard(parsePlan('{"ops":[{"op":"add_video","key":"v"}]}'), { nodes: [], edges: [], models, resolveImage }), (e: unknown) =>
+    ((e as CliError).details as string[]).some((s) => s.includes('needs "src" (a local .mp4')));
 });
 
 await check("every problem comes back at once, and nothing is built", async () => {

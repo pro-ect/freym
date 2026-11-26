@@ -48,8 +48,10 @@ owner file), ask the user to type `! freym-aigen login` (Google sign-in in the b
    many images the model takes, `frames` (start/end frames for video), the price and the params
    with their allowed values. aigen-director says which model for which job.
 2. **Write a plan:** a JSON file with `ops`. `freym-aigen plan-help` prints the format:
-   `add_text`, `add_image` (a local file or an https URL), `add_prompt`, `add_model` (slug and
-   params), `connect` (a prompt, image or model into a model).
+   `add_text`, `add_image` (a local file or an https URL), `add_video` (a local .mp4, .mov, .webm
+   or .m4v up to 50 MB, or an https URL: the canvas's Video node, to look at or wired into a model
+   that takes reference video), `add_prompt`, `add_model` (slug and params), `connect` (a prompt,
+   image, video or model into a model).
 3. **Check it:** `freym-aigen check plan.json`. Fix every problem it lists, then check again. It also
    prints what one run of every model costs. Tell the user that number.
 4. **Write it:** `freym-aigen new "<project> · <topic>" plan.json --open`. Give the user the URL.
@@ -72,7 +74,7 @@ everything.
 
 ## Privacy
 
-- Uploaded reference images go to a **public** bucket (anyone with the URL can open them). Upload
+- Uploaded reference images and videos go to a **public** bucket (anyone with the URL can open them). Upload
   client or private material only after the user says yes in chat. Screenshots of a client's
   product or of a review page are client material. Auto mode does not make this question go away.
 - No client names or private project details in prompts (the providers see them).
@@ -82,7 +84,9 @@ everything.
 - **An open canvas tab** saves its whole board and would drop nodes the CLI added. `freym-aigen add`
   refuses if the board changed since it read it; after an add, tell the user to reload the tab.
 - `freym-aigen login` needs port 5173 free (the canvas dev server uses it).
-- Text and music models (prompt writers, MiniMax Music) are not placed by the CLI yet.
+- Text and music models (prompt writers, MiniMax Music) are not placed by the CLI yet. Audio
+  files are not taken yet (the bucket takes images and video only).
+- A video over 50 MB is refused: shorten or compress it first (`ffmpeg -i in.mov -crf 28 out.mp4`).
 - `freym-aigen share <board>` makes a read-only link (the user's board stays private otherwise).
 - Exit codes: 1 a plan or usage problem, 2 not found, 3 network or IO, 4 sign-in. Every command
   takes `--json`.

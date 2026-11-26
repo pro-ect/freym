@@ -1,21 +1,21 @@
 // A plan file → canvas nodes and edges, through the SAME code the canvas uses:
 // nodes.ts builds every node, agentPlan.applyPlan checks slugs, params and ref
-// caps, wires and lays out. The CLI adds two ops the canvas agent has no need
-// for: add_text (a title) and add_image (a reference image).
+// caps, wires and lays out. The CLI adds ops the canvas agent has no need for:
+// add_text (a title), add_image (an image) and add_video (a clip: the canvas's Video node).
 import type { Edge, Node } from "@xyflow/react";
 import { applyPlan, clearDraft, handleMap, type PlanOp } from "../src/lib/agentPlan";
 import { isHiddenVariant } from "../src/lib/modelPairs";
-import { imageNode, modelToNode, textNode } from "../src/lib/nodes";
+import { imageNode, mediaNode, modelToNode, textNode } from "../src/lib/nodes";
 import { estimateCoins } from "../src/lib/pricing";
 import type { CloudModel, ModelNodeData } from "../src/types";
 import { CliError } from "./errors";
 
-export type ImageSrc = { key: string; src: string };
+export type ImageSrc = { key: string; src: string; kind?: "image" | "video" };
 export type PlanFile = { name?: string; ops: Record<string, unknown>[] };
 
 const APPLY_OPS = new Set(["add_prompt", "add_model", "connect", "set_prompt", "set_params", "remove"]);
 const IMG_W = 300; // an image node is max 300 wide; its picture fills the width
-const IMG_CHROME = 80; // header + Replace button
+const IMG_CHROME = 80; // header + Replace button (the Video node has the same)
 const IMG_GAP = 60;
 const GRID_COLS = 4; // images that feed no model
 const TITLE_GAP = 40;
@@ -65,7 +65,7 @@ export async function buildBoard(
     const op = String(o.op ?? "");
     const key = String(o.key ?? "");
     const at = `op ${i + 1} (${op || "no op"})`;
-    if (op === "add_text" || op === "add_image" || op === "add_prompt" || op === "add_model") {
+    if (op === "add_text" || op === "add_image" || op === "add_video" || op === "add_prompt" || op === "add_model") {
       if (!key) return problems.push(`${at}: needs a "key"`);
       if (keys.has(key)) return problems.push(`${at}: the key "${key}" is used twice`);
       keys.add(key);
@@ -79,7 +79,11 @@ export async function buildBoard(
     } else if (op === "add_image") {
       const src = String(o.src ?? "").trim();
       if (!src) return problems.push(`${at}: needs "src" (a local image file or an https URL)`);
-      images.push({ key, src });
+      images.push({ key, src, kind: "image" });
+    } else if (op === "add_video") {
+      const src = String(o.src ?? "").trim();
+      if (!src) return problems.push(`${at}: needs "src" (a local .mp4, .mov, .webm or .m4v file, or an https URL)`);
+      images.push({ key, src, kind: "video" });
     } else if (APPLY_OPS.has(op)) {
       if (op === "add_prompt" && !String(o.text ?? "").trim()) return problems.push(`${at}: the prompt text is empty`);
       if (op === "add_model") {
@@ -91,7 +95,7 @@ export async function buildBoard(
       }
       applyOps.push(o as unknown as PlanOp);
     } else {
-      problems.push(`${at}: unknown op (use add_text, add_image, add_prompt, add_model, connect, set_prompt, set_params)`);
+      problems.push(`${at}: unknown op (use add_text, add_image, add_video, add_prompt, add_model, connect, set_prompt, set_params)`);
     }
   });
   if (!plan.ops.length) problems.push("the plan has no ops");
@@ -131,7 +135,8 @@ export async function buildBoard(
     try {
       const r = await ctx.resolveImage(img);
       const h = Math.round(IMG_CHROME + IMG_W * (r.ratio && r.ratio > 0 ? Math.min(r.ratio, 3) : 1));
-      const n = imageNode(r.url, { x: origin.x, y: top }, r.fileName ? { fileName: r.fileName } : {});
+      const extra = r.fileName ? { fileName: r.fileName } : {};
+      const n = img.kind === "video" ? mediaNode("video", r.url, { x: origin.x, y: top }, extra) : imageNode(r.url, { x: origin.x, y: top }, extra);
       // A size estimate until the canvas measures the node: layout (and the next `freym-aigen add`)
       // then knows how tall the picture is.
       n.measured = { width: IMG_W, height: h };
@@ -139,7 +144,7 @@ export async function buildBoard(
       (wired.has(img.key) ? refs : loose).push(n);
       toId.set(img.key, n.id);
     } catch (e) {
-      problems.push(`image "${img.key}": ${(e as Error).message}`);
+      problems.push(`${img.kind ?? "image"} "${img.key}": ${(e as Error).message}`);
     }
   }
   let rowY = top;
@@ -192,7 +197,8 @@ export async function buildBoard(
     created: [...created],
     counts: {
       titles: textNodes.length,
-      images: imageNodes.length,
+      images: imageNodes.filter((n) => n.type === "image").length,
+      videos: imageNodes.filter((n) => n.type === "video").length,
       prompts: nodes.filter((n) => created.has(n.id) && n.type === "prompt").length,
       models: runs.length,
       wires: result.edges.length - ctx.edges.length,

@@ -54,3 +54,8 @@ export function imageNode(url: string | null, position: Pos, extra: Partial<Imag
 export function textNode(text: string, position: Pos, fontSize = 24): Node {
   return { id: uuid(), type: "text", position, data: { text, fontSize } satisfies TextNodeData };
 }
+
+/** A video or audio input: a clip to look at, or a reference for a model that takes one. `url` null = an empty drop target. */
+export function mediaNode(kind: "video" | "audio", url: string | null, position: Pos, extra: Partial<ImageNodeData> = {}): Node {
+  return { id: uuid(), type: kind, position, data: { url, ...extra } satisfies ImageNodeData };
+}
